@@ -2,6 +2,8 @@
 # Propositions and Proofs
 -/
 
+namespace PropositionsAndProofs
+
 /-
 ## Propositions as Types
 -/
@@ -308,4 +310,6 @@ section
 /-
   example: (((p → q) → p) → p) := sorry
 -/
+end
+
 end

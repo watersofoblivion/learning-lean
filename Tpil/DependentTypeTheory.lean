@@ -2,6 +2,8 @@
 # Dependent Type Theory
 -/
 
+namespace DependentTypeTheory
+
 /-
 ## Simple Type Theory
 -/
@@ -142,7 +144,7 @@ def g (s: String): Bool := s.length > 0
 ## Definitions
 -/
 
-def Nat.double (n: Nat): Nat := n + n
+def _root_.Nat.double (n: Nat): Nat := n + n
 
 #eval (3: Nat).double
 
@@ -272,9 +274,9 @@ open Foo
 def cons (α: Type) (x: α) (l: List α): List α :=
   List.cons x l
 
-#check _root_.cons Nat
-#check _root_.cons Bool
-#check _root_.cons
+#check cons Nat
+#check cons Bool
+#check cons
 
 #check @List.cons
 #check @List.nil
@@ -337,3 +339,5 @@ end
 
 #check @id Nat 1
 #check @id Bool true
+
+end DependentTypeTheory

@@ -2,6 +2,8 @@
 # Tactics
 -/
 
+namespace Tactics
+
 example (p q: Prop) (hp: p) (hq: q): p ∧ q ∧ p := by
   apply And.intro
   exact hp
@@ -580,7 +582,7 @@ example (x₁ x₂ y₁ y₂: Nat) (h₁: x₁ + 0 = x₂) (h₂: y₁ + 0 = y�
   simp at *
   simp [*]
 
-def List.mkSymm (xs: List α) := xs ++ xs.reverse
+def _root_.List.mkSymm (xs: List α) := xs ++ xs.reverse
 
 theorem reverseMkSymm (l: List α): l.mkSymm.reverse = l.mkSymm := by
   simp [List.mkSymm]
@@ -681,3 +683,5 @@ section ExerciseTwo
   example (p q r: Prop) (hp: p): (p ∨ q ∨ r) ∧ (q ∨ p ∨ r) ∧ (q ∨ r ∨ p) :=
     ⟨.inl hp, .inr (.inl hp), .inr (.inr hp)⟩
 end ExerciseTwo
+
+end Tactics

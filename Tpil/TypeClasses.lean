@@ -2,6 +2,8 @@
 # Type Classes
 -/
 
+namespace TypeClasses
+
 namespace Hidden
   structure Add (α: Type) where
     add: α → α → α
@@ -400,3 +402,5 @@ example (S₁ S₂: Semigroup) (f: Morphism S₁ S₂) (x: S₁): f (x * x * x) 
   calc f (x * x * x)
     _ = f (x * x) * f x := by rw [resp_mul f]
     _ = f x * f x * f x := by rw [resp_mul f]
+
+end TypeClasses

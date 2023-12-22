@@ -2,6 +2,8 @@
 # Structures and Records
 -/
 
+namespace StructuresAndRecords
+
 /-
 ## Declaring Structures
 -/
@@ -107,3 +109,5 @@ def rgp: RedGreenPoint Nat :=
 
 example: rgp.x = 10 := rfl
 example: rgp.red = 200 := rfl
+
+end StructuresAndRecords

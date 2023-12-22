@@ -2,6 +2,8 @@
 # The Conversion Tactic Mode
 -/
 
+namespace TheConversionTacticMode
+
 /-
 ## Basic Navigation and Rewriting
 -/
@@ -90,3 +92,5 @@ example (g: Nat → Nat → Nat) (h₁: ∀ x: Nat, x ≠ 0 → g x x = 1) (h₂
     rw [h₁]
     · skip
     · apply h₂
+
+end TheConversionTacticMode

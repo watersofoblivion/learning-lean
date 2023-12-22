@@ -2,15 +2,17 @@
 # Induction and Recursion
 -/
 
+namespace InductionAndRecursion
+
 /-
 ## Pattern Matching
 -/
 
-def Nat.sub1: Nat → Nat
+def _root_.Nat.sub1: Nat → Nat
   | 0 => 0
   | n + 1 => n
 
-def Nat.isZero: Nat → Bool
+def _root_.Nat.isZero: Nat → Bool
   | 0 => true
   | _ => false
 
@@ -43,7 +45,7 @@ example (p q: Prop): p ∨ q → q ∨ p
   | .inl hp => .inr hp
   | .inr hq => .inl hq
 
-def Nat.sub2: Nat → Nat
+def _root_.Nat.sub2: Nat → Nat
   | 0 | 1 => 0
   | n + 2 => n
 
@@ -298,7 +300,7 @@ example (x y: Nat) (h: 0 < y ∧ y ≤ x): div2 x y = div2 (x - y) y + 1 := by
     unfold div2
   simp [h]
 
-def Nat.toBin: Nat → List Nat
+def _root_.Nat.toBin: Nat → List Nat
   | 0 => [0]
   | 1 => [1]
   | n + 2 =>
@@ -397,7 +399,7 @@ mutual
     | .const _ => 1
     | .app _ ts => ts.numConst
 
-  def List.numConst: List Term → Nat
+  def _root_.List.numConst: List Term → Nat
     | [] => 0
     | hd :: tl => hd.numConst + tl.numConst
 end
@@ -411,7 +413,7 @@ mutual
     | .const c => if c = a then .const b else .const c
     | .app f args => .app f (args.replaceConst a b)
 
-  def List.replaceConst (a b: String): List Term → List Term
+  def _root_.List.replaceConst (a b: String): List Term → List Term
     | [] => []
     | hd :: tl => hd.replaceConst a b :: tl.replaceConst a b
 end
@@ -642,3 +644,5 @@ end ExerciseFour
 
 section ExerciseFive
 end ExerciseFive
+
+end InductionAndRecursion

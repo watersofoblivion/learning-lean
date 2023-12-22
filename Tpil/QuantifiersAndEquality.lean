@@ -2,6 +2,8 @@
 # Quantifiers and Equality
 -/
 
+namespace QuantifiersAndEquality
+
 /-
 ## The Universal Quantifier
 -/
@@ -486,3 +488,5 @@ section ExerciseFour
 
   def Fermat's_last_theorem : Prop := sorry
 end ExerciseFour
+
+end QuantifiersAndEquality

@@ -2,6 +2,8 @@
 # Inductive Types
 -/
 
+namespace InductiveTypes
+
 /-
 ## Enumerated Types
 -/
@@ -216,9 +218,9 @@ theorem Nat.zeroAdd (n: Nat): 0 + n = n :=
   where
     base := rfl
     induct (n: Nat) (h: 0 + n = n) :=
-      calc 0 + succ n
-        _ = succ (0 + n) := rfl
-        _ = succ n       := by rw [h]
+      calc 0 + .succ n
+        _ = .succ (0 + n) := rfl
+        _ = .succ n       := by rw [h]
 
 example: 0 + n = n :=
   Nat.recOn
@@ -234,8 +236,8 @@ theorem Nat.addAssoc (n₁ n₂ n₃: Nat): n₁ + n₂ + n₃ = n₁ + (n₂ + 
     base := rfl
     induct (k: Nat) (h: n₁ + n₂ + k = n₁ + (n₂ + k)) :=
       calc n₁ + n₂ + k.succ
-        _ = succ (n₁ + n₂ + k)   := rfl
-        _ = succ (n₁ + (n₂ + k)) := by rw [h]
+        _ = .succ (n₁ + n₂ + k)   := rfl
+        _ = .succ (n₁ + (n₂ + k)) := by rw [h]
         _ = n₁ + (n₂ + k).succ   := rfl
         _ = n₁ + (n₂ + k.succ)   := rfl
 
@@ -650,3 +652,5 @@ end ExerciseThree
 
 section ExerciseFour
 end ExerciseFour
+
+end InductiveTypes

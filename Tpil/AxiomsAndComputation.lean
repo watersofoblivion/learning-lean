@@ -2,6 +2,8 @@
 # Axioms and Computation
 -/
 
+namespace AxiomsAndComputation
+
 /-
 ## Historical and Philosophical Context
 -/
@@ -238,3 +240,5 @@ theorem inhabited_of_nonempty: Nonempty α → Inhabited α :=
 -/
 
 #check @Classical.em
+
+end AxiomsAndComputation

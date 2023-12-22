@@ -2,6 +2,8 @@
 # Interacting With Lean
 -/
 
+namespace InteractingWithLean
+
 /-
 ## Importing Files
 -/
@@ -57,3 +59,5 @@
 /-
 ## Named Arguments
 -/
+
+end InteractingWithLean
