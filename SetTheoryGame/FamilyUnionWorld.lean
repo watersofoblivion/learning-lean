@@ -1,12 +1,9 @@
 /-
-# Family Intersection World
+# Family Union World
 -/
 
 import «SetTheoryGame».«SubsetWorld»
 import «SetTheoryGame».«ComplementWorld»
 import «SetTheoryGame».«IntersectionWorld»
 import «SetTheoryGame».«UnionWorld»
-
-/-
-## Family Intersection is Subset
--/
+import «SetTheoryGame».«FamilyIntersectionWorld»
