@@ -12,6 +12,9 @@ lean_lib «Cpdt»
 lean_lib «ℕGame»
 
 @[default_target]
+lean_lib «SetTheoryGame»
+
+@[default_target]
 lean_lib «SoftwareFoundations»
 
 @[default_target]

@@ -7,6 +7,7 @@ Contains code for the following (in various states of completeness):
 * [Functional Programming in Lean](https://lean-lang.org/functional_programming_in_lean)
 * [Theorem Proving in Lean 4](https://lean-lang.org/theorem_proving_in_lean4)
 * [The Natural Number Game (Lean 4)](https://adam.math.hhu.de/#/g/leanprover-community/nng4)
+* [The Set Theory Game (Lean 4)](https://adam.math.hhu.de/#/g/djvelleman/stg4)
 * [Software Foundations](https://softwarefoundations.cis.upenn.edu/)
   * [Logical Foundations](https://softwarefoundations.cis.upenn.edu/lf-current/index.html)
   * [TODO] [Programming Language Foundations](https://softwarefoundations.cis.upenn.edu/plf-current/index.html)

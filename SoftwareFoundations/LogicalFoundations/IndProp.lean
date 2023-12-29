@@ -48,6 +48,14 @@ inductive Leq: Nat → Nat → Prop where
   | eq (n: Nat): Leq n n
   | less (n₁ n₂: Nat) (h: Leq n₁ n₂): Leq n₁ n₂.succ
 
+example: Leq 3 5 :=
+  (Leq.less 3 4 (Leq.less 3 3 (Leq.eq 3)))
+
+example: Leq 3 5 :=
+  Leq.eq 3
+    |> Leq.less 3 3
+    |> Leq.less 3 4
+
 example: Leq 3 5 := by
   apply Leq.less
   apply Leq.less
@@ -91,8 +99,13 @@ inductive Perm₃: List α → List α → Prop where
   | swap23 (x₁ x₂ x₃: α): Perm₃ [x₁, x₂, x₃] [x₁, x₃, x₂]
   | trans (l₁ l₂ l₃: List α): Perm₃ l₁ l₂ → Perm₃ l₂ l₃ → Perm₃ l₁ l₃
 
+example: Perm₃ [1, 2, 3] [2, 3, 1] :=
+  Perm₃.trans _ _ _
+    (Perm₃.swap12 1 2 3)
+    (Perm₃.swap23 2 1 3)
+
 example: Perm₃ [1, 2, 3] [2, 3, 1] := by
-  apply Perm₃.trans _ [2, 1, 3] _
+  apply Perm₃.trans _ _ _
   · apply Perm₃.swap12 1 2 3
   · apply Perm₃.swap23 2 1 3
 
@@ -109,17 +122,29 @@ example: Even 4 := by
   apply Even.succSucc
   apply Even.zero
 
+example: Even 4 :=
+  Even.succSucc 2 (Even.succSucc 0 Even.zero)
+
 example: Even 4 := by
   apply Even.succSucc 2 (Even.succSucc 0 Even.zero)
 
--- example (n: Nat) (h: Even n): Even (4 + n) := by sorry
+example (n: Nat) (h: Even n): Even (n + 4) :=
+  Even.succSucc _ (Even.succSucc n h)
 
-theorem indEvenDouble (n: Nat): Even n.double := by
-  cases n with
+example (n: Nat) (h: Even n): Even (4 + n) := by
+  rw [Nat.add_comm]
+  apply Even.succSucc _ (Even.succSucc n h)
+
+example (n: Nat): Even n.double := by
+  induction n with
     | zero => apply Even.zero
-    | succ n =>
+    | succ n ih =>
       apply Even.succSucc
-      sorry
+      assumption
+
+theorem indEvenDouble: ∀ n: Nat, Even n.double
+  | .zero => Even.zero
+  | .succ n => Even.succSucc n.double (indEvenDouble n)
 
 /-
 ## Using Evidence in Proofs
@@ -128,6 +153,10 @@ theorem indEvenDouble (n: Nat): Even n.double := by
 /-
 ### Inversion on Evidence
 -/
+
+example (n₁: Nat): Even n₁ → n₁ = 0 ∨ (∃ n₂: Nat, n₁ = n₂.succ.succ ∧ Even n₂)
+  | .zero => .inl rfl
+  | .succSucc n₂ he => .inr ⟨n₂, ⟨rfl, he⟩⟩
 
 theorem evInversion (n₁: Nat) (h: Even n₁): n₁ = 0 ∨ (∃ n₂: Nat, n₁ = n₂.succ.succ ∧ Even n₂) := by
   cases h with
@@ -138,12 +167,18 @@ theorem evInversion (n₁: Nat) (h: Even n₁): n₁ = 0 ∨ (∃ n₂: Nat, n�
       apply Or.inr
       exists n
 
+example (n: Nat): Even n.succ.succ → Even n
+  | .succSucc _ h => h
+
 theorem evenSuccSuccEven (n: Nat) (h: Even n.succ.succ): Even n := by
   cases h; assumption
 
 example: ¬(Even 1) := by
   intro h
   contradiction
+
+example (n: Nat): Even n.succ.succ.succ.succ → Even n
+  | .succSucc _ (.succSucc n h) => h
 
 example (n: Nat) (h: Even n.succ.succ.succ.succ): Even n := by
   cases h with
