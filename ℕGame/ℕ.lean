@@ -62,40 +62,45 @@ end Instances
 
 section Successors
   /-- One is the successor of zero.  This explicitly uses `0` instead of `ℕ.zero`. -/
-  theorem ℕ.oneSuccOf0: 1 = ℕ.succ 0 := by rfl
+  theorem ℕ.oneSuccOf0: 1 = ℕ.succ 0 := rfl
 
   /-- One is the successor of zero.  This explicitly uses `ℕ.zero` instead of `0`. -/
-  theorem ℕ.oneSuccOfZero: 1 = ℕ.succ ℕ.zero := by rfl
+  theorem ℕ.oneSuccOfZero: 1 = ℕ.succ ℕ.zero := rfl
 
   /-- Two is the successor of one. -/
-  theorem ℕ.twoSuccOfOne: 2 = ℕ.succ 1 := by rfl
+  theorem ℕ.twoSuccOfOne: 2 = ℕ.succ 1 := rfl
 
   /-- Three is the successor of two. -/
-  theorem ℕ.threeSuccOfTwo: 3 = ℕ.succ 2 := by rfl
+  theorem ℕ.threeSuccOfTwo: 3 = ℕ.succ 2 := rfl
 
   /-- Four is the successor of three. -/
-  theorem ℕ.fourSuccOfThree: 4 = ℕ.succ 3 := by rfl
+  theorem ℕ.fourSuccOfThree: 4 = ℕ.succ 3 := rfl
 
   /-- Five is the successor of four. -/
-  theorem ℕ.fiveSuccOfFour: 5 = ℕ.succ 4 := by rfl
+  theorem ℕ.fiveSuccOfFour: 5 = ℕ.succ 4 := rfl
 end Successors
 
 section Identity
   /-- Zero is the right identity.  Explicitly uses `0`, not `ℕ.zero`. -/
-  theorem ℕ.add0 (n: ℕ): n + 0 = n := by
-    cases n <;> rfl
+  theorem ℕ.add0: ∀ n: ℕ, n + 0 = n
+    | .zero => rfl
+    | .succ _ => rfl
 
   /-- Zero is the right identity.  Explicitly uses `ℕ.zero`, not `0`. -/
-  theorem ℕ.addZero (n: ℕ): n + .zero = n := by
-    cases n <;> rfl
+  theorem ℕ.addZero: ∀ n: ℕ, n + .zero = n
+    | .zero => rfl
+    | .succ _ => rfl
 end Identity
 
 section Successor
   theorem ℕ.addSucc (n₁ n₂: ℕ): n₁ + succ n₂ = succ (n₁ + n₂) := by
-    induction n₁ with
-      | zero => sorry
-        -- rw [ℕ.zeroAdd, ℕ.zeroAdd]
-      | succ n₁ ihₙ₁ => sorry
+    induction n₂ with
+      | zero =>
+        rw [ℕ.addZero, ← ℕ.oneSuccOfZero]
+        sorry
+      | succ n₂ ihₙ₁ =>
+        rw [ihₙ₁]
+        sorry
 section Successor
 
 section Peano
