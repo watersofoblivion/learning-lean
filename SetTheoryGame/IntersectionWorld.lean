@@ -74,11 +74,10 @@ example {A B: Set U}: A ∩ B ⊆ B ∩ A := by
 ## Intersection is Commutative
 -/
 
-theorem inter_comm (A B: Set U): A ∩ B = B ∩ A :=
+theorem inter_comm {U: Type} (A B: Set U): A ∩ B = B ∩ A :=
   have h₁: A ∩ B ⊆ B ∩ A := inter_sub_swap A B
   have h₂: B ∩ A ⊆ A ∩ B := inter_sub_swap B A
-  -- sub_antisymm h₁ h₂
-  sorry
+  sub_antisymm h₁ h₂
 
 example {A B: Set U}: A ∩ B = B ∩ A := by
   apply sub_antisymm
@@ -89,13 +88,12 @@ example {A B: Set U}: A ∩ B = B ∩ A := by
 ## Intersection is Associative
 -/
 
-theorem inter_assoc (A B C: Set U): (A ∩ B) ∩ C = A ∩ (B ∩ C) :=
+theorem inter_assoc {U: Type} (A B C: Set U): (A ∩ B) ∩ C = A ∩ (B ∩ C) :=
   have h₁: (A ∩ B) ∩ C ⊆ A ∩ (B ∩ C)
     | _, ⟨⟨ha, hb⟩, hc⟩ => ⟨ha, ⟨hb, hc⟩⟩
   have h₂: A ∩ (B ∩ C) ⊆ (A ∩ B) ∩ C
     | _, ⟨ha, ⟨hb, hc⟩⟩ => ⟨⟨ha, hb⟩, hc⟩
-  -- sub_antisymm h₁ h₂
-  sorry
+  sub_antisymm h₁ h₂
 
 example {A B C: Set U}: (A ∩ B) ∩ C = A ∩ (B ∩ C) := by
   apply sub_antisymm

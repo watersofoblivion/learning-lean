@@ -59,11 +59,10 @@ example {A B: Set U}: A ∪ B ⊆ B ∪ A := by
 ## Union is Commutative
 -/
 
-theorem union_comm (A B: Set U): A ∪ B = B ∪ A :=
+theorem union_comm {U: Type} (A B: Set U): A ∪ B = B ∪ A :=
   have h₁: A ∪ B ⊆ B ∪ A := union_sub_swap A B
   have h₂: B ∪ A ⊆ A ∪ B := union_sub_swap B A
-  -- sub_antisymm h₁ h₂
-  sorry
+  sub_antisymm h₁ h₂
 
 example (A B: Set U): A ∪ B = B ∪ A := by
   apply sub_antisymm
@@ -74,7 +73,7 @@ example (A B: Set U): A ∪ B = B ∪ A := by
 ## Union is Associative
 -/
 
-theorem union_assoc (A B C: Set U): (A ∪ B) ∪ C = A ∪ (B ∪ C) :=
+theorem union_assoc {U: Type} (A B C: Set U): (A ∪ B) ∪ C = A ∪ (B ∪ C) :=
   have h₁: (A ∪ B) ∪ C ⊆ A ∪ (B ∪ C)
     | _, .inl (.inl h) => .inl h
     | _, .inl (.inr h) => .inr (.inl h)
@@ -83,8 +82,7 @@ theorem union_assoc (A B C: Set U): (A ∪ B) ∪ C = A ∪ (B ∪ C) :=
     | _, .inl h        => .inl (.inl h)
     | _, .inr (.inl h) => .inl (.inr h)
     | _, .inr (.inr h) => .inr h
-  -- sub_antisymm h₁ h₂
-  sorry
+  sub_antisymm h₁ h₂
 
 example {A B C: Set U}: (A ∪ B) ∪ C = A ∪ (B ∪ C) := by
   apply sub_antisymm
