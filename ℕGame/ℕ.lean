@@ -23,8 +23,8 @@ def ℕ.add: ℕ → ℕ → ℕ
 
 /-- Multiply two natural numbers -/
 def ℕ.mul: ℕ → ℕ → ℕ
-  | .zero, _ | _, .zero => .zero
-  | .succ n₁, n₂ => (n₁.mul n₂).add n₂
+  | _, .zero => .zero
+  | n₁, .succ n₂ => (n₁.mul n₂).add n₂
 
 section Instances
   /-- Coerce instances of our custom `ℕ` into instances of `Nat` from the Lean prelude. -/
@@ -111,3 +111,9 @@ end Peano
 section Inequality
   @[symm] def neSymm {α: Type} (x y: α): x ≠ y → y ≠ x := Ne.symm
 end Inequality
+
+section Multiplication
+  theorem ℕ.mul0: ∀ n: ℕ, n * 0 = 0 := sorry
+  theorem ℕ.mulZero: ∀ n: ℕ, n * ℕ.zero = ℕ.zero := sorry
+  theorem ℕ.mulSucc: ∀ n₁ n₂: ℕ, n₁ * n₂.succ = n₁ * n₂ + n₁ := sorry
+end Multiplication
