@@ -27,10 +27,11 @@ example (n: ℕ): n ≠ n.succ := by
     | zero => apply ℕ.zeroNeSucc
     | succ n ihₙ =>
       intro h
-      -- apply ℕ.succInj -- at h -- Eqivalent outside the NNG?
-      -- apply ihₙ h
-      -- exact h
-      sorry
+      have h₂: n = n.succ := by
+        rw [ℕ.succInj n.succ]
+        apply Eq.symm
+        exact h
+      contradiction
 
 /--
 ## Add Right Cancel
@@ -60,10 +61,10 @@ example (n₁ n₂ n₃: ℕ): n₁ + n₃ = n₂ + n₃ → n₁ = n₂ := by
       exact h
     | succ n₃ ihn₃ =>
       rw [ℕ.addSucc, ℕ.addSucc] at h
-      -- apply ℕ.succInj -- at h -- Equivalent outside the NNG?
-      -- apply ihn₃ -- at h -- Equivalent outside the NNG?
-      -- exact h
-      sorry
+      have h₂: n₁ + n₃ = n₂ + n₃ := by
+        rw [ℕ.succInj (n₁ + n₃) (n₂ + n₃)]
+        exact h
+      apply ihn₃ h₂
 
 /--
 ## Add Left Cancel
@@ -100,17 +101,18 @@ theorem ℕ.addLeftEqSelf: ∀ n₁ n₂: ℕ, n₁ + n₂ = n₂ → n₁ = 0
 
 
 example (n₁ n₂: ℕ): n₁ + n₂ = n₂ → n₁ = 0 := by
-  -- nth_rewrite 2 [←ℕ.zeroAdd n₂]
   intro h
   induction n₂ with
     | zero =>
       rw [ℕ.addZero] at h
       exact h
     | succ n₂ ihn₂ =>
-      rw [ℕ.addSucc] at h
-      -- apply ℕ.succInj -- at h -- Equivalent outside the NNG?
-      -- apply ihn₂ h
-      sorry
+      have h₂: n₁ + n₂ = n₂ := by
+        rw [ℕ.addSucc] at h
+        apply ℕ.succInj
+        exact h
+      apply ihn₂
+      exact h₂
 
 /--
 ## Add Right = Self

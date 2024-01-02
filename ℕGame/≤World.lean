@@ -14,7 +14,9 @@ import «ℕGame».«AdvancedAdditionWorld»
 ## The `use` (`exists`) tactic
 -/
 
-theorem ℕ.leRefl (n: ℕ): n ≤ n := sorry
+theorem ℕ.leRefl (n: ℕ): n ≤ n :=
+  have h: n + 0 = n := ℕ.add0 n
+  ⟨0, Eq.symm h⟩
 
 example (n: ℕ): n ≤ n := by
   exists 0
@@ -24,7 +26,9 @@ example (n: ℕ): n ≤ n := by
 ## 0 ≤ x
 -/
 
-theorem ℕ.zeroLe (n: ℕ): 0 ≤ n := sorry
+theorem ℕ.zeroLe (n: ℕ): 0 ≤ n :=
+  have h: 0 + n = n := ℕ.add0L n
+  ⟨n, Eq.symm h⟩
 
 example (n: ℕ): 0 ≤ n := by
   exists n
@@ -34,7 +38,9 @@ example (n: ℕ): 0 ≤ n := by
 ## x ≤ succ x
 -/
 
-theorem ℕ.leSuccSelf (n: ℕ): n ≤ n.succ := sorry
+theorem ℕ.leSuccSelf (n: ℕ): n ≤ n.succ :=
+  have h: n.succ = n + 1 := ℕ.succEqAddOne n
+  ⟨1, h⟩
 
 example (n: ℕ): n ≤ n.succ := by
   exists 1
