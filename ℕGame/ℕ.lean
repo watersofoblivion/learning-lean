@@ -82,17 +82,20 @@ end Successors
 
 section Identity
   /-- Zero is the right identity.  Explicitly uses `0`, not `ℕ.zero`. -/
+  @[simp]
   theorem ℕ.add0: ∀ n: ℕ, n + 0 = n
     | .zero => rfl
     | .succ _ => rfl
 
   /-- Zero is the right identity.  Explicitly uses `ℕ.zero`, not `0`. -/
+  @[simp]
   theorem ℕ.addZero: ∀ n: ℕ, n + .zero = n
     | .zero => rfl
     | .succ _ => rfl
 end Identity
 
 section Successor
+  @[simp]
   theorem ℕ.addSucc (n₁ n₂: ℕ): n₁ + succ n₂ = succ (n₁ + n₂) := by
     induction n₂ with
       | zero =>
@@ -104,7 +107,10 @@ section Successor
 section Successor
 
 section Peano
+  @[simp]
   axiom ℕ.succInj (n₁ n₂: ℕ): n₁.succ = n₂.succ → n₁ = n₂
+
+  @[simp]
   axiom ℕ.zeroNeSucc (n: ℕ): 0 ≠ n.succ
 end Peano
 
@@ -113,7 +119,12 @@ section Inequality
 end Inequality
 
 section Multiplication
+  @[simp]
   theorem ℕ.mul0: ∀ n: ℕ, n * 0 = 0 := sorry
+
+  @[simp]
   theorem ℕ.mulZero: ∀ n: ℕ, n * ℕ.zero = ℕ.zero := sorry
+
+  @[simp]
   theorem ℕ.mulSucc: ∀ n₁ n₂: ℕ, n₁ * n₂.succ = n₁ * n₂ + n₁ := sorry
 end Multiplication
