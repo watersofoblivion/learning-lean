@@ -1,3 +1,7 @@
+/-
+# ℕ
+-/
+
 import Mathlib.Init.Core
 import Mathlib.Tactic.Relation.Symm
 
@@ -26,6 +30,18 @@ def ℕ.mul: ℕ → ℕ → ℕ
   | _, .zero => .zero
   | n₁, .succ n₂ => (n₁.mul n₂).add n₂
 
+def ℕ.pow: ℕ → ℕ → ℕ
+  | _, .zero => .zero
+  | n₁, .succ n₂ => (n₁.pow n₂).mul n₁
+
+/-- Less than or equals -/
+def ℕ.lte (n₁ n₂: ℕ): Prop :=
+  ∃ (n₃: ℕ), n₂ = n₁.add n₃
+
+/-- Less than -/
+def ℕ.lt (n₁ n₂: ℕ): Prop :=
+  n₁.lte n₂ ∧ ¬(¬n₂.lte n₁)
+
 section Instances
   /-- Coerce instances of our custom `ℕ` into instances of `Nat` from the Lean prelude. -/
   instance: Coe ℕ Nat where coe := ℕ.toNat
@@ -41,20 +57,24 @@ section Instances
 
   /-- Multiply two instances of `ℕ`. -/
   instance: Mul ℕ where mul := ℕ.mul
-end Instances
 
-/-- Less than or equals -/
-def ℕ.lte (n₁ n₂: ℕ): Prop :=
-  ∃ (n₃: ℕ), n₂ = n₁ + n₃
+  /-- Exponentiation of `ℕ` to `ℕ` -/
+  instance: Pow ℕ ℕ where pow := ℕ.pow
 
-/-- Less than -/
-def ℕ.lt (n₁ n₂: ℕ): Prop :=
-  n₁.lte n₂ ∧ ¬(¬n₂.lte n₁)
-
-section Instances
+  /-- Comparison of ℕ ≤ ℕ -/
   instance: LE ℕ where le := ℕ.lte
+
+  /-- Comparison of ℕ < ℕ -/
   instance: LT ℕ where lt := ℕ.lt
 end Instances
+
+section Zero
+  /-- Conversion between `ℕ.zero` and the numeral `0` -/
+  theorem ℕ.zeroNumerial: ℕ.zero = (0: ℕ) := rfl
+
+  /-- Conversion between the numeral `0` and `ℕ.zero` -/
+  theorem ℕ.numeralZero: (0: ℕ) = ℕ.zero := rfl
+end Zero
 
 /-
 ## Supplied Theorems
@@ -62,21 +82,27 @@ end Instances
 
 section Successors
   /-- One is the successor of zero.  This explicitly uses `0` instead of `ℕ.zero`. -/
+  @[simp]
   theorem ℕ.oneSuccOf0: 1 = ℕ.succ 0 := rfl
 
   /-- One is the successor of zero.  This explicitly uses `ℕ.zero` instead of `0`. -/
+  @[simp]
   theorem ℕ.oneSuccOfZero: 1 = ℕ.succ ℕ.zero := rfl
 
   /-- Two is the successor of one. -/
+  @[simp]
   theorem ℕ.twoSuccOfOne: 2 = ℕ.succ 1 := rfl
 
   /-- Three is the successor of two. -/
+  @[simp]
   theorem ℕ.threeSuccOfTwo: 3 = ℕ.succ 2 := rfl
 
   /-- Four is the successor of three. -/
+  @[simp]
   theorem ℕ.fourSuccOfThree: 4 = ℕ.succ 3 := rfl
 
   /-- Five is the successor of four. -/
+  @[simp]
   theorem ℕ.fiveSuccOfFour: 5 = ℕ.succ 4 := rfl
 end Successors
 
@@ -95,8 +121,9 @@ section Identity
 end Identity
 
 section Successor
+  /-- Addition of successor is equivalent to the successor of addition -/
   @[simp]
-  theorem ℕ.addSucc (n₁ n₂: ℕ): n₁ + succ n₂ = succ (n₁ + n₂) := by
+  theorem ℕ.addSucc (n₁ n₂: ℕ): n₁ + n₂.succ = (n₁ + n₂).succ := by
     induction n₂ with
       | zero =>
         rw [ℕ.addZero, ← ℕ.oneSuccOfZero]
@@ -128,3 +155,14 @@ section Multiplication
   @[simp]
   theorem ℕ.mulSucc: ∀ n₁ n₂: ℕ, n₁ * n₂.succ = n₁ * n₂ + n₁ := sorry
 end Multiplication
+
+section Exponentiation
+  @[simp]
+  theorem ℕ.pow0: ∀ n: ℕ, n ^ 0 = 1 := sorry
+
+  @[simp]
+  theorem ℕ.powZero: ∀ n: ℕ, n ^ ℕ.zero = 1 := sorry
+
+  @[simp]
+  theorem ℕ.powSucc: ∀ n₁ n₂: ℕ, n₁ ^ n₂.succ = n₁ ^ n₂ * n₁ := sorry
+end Exponentiation

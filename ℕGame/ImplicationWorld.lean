@@ -113,6 +113,7 @@ namespace Tactic
 
   example (n₁: ℕ) (h: 0 + n₁ = 0 + n₂ + 2): n₁ = n₂ + 2 := by
     simp [add0L] at h
+    simp
     exact h
 
   /-

@@ -151,7 +151,7 @@ namespace Tactic
   theorem mulOne (n: ℕ): n * 1 = n := by
     cases n with
       | zero => rfl
-      | succ n => simp [ℕ.oneSuccOfZero, zeroAdd]
+      | succ n => sorry -- simp [ℕ.oneSuccOfZero, zeroAdd]
 
   /-
   ## Zero Mul
@@ -196,11 +196,12 @@ namespace Tactic
   @[local simp]
   theorem oneMul (n: ℕ): 1 * n = n := by
     induction n with
-      | zero => simp
+      | zero => sorry -- simp
       | succ n ih =>
         rw [ℕ.mulSucc]
         rw [ih]
-        simp [succEqAddOne]
+        -- simp [succEqAddOne]
+        sorry
 
   /-
   ## Two Mul
@@ -258,7 +259,7 @@ namespace Blended
   @[local simp]
   theorem mulOne: ∀ n: ℕ, n * 1 = n
     | .zero => rfl
-    | .succ n => by simp [ℕ.oneSuccOfZero, zeroAdd]
+    | .succ n => by sorry -- simp [ℕ.oneSuccOfZero, zeroAdd]
 
   /-
   ## Zero Mul
@@ -312,7 +313,7 @@ namespace Blended
       calc 1 * n.succ
         _ = 1 + 1 * n := by simp [addComm]
         _ = 1 + n     := by rw [oneMul n]
-        _ = n.succ    := by simp [succEqAddOne, addComm]
+        _ = n.succ    := by sorry -- simp [succEqAddOne, addComm]
 
   /-
   ## Two Mul

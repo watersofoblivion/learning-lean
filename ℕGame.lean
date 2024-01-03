@@ -1,6 +1,9 @@
 import «ℕGame».«ℕ»
 import «ℕGame».«TutorialWorld»
 import «ℕGame».«AdditionWorld»
+import «ℕGame».«MultiplicationWorld»
+import «ℕGame».«PowerWorld»
 import «ℕGame».«ImplicationWorld»
 import «ℕGame».«AdvancedAdditionWorld»
 import «ℕGame».«≤World»
+import «ℕGame».«AlgorithmWorld»

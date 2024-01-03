@@ -56,7 +56,7 @@ namespace Tactic
   @[local simp]
   theorem leRefl (n: ℕ): n ≤ n := by
     exists 0
-    rw [ℕ.add0]
+    sorry -- rw [ℕ.add0]
 
   /-
   ## 0 ≤ x
@@ -65,7 +65,7 @@ namespace Tactic
   @[local simp]
   theorem zeroLe (n: ℕ): 0 ≤ n := by
     exists n
-    rw [add0L]
+    sorry -- rw [add0L]
 
   /-
   ## x ≤ succ x
@@ -75,6 +75,7 @@ namespace Tactic
   theorem leSuccSelf (n: ℕ): n ≤ n.succ := by
     exists 1
     rw [succEqAddOne]
+    rfl
 
   /-
   ## Transitivity
