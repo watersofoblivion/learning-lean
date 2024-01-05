@@ -9,20 +9,20 @@ namespace Term
   ## The `rfl` tactic
   -/
 
-  example (x q: ℕ): 37 * x + q = 37 * x + q := rfl
+  example (x q: ℕ): (37: ℕ) * x + q = (37: ℕ) * x + q := rfl
 
   /-
   ## The `rw` tactic
   -/
 
-  example (x y: ℕ): y = x + 7 → 2 * y = 2 * (x + 7)
+  example (x y: ℕ): y = x + (7: ℕ) → (2: ℕ) * y = (2: ℕ) * (x + (7: ℕ))
     | h => congrArg (ℕ.mul 2) h
 
   /-
   ## Two is the number after the number after zero, proven forward.
   -/
 
-  example: 2 = (0: ℕ).succ.succ :=
+  example: (2: ℕ) = (0: ℕ).succ.succ :=
     calc (2: ℕ)
       _ = (1: ℕ).succ      := ℕ.twoSuccOfOne
       _ = (0: ℕ).succ.succ := congrArg ℕ.succ ℕ.oneSuccOf0
@@ -31,7 +31,7 @@ namespace Term
   ## Two is the number after the number after zero, proven backwards.
   -/
 
-  example: 2 = (0: ℕ).succ.succ :=
+  example: (2: ℕ) = (0: ℕ).succ.succ :=
     calc (0: ℕ).succ.succ
       _ = (1: ℕ).succ := congrArg ℕ.succ (Eq.symm (ℕ.oneSuccOf0))
       _ = (2: ℕ)      := Eq.symm (ℕ.twoSuccOfOne)
@@ -40,7 +40,7 @@ namespace Term
   ## Adding zero
   -/
 
-  example (a b c: ℕ): a + (b + 0) + (c + 0) = a + b + c :=
+  example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c :=
     have hb: b + 0 = b := ℕ.addZero b
     have hc: c + 0 = c := ℕ.addZero c
     have h: a + (b + 0) = a + b := congrArg (ℕ.add a) hb
@@ -59,7 +59,7 @@ namespace Term
   ## Add Successor
   -/
 
-  theorem succEqAddOne (n: ℕ): n.succ = n + 1 :=
+  theorem succEqAddOne (n: ℕ): n.succ = n + (1: ℕ) :=
     calc n.succ
       _ = (n + ℕ.zero).succ := congrArg ℕ.succ (Eq.symm (ℕ.addZero n))
       _ = n + ℕ.zero.succ   := Eq.symm (ℕ.addSucc n ℕ.zero)
@@ -69,7 +69,7 @@ namespace Term
   ## 2 + 2 = 4
   -/
 
-  example: (2: ℕ) + 2 = 4 :=
+  example: (2: ℕ) + (2: ℕ) = (4: ℕ) :=
     calc (2: ℕ) + 2
       _ = (2: ℕ) + (1: ℕ).succ        := congrArg (ℕ.add 2) ℕ.twoSuccOfOne
       _ = (2: ℕ) + ℕ.zero.succ.succ   := congrArg (ℕ.add 2) (congrArg ℕ.succ ℕ.oneSuccOfZero)
@@ -85,42 +85,42 @@ namespace Tactic
   ## The `rfl` tactic
   -/
 
-  example (x q: ℕ): 37 * x + q = 37 * x + q := by
+  example (x q: ℕ): (37: ℕ) * x + q = (37: ℕ) * x + q := by
     rfl
 
   /-
   ## The `rw` tactic
   -/
 
-  example (x y: ℕ) (h: y = x + 7): 2 * y = 2 * (x + 7) := by
+  example (x y: ℕ) (h: y = x + (7: ℕ)): (2: ℕ) * y = (2: ℕ) * (x + (7: ℕ)) := by
     rw [h]
 
   /-
   ## Two is the number after the number after zero, proven forward.
   -/
 
-  example: 2 = (0: ℕ).succ.succ := by
+  example: (2: ℕ) = (0: ℕ).succ.succ := by
     rw [ℕ.twoSuccOfOne, ℕ.oneSuccOf0]
 
   /-
   ## Two is the number after the number after zero, proven backwards.
   -/
 
-  example: 2 = (0: ℕ).succ.succ := by
+  example: (2: ℕ) = (0: ℕ).succ.succ := by
     rw [← ℕ.oneSuccOf0, ← ℕ.twoSuccOfOne]
 
   /-
   ## Adding zero
   -/
 
-  example (a b c: ℕ): a + (b + 0) + (c + 0) = a + b + c := by
+  example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c := by
     repeat rw [ℕ.add0]
 
   /-
   ## Precision Rewriting
   -/
 
-  example (a b c: ℕ): a + (b + 0) + (c + 0) = a + b + c := by
+  example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c := by
     rw [ℕ.add0 c, ℕ.add0 b]
 
   /-
@@ -128,14 +128,14 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem succEqAddOne (n: ℕ): n.succ = n + 1 := by
+  theorem succEqAddOne (n: ℕ): n.succ = n + (1: ℕ) := by
     rw [ℕ.oneSuccOfZero, ℕ.addSucc, ℕ.addZero]
 
   /-
   ## 2 + 2 = 4
   -/
 
-  example: (2: ℕ) + 2 = 4 := by
+  example: (2: ℕ) + (2: ℕ) = (4: ℕ) := by
     rw [ℕ.twoSuccOfOne, ℕ.oneSuccOfZero]
     rw [ℕ.fourSuccOfThree, ℕ.threeSuccOfTwo, ℕ.twoSuccOfOne, ℕ.oneSuccOfZero]
     repeat rw [ℕ.addSucc]
@@ -147,20 +147,20 @@ namespace Blended
   ## The `rfl` tactic
   -/
 
-  example (x q: ℕ): 37 * x + q = 37 * x + q := rfl
+  example (x q: ℕ): (37: ℕ) * x + q = (37: ℕ) * x + q := rfl
 
   /-
   ## The `rw` tactic
   -/
 
-  example (x y: ℕ): y = x + 7 → 2 * y = 2 * (x + 7)
+  example (x y: ℕ): y = x + (7: ℕ) → (2: ℕ) * y = (2: ℕ) * (x + (7: ℕ))
     | h => by rw [h]
 
   /-
   ## Two is the number after the number after zero, proven forward.
   -/
 
-  example: 2 = (0: ℕ).succ.succ :=
+  example: (2: ℕ) = (0: ℕ).succ.succ :=
     calc (2: ℕ)
       _ = (1: ℕ).succ      := by rw [ℕ.twoSuccOfOne]
       _ = (0: ℕ).succ.succ := by rw [ℕ.oneSuccOf0]
@@ -169,7 +169,7 @@ namespace Blended
   ## Two is the number after the number after zero, proven backwards.
   -/
 
-  example: 2 = (0: ℕ).succ.succ :=
+  example: (2: ℕ) = (0: ℕ).succ.succ :=
     calc (0: ℕ).succ.succ
       _ = (1: ℕ).succ := by rw [← ℕ.oneSuccOf0]
       _ = (2: ℕ)      := by rw [← ℕ.twoSuccOfOne]
@@ -178,7 +178,7 @@ namespace Blended
   ## Adding zero
   -/
 
-  example (a b c: ℕ): a + (b + 0) + (c + 0) = a + b + c := by
+  example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c := by
     calc a + (b + 0) + (c + 0)
       _ = a + b + (c + 0) := by rw [ℕ.add0]
       _ = a + b + c       := by rw [ℕ.add0]
@@ -194,14 +194,14 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem succEqAddOne (n: ℕ): n.succ = n + 1 := by
+  theorem succEqAddOne (n: ℕ): n.succ = n + (1: ℕ) := by
     rw [ℕ.oneSuccOfZero, ℕ.addSucc, ℕ.addZero]
 
   /-
   ## 2 + 2 = 4
   -/
 
-  example: (2: ℕ) + 2 = 4 :=
+  example: (2: ℕ) + (2: ℕ) = (4: ℕ) :=
     calc (2: ℕ) + 2
       _ = (2: ℕ) + ℕ.zero.succ.succ   := by rw [ℕ.twoSuccOfOne, ℕ.oneSuccOfZero]
       _ = ((2: ℕ) + ℕ.zero).succ.succ := by repeat rw [ℕ.addSucc]

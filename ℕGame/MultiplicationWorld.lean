@@ -11,7 +11,7 @@ namespace Term
   ## Mul One
   -/
 
-  theorem mulOne: ∀ n: ℕ, n * 1 = n
+  theorem mulOne: ∀ n: ℕ, n * (1: ℕ) = n
     | .zero => rfl
     | .succ n =>
       calc n.succ * 1
@@ -25,7 +25,7 @@ namespace Term
   ## Zero Mul
   -/
 
-  theorem zeroMul: ∀ n: ℕ, 0 * n = 0
+  theorem zeroMul: ∀ n: ℕ, (0: ℕ) * n = (0: ℕ)
     | .zero => rfl
     | .succ n =>
       calc 0 * n.succ
@@ -72,7 +72,7 @@ namespace Term
   ## One Mul
   -/
 
-  theorem oneMul: ∀ n: ℕ, 1 * n = n
+  theorem oneMul: ∀ n: ℕ, (1: ℕ) * n = n
     | .zero => ℕ.mul0 1
     | .succ n =>
       calc 1 * n.succ
@@ -86,7 +86,7 @@ namespace Term
   ## Two Mul
   -/
 
-  theorem twoMul: ∀ n: ℕ, 2 * n = n + n
+  theorem twoMul: ∀ n: ℕ, (2: ℕ) * n = n + n
     | .zero => ℕ.mulZero 2
     | .succ n =>
       calc 2 * n.succ
@@ -148,17 +148,17 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem mulOne (n: ℕ): n * 1 = n := by
+  theorem mulOne (n: ℕ): n * (1: ℕ) = n := by
     cases n with
       | zero => rfl
-      | succ n => sorry -- simp [ℕ.oneSuccOfZero, zeroAdd]
+      | succ n => simp [ℕ.oneSuccOfZero, zeroAdd]
 
   /-
   ## Zero Mul
   -/
 
   @[local simp]
-  theorem zeroMul (n: ℕ): 0 * n = 0 := by
+  theorem zeroMul (n: ℕ): (0: ℕ) * n = (0: ℕ) := by
     induction n with
       | zero => rfl
       | succ n ih =>
@@ -194,21 +194,20 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem oneMul (n: ℕ): 1 * n = n := by
+  theorem oneMul (n: ℕ): (1: ℕ) * n = n := by
     induction n with
-      | zero => sorry -- simp
+      | zero => simp
       | succ n ih =>
         rw [ℕ.mulSucc]
         rw [ih]
-        -- simp [succEqAddOne]
-        sorry
+        simp [succEqAddOne]
 
   /-
   ## Two Mul
   -/
 
   @[local simp]
-  theorem twoMul (n: ℕ): 2 * n = n + n := by
+  theorem twoMul (n: ℕ): (2: ℕ) * n = n + n := by
     induction n with
       | zero => rfl
       | succ n ih =>
@@ -257,16 +256,16 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem mulOne: ∀ n: ℕ, n * 1 = n
+  theorem mulOne: ∀ n: ℕ, n * (1: ℕ) = n
     | .zero => rfl
-    | .succ n => by sorry -- simp [ℕ.oneSuccOfZero, zeroAdd]
+    | .succ n => by simp [ℕ.oneSuccOfZero, zeroAdd]
 
   /-
   ## Zero Mul
   -/
 
   @[local simp]
-  theorem zeroMul: ∀ n: ℕ, 0 * n = 0
+  theorem zeroMul: ∀ n: ℕ, (0: ℕ) * n = (0: ℕ)
     | .zero => rfl
     | .succ n =>
       calc 0 * n.succ
@@ -307,7 +306,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem oneMul: ∀ n: ℕ, 1 * n = n
+  theorem oneMul: ∀ n: ℕ, (1: ℕ) * n = n
     | .zero => ℕ.mul0 1
     | .succ n =>
       calc 1 * n.succ
@@ -320,7 +319,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem twoMul: ∀ n: ℕ, 2 * n = n + n
+  theorem twoMul: ∀ n: ℕ, (2: ℕ) * n = n + n
     | .zero => ℕ.mulZero 2
     | .succ n =>
       calc 2 * n.succ

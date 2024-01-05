@@ -43,7 +43,7 @@ namespace Term
   ## Successor Not Equal to Zero
   -/
 
-  theorem succNeZero: ∀ n: ℕ, n.succ ≠ 0 := sorry
+  theorem succNeZero: ∀ n: ℕ, n.succ ≠ (0: ℕ) := sorry
 
   /-
   ## Successor Not Equal to Successor
@@ -55,13 +55,13 @@ namespace Term
   ## Decide
   -/
 
-  example: (20: ℕ) + 20 = 40 := sorry
+  example: (20: ℕ) + (20: ℕ) = (40: ℕ) := sorry
 
   /-
   ## Decide, Again
   -/
 
-  example: 2 + 2 ≠ 5 := sorry
+  example: (2: ℕ) + (2: ℕ) ≠ (5: ℕ) := sorry
 end Term
 
 namespace Tactic
@@ -106,7 +106,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem succNeZero: ∀ n: ℕ, n.succ ≠ 0 := by
+  theorem succNeZero: ∀ n: ℕ, n.succ ≠ (0: ℕ) := by
     sorry
 
   /-
@@ -121,14 +121,14 @@ namespace Tactic
   ## Decide
   -/
 
-  example: (20: ℕ) + 20 = 40 := by
+  example: (20: ℕ) + (20: ℕ) = (40: ℕ) := by
     sorry
 
   /-
   ## Decide, Again
   -/
 
-  example: 2 + 2 ≠ 5 := by
+  example: (2: ℕ) + (2: ℕ) ≠ (5: ℕ) := by
     sorry
 end Tactic
 
@@ -169,7 +169,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem succNeZero: ∀ n: ℕ, n.succ ≠ 0 := sorry
+  theorem succNeZero: ∀ n: ℕ, n.succ ≠ (0: ℕ) := sorry
 
   /-
   ## Successor Not Equal to Successor
@@ -182,11 +182,11 @@ namespace Blended
   ## Decide
   -/
 
-  example: (20: ℕ) + 20 = 40 := sorry
+  example: (20: ℕ) + (20: ℕ) = (40: ℕ) := sorry
 
   /-
   ## Decide, Again
   -/
 
-  example: 2 + 2 ≠ 5 := sorry
+  example: (2: ℕ) + (2: ℕ) ≠ (5: ℕ) := sorry
 end Blended

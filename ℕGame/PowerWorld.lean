@@ -12,13 +12,13 @@ namespace Term
   ## Zero to the Zero
   -/
 
-  theorem zeroPowZero: (0: ℕ) ^ 0 = 1 := sorry
+  theorem zeroPowZero: (0: ℕ) ^ (0: ℕ) = (1: ℕ) := sorry
 
   /-
   ## Zero to a Successor
   -/
 
-  theorem zeroPowSucc: ∀ n: ℕ, (0: ℕ) ^ n.succ = 0 := sorry
+  theorem zeroPowSucc: ∀ n: ℕ, (0: ℕ) ^ n.succ = (0: ℕ) := sorry
 
   /-
   ## ℕ to the 1
@@ -30,13 +30,13 @@ namespace Term
   ## 1 to the ℕ
   -/
 
-  theorem onePow: ∀ n: ℕ, (1: ℕ) ^ n = 1 := sorry
+  theorem onePow: ∀ n: ℕ, (1: ℕ) ^ n = (1: ℕ) := sorry
 
   /-
   ## ℕ squared
   -/
 
-  theorem powTwo: ∀ n: ℕ, n ^ 2 = n * n := sorry
+  theorem powTwo: ∀ n: ℕ, n ^ (2: ℕ) = n * n := sorry
 
   /-
   ## Power of a Sum
@@ -60,13 +60,13 @@ namespace Term
   ## Square of Addition
   -/
 
-  theorem addSq: ∀ n₁ n₂: ℕ, (n₁ + n₂) ^ 2 = n₁ ^ 2 + n₂ ^ 2 + 2 * n₁ * n₂ := sorry
+  theorem addSq: ∀ n₁ n₂: ℕ, (n₁ + n₂) ^ (2: ℕ) = n₁ ^ (2: ℕ) + n₂ ^ (2: ℕ) + (2: ℕ) * n₁ * n₂ := sorry
 
   /-
   ## Fermat's Last Theorem
   -/
 
-  example (a b c n: ℕ): (a + 1) ^ (n + 3) + (b + 1) ^ (n + 3) ≠ (c + 1) ^ (n + 3) := sorry
+  example (a b c n: ℕ): (a + (1: ℕ)) ^ (n + (3: ℕ)) + (b + (1: ℕ)) ^ (n + (3: ℕ)) ≠ (c + (1: ℕ)) ^ (n + (3: ℕ)) := sorry
 end Term
 
 namespace Tactic
@@ -75,7 +75,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem zeroPowZero: (0: ℕ) ^ 0 = 1 := by
+  theorem zeroPowZero: (0: ℕ) ^ (0: ℕ) = (1: ℕ) := by
     sorry
 
   /-
@@ -83,7 +83,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem zeroPowSucc: ∀ n: ℕ, (0: ℕ) ^ n.succ = 0 := by
+  theorem zeroPowSucc: ∀ n: ℕ, (0: ℕ) ^ n.succ = (0: ℕ) := by
     sorry
 
   /-
@@ -99,7 +99,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem onePow: ∀ n: ℕ, (1: ℕ) ^ n = 1 := by
+  theorem onePow: ∀ n: ℕ, (1: ℕ) ^ n = (1: ℕ) := by
     sorry
 
   /-
@@ -107,7 +107,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem powTwo: ∀ n: ℕ, n ^ 2 = n * n := by
+  theorem powTwo: ∀ n: ℕ, n ^ (2: ℕ) = n * n := by
     sorry
 
   /-
@@ -139,14 +139,14 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem addSq: ∀ n₁ n₂: ℕ, (n₁ + n₂) ^ 2 = n₁ ^ 2 + n₂ ^ 2 + 2 * n₁ * n₂ := by
+  theorem addSq: ∀ n₁ n₂: ℕ, (n₁ + n₂) ^ (2: ℕ) = n₁ ^ (2: ℕ) + n₂ ^ (2: ℕ) + (2: ℕ) * n₁ * n₂ := by
     sorry
 
   /-
   ## Fermat's Last Theorem
   -/
 
-  example (a b c n: ℕ): (a + 1) ^ (n + 3) + (b + 1) ^ (n + 3) ≠ (c + 1) ^ (n + 3) := by
+  example (a b c n: ℕ): (a + (1: ℕ)) ^ (n + (3: ℕ)) + (b + (1: ℕ)) ^ (n + (3: ℕ)) ≠ (c + (1: ℕ)) ^ (n + (3: ℕ)) := by
     sorry
 end Tactic
 
@@ -156,14 +156,14 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem zeroPowZero: (0: ℕ) ^ 0 = 1 := sorry
+  theorem zeroPowZero: (0: ℕ) ^ (0: ℕ) = (1: ℕ) := sorry
 
   /-
   ## Zero to a Successor
   -/
 
   @[local simp]
-  theorem zeroPowSucc: ∀ n: ℕ, (0: ℕ) ^ n.succ = 0 := sorry
+  theorem zeroPowSucc: ∀ n: ℕ, (0: ℕ) ^ n.succ = (0: ℕ) := sorry
 
   /-
   ## ℕ to the 1
@@ -177,14 +177,14 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem onePow: ∀ n: ℕ, (1: ℕ) ^ n = 1 := sorry
+  theorem onePow: ∀ n: ℕ, (1: ℕ) ^ n = (1: ℕ) := sorry
 
   /-
   ## ℕ squared
   -/
 
   @[local simp]
-  theorem powTwo: ∀ n: ℕ, n ^ 2 = n * n := sorry
+  theorem powTwo: ∀ n: ℕ, n ^ (2: ℕ) = n * n := sorry
 
   /-
   ## Power of a Sum
@@ -212,11 +212,11 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem addSq: ∀ n₁ n₂: ℕ, (n₁ + n₂) ^ 2 = n₁ ^ 2 + n₂ ^ 2 + 2 * n₁ * n₂ := sorry
+  theorem addSq: ∀ n₁ n₂: ℕ, (n₁ + n₂) ^ (2: ℕ) = n₁ ^ (2: ℕ) + n₂ ^ (2: ℕ) + (2: ℕ) * n₁ * n₂ := sorry
 
   /-
   ## Fermat's Last Theorem
   -/
 
-  example (a b c n: ℕ): (a + 1) ^ (n + 3) + (b + 1) ^ (n + 3) ≠ (c + 1) ^ (n + 3) := sorry
+  example (a b c n: ℕ): (a + (1: ℕ)) ^ (n + (3: ℕ)) + (b + (1: ℕ)) ^ (n + (3: ℕ)) ≠ (c + (1: ℕ)) ^ (n + (3: ℕ)) := sorry
 end Blended

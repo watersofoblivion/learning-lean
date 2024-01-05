@@ -10,7 +10,7 @@ namespace Term
   ## Zero Add.  Explicitly uses `0`, not `ℕ.zero`
   -/
 
-  theorem add0L: ∀ n: ℕ, 0 + n = n
+  theorem add0L: ∀ n: ℕ, (0: ℕ) + n = n
     | .zero => rfl
     | .succ n =>
       show 0 + n.succ = n.succ from
@@ -22,7 +22,7 @@ namespace Term
   ## Zero Add.  Explicitly uses `ℕ.zero`, not `0`.
   -/
 
-  theorem zeroAdd: ∀ n: ℕ, .zero + n = n
+  theorem zeroAdd: ∀ n: ℕ, ℕ.zero + n = n
     | .zero => rfl
     | .succ n =>
       calc ℕ.zero + n.succ
@@ -92,7 +92,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem add0L (n: ℕ): 0 + n = n := by
+  theorem add0L (n: ℕ): (0: ℕ) + n = n := by
     induction n with
       | zero => rfl
       | succ n ihₙ => simp [ihₙ]
@@ -102,7 +102,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem zeroAdd (n: ℕ): .zero + n = n := by
+  theorem zeroAdd (n: ℕ): ℕ.zero + n = n := by
     induction n with
       | zero => rfl
       | succ n ihₙ => simp [ihₙ]
@@ -154,7 +154,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem add0L: ∀ n: ℕ, 0 + n = n
+  theorem add0L: ∀ n: ℕ, (0: ℕ) + n = n
     | .zero => rfl
     | .succ n =>
       calc 0 + n.succ
@@ -166,7 +166,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem zeroAdd: ∀ n: ℕ, .zero + n = n
+  theorem zeroAdd: ∀ n: ℕ, ℕ.zero + n = n
     | .zero => rfl
     | .succ n =>
       calc ℕ.zero + n.succ

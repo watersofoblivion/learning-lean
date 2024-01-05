@@ -13,13 +13,13 @@ namespace Term
   ## The `exact` tactic
   -/
 
-  example (n₁ n₂ n₃: ℕ) (h₁: n₁ + n₂ = 37) (_: 3 * n₁ + n₃ = 42): n₁ + n₂ = 37 := h₁
+  example (n₁ n₂ n₃: ℕ) (h₁: n₁ + n₂ = (37: ℕ)) (_: (3: ℕ) * n₁ + n₃ = (42: ℕ)): n₁ + n₂ = (37: ℕ) := h₁
 
   /-
   ## `exact` practice
   -/
 
-  example (n₁: ℕ) (h: 0 + n₁ = 0 + n₂ + 2): n₁ = n₂ + 2 :=
+  example (n₁: ℕ) (h: (0: ℕ) + n₁ = (0: ℕ) + n₂ + (2: ℕ)): n₁ = n₂ + (2: ℕ) :=
     have h₁: ℕ.add (0 + n₂) = ℕ.add n₂ := congrArg ℕ.add (zeroAdd n₂)
     calc n₁
       _ = 0 + n₁     := Eq.symm (zeroAdd n₁)
@@ -30,14 +30,14 @@ namespace Term
   ## The `apply` tactic
   -/
 
-  example (n₁ n₂: ℕ) (h₁: n₁ = 37) (h₂: n₁ = 37 → n₂ = 42): n₂ = 42 :=
+  example (n₁ n₂: ℕ) (h₁: n₁ = (37: ℕ)) (h₂: n₁ = (37: ℕ) → n₂ = (42: ℕ)): n₂ = 42 :=
     h₂ h₁
 
   /-
   ## `succInj`: The successor function is injective
   -/
 
-  example (n: ℕ) (h: n + 1 = 4): n = 3 :=
+  example (n: ℕ) (h: n + 1 = (4: ℕ)): n = (3: ℕ) :=
     have h₁: n.succ = (3: ℕ).succ :=
       calc n.succ
         _ = n + 1       := succEqAddOne n
@@ -55,14 +55,14 @@ namespace Term
   ## `intro`
   -/
 
-  example (n: ℕ): n = 37 → n = 37
+  example (n: ℕ): n = (37: ℕ) → n = (37: ℕ)
     | h => h
 
   /-
   ## `intro` practice
   -/
 
-  example (n₁: ℕ) (h: n₁ + 1 = n₂ + 1): n₁ = n₂ :=
+  example (n₁: ℕ) (h: n₁ + (1: ℕ) = n₂ + (1: ℕ)): n₁ = n₂ :=
     have h₁: n₁.succ = n₂.succ :=
       calc n₁.succ
         _ = n₁ + 1 := succEqAddOne n₁
@@ -81,21 +81,21 @@ namespace Term
   ## Zero ≠ Succ
   -/
 
-  theorem zeroNeOne: (0: ℕ) ≠ 1
+  theorem zeroNeOne: (0: ℕ) ≠ (1: ℕ)
     | h => absurd h (ℕ.zeroNeSucc ℕ.zero)
 
   /--
   ## 1 ≠ 0
   -/
 
-  theorem oneNeZero: (1: ℕ) ≠ 0
+  theorem oneNeZero: (1: ℕ) ≠ (0: ℕ)
     | h => zeroNeOne (Eq.symm h)
 
   /--
   ## 2 + 2 ≠ 5
   -/
 
-  example: (2: ℕ) + 2 ≠ 5
+  example: (2: ℕ) + (2: ℕ) ≠ (5: ℕ)
     | h => sorry
 end Term
 
@@ -104,30 +104,29 @@ namespace Tactic
   ## The `exact` tactic
   -/
 
-  example (n₁ n₂ n₃: ℕ) (h₁: n₁ + n₂ = 37) (_: 3 * n₁ + n₃ = 42): n₁ + n₂ = 37 := by
+  example (n₁ n₂ n₃: ℕ) (h₁: n₁ + n₂ = (37: ℕ)) (_: (3: ℕ) * n₁ + n₃ = (42: ℕ)): n₁ + n₂ = (37: ℕ) := by
     exact h₁
 
   /-
   ## `exact` practice
   -/
 
-  example (n₁: ℕ) (h: 0 + n₁ = 0 + n₂ + 2): n₁ = n₂ + 2 := by
+  example (n₁: ℕ) (h: (0: ℕ) + n₁ = (0: ℕ) + n₂ + (2: ℕ)): n₁ = n₂ + (2: ℕ) := by
     simp [add0L] at h
-    simp
     exact h
 
   /-
   ## The `apply` tactic
   -/
 
-  example (n₁ n₂: ℕ) (h₁: n₁ = 37) (h₂: n₁ = 37 → n₂ = 42): n₂ = 42 := by
+  example (n₁ n₂: ℕ) (h₁: n₁ = (37: ℕ)) (h₂: n₁ = (37: ℕ) → n₂ = (42: ℕ)): n₂ = (42: ℕ) := by
     apply h₂ h₁
 
   /-
   ## `succInj`: The successor function is injective
   -/
 
-  example (n: ℕ) (h: n + 1 = 4): n = 3 := by
+  example (n: ℕ) (h: n + (1: ℕ) = (4: ℕ)): n = (3: ℕ) := by
     rw [ℕ.fourSuccOfThree, ← succEqAddOne] at h
     apply ℕ.succInj
     exact h
@@ -136,7 +135,7 @@ namespace Tactic
   ## Arguing backwards
   -/
 
-  example (n: ℕ) (h: n + 1 = 4): n = 3 := by
+  example (n: ℕ) (h: n + (1) = (4: ℕ)): n = (3: ℕ) := by
     apply ℕ.succInj
     rw [succEqAddOne, ← ℕ.fourSuccOfThree]
     exact h
@@ -145,7 +144,7 @@ namespace Tactic
   ## `intro`
   -/
 
-  example (n: ℕ): n = 37 → n = 37 := by
+  example (n: ℕ): n = (37: ℕ) → n = (37: ℕ) := by
     intro h
     apply h
 
@@ -153,7 +152,7 @@ namespace Tactic
   ## `intro` practice
   -/
 
-  example (n₁: ℕ): n₁ + 1 = n₂ + 1 → n₁ = n₂ := by
+  example (n₁: ℕ): n₁ + (1: ℕ) = n₂ + (1: ℕ) → n₁ = n₂ := by
     intro h
     repeat rw [← succEqAddOne] at h
     apply ℕ.succInj
@@ -174,7 +173,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem zeroNeOne: (0: ℕ) ≠ 1 := by
+  theorem zeroNeOne: (0: ℕ) ≠ (1: ℕ) := by
     intro h
     rw [ℕ.oneSuccOfZero] at h
     apply ℕ.zeroNeSucc
@@ -185,7 +184,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem oneNeZero: (1: ℕ) ≠ 0 := by
+  theorem oneNeZero: (1: ℕ) ≠ (0: ℕ) := by
     symm
     exact zeroNeOne
 
@@ -193,7 +192,7 @@ namespace Tactic
   ## 2 + 2 ≠ 5
   -/
 
-  example: (2: ℕ) + 2 ≠ 5 := by
+  example: (2: ℕ) + (2: ℕ) ≠ (5: ℕ) := by
     intro h
     repeat rw [ℕ.fiveSuccOfFour, ℕ.fourSuccOfThree, ℕ.threeSuccOfTwo, ℕ.twoSuccOfOne, ℕ.oneSuccOfZero] at h
     repeat rw [ℕ.addSucc] at h
@@ -208,13 +207,13 @@ namespace Blended
   ## The `exact` tactic
   -/
 
-  example (n₁ n₂ n₃: ℕ) (h₁: n₁ + n₂ = 37) (_: 3 * n₁ + n₃ = 42): n₁ + n₂ = 37 := h₁
+  example (n₁ n₂ n₃: ℕ) (h₁: n₁ + n₂ = (37: ℕ)) (_: (3: ℕ) * n₁ + n₃ = (42: ℕ)): n₁ + n₂ = (37: ℕ) := h₁
 
   /-
   ## `exact` practice
   -/
 
-  example (n₁: ℕ) (h: 0 + n₁ = 0 + n₂ + 2): n₁ = n₂ + 2 :=
+  example (n₁: ℕ) (h: (0: ℕ) + n₁ = (0: ℕ) + n₂ + (2: ℕ)): n₁ = n₂ + (2: ℕ) :=
     calc n₁
       _ = ℕ.zero + n₁     := by rw [zeroAdd]
       _ = ℕ.zero + n₂ + 2 := h
@@ -224,14 +223,14 @@ namespace Blended
   ## The `apply` tactic
   -/
 
-  example (n₁ n₂: ℕ) (h₁: n₁ = 37) (h₂: n₁ = 37 → n₂ = 42): n₂ = 42 :=
+  example (n₁ n₂: ℕ) (h₁: n₁ = (37: ℕ)) (h₂: n₁ = (37: ℕ) → n₂ = (42: ℕ)): n₂ = (42: ℕ) :=
     h₂ h₁
 
   /-
   ## `succInj`: The successor function is injective
   -/
 
-  example (n: ℕ) (h: n + 1 = 4): n = 3 :=
+  example (n: ℕ) (h: n + (1: ℕ) = (4: ℕ)): n = (3: ℕ) :=
     have h₁: n.succ = (3: ℕ).succ :=
       calc n.succ
         _ = n + 1       := by rw [succEqAddOne]
@@ -249,14 +248,14 @@ namespace Blended
   ## `intro`
   -/
 
-  example (n: ℕ): n = 37 → n = 37
+  example (n: ℕ): n = (37: ℕ) → n = (37: ℕ)
     | h => h
 
   /-
   ## `intro` practice
   -/
 
-  example (n₁: ℕ) (h: n₁ + 1 = n₂ + 1): n₁ = n₂ :=
+  example (n₁: ℕ) (h: n₁ + (1: ℕ) = n₂ + (1: ℕ)): n₁ = n₂ :=
     have h₁: n₁.succ = n₂.succ :=
       calc n₁.succ
         _ = n₁ + 1 := by rw [succEqAddOne]
@@ -276,7 +275,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem zeroNeOne: (0: ℕ) ≠ 1
+  theorem zeroNeOne: (0: ℕ) ≠ (1: ℕ)
     | _ => by contradiction
 
   /-
@@ -284,12 +283,12 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem oneNeZero: (1: ℕ) ≠ 0
+  theorem oneNeZero: (1: ℕ) ≠ (0: ℕ)
     | _ => by contradiction
 
   /-
   ## 2 + 2 ≠ 5
   -/
 
-  example: (2: ℕ) + 2 ≠ 5 := sorry
+  example: (2: ℕ) + (2: ℕ) ≠ (5: ℕ) := sorry
 end Blended

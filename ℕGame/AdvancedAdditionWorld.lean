@@ -59,7 +59,7 @@ namespace Term
   ## Add Left = Self
   -/
 
-  theorem addLeftEqSelf: ∀ n₁ n₂: ℕ, n₁ + n₂ = n₂ → n₁ = 0
+  theorem addLeftEqSelf: ∀ n₁ n₂: ℕ, n₁ + n₂ = n₂ → n₁ = (0: ℕ)
     | n₁, .zero, h =>
       calc n₁
         _ = n₁ + 0 := Eq.symm (ℕ.addZero n₁)
@@ -76,7 +76,7 @@ namespace Term
   ## Add Right = Self
   -/
 
-  theorem addRightEqSelf (n₁ n₂: ℕ) (h: n₁ + n₂ = n₁): n₂ = 0 :=
+  theorem addRightEqSelf (n₁ n₂: ℕ) (h: n₁ + n₂ = n₁): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = n₁ :=
       calc n₂ + n₁
         _ = n₁ + n₂ := addComm n₂ n₁
@@ -87,7 +87,7 @@ namespace Term
   ## a + b = 0 → a = 0
   -/
 
-  theorem eqZeroOfAddRightEqZero: ∀ n₁ n₂: ℕ, n₁ + n₂ = 0 → n₁ = 0
+  theorem eqZeroOfAddRightEqZero: ∀ n₁ n₂: ℕ, n₁ + n₂ = (0: ℕ) → n₁ = (0: ℕ)
     | n₁, .zero, h =>
       calc n₁
         _ = n₁ + ℕ.zero := Eq.symm (ℕ.addZero n₁)
@@ -104,7 +104,7 @@ namespace Term
   ## a + b = 0 ⇒ b = 0
   -/
 
-  theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ) (h: n₁ + n₂ = 0): n₂ = 0 :=
+  theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ) (h: n₁ + n₂ = (0: ℕ)): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = 0 :=
       calc n₂ + n₁
         _ = n₁ + n₂ := addComm n₂ n₁
@@ -162,7 +162,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem addLeftEqSelf (n₁ n₂: ℕ): n₁ + n₂ = n₂ → n₁ = 0 := by
+  theorem addLeftEqSelf (n₁ n₂: ℕ): n₁ + n₂ = n₂ → n₁ = (0: ℕ) := by
     intro h
     induction n₂ with
       | zero =>
@@ -181,7 +181,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem addRightEqSelf (n₁ n₂: ℕ): n₁ + n₂ = n₁ → n₂ = 0 := by
+  theorem addRightEqSelf (n₁ n₂: ℕ): n₁ + n₂ = n₁ → n₂ = (0: ℕ) := by
     rw [addComm]
     exact addLeftEqSelf n₂ n₁
 
@@ -190,7 +190,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem eqZeroOfAddRightEqZero (n₁ n₂: ℕ): n₁ + n₂ = 0 → n₁ = 0 := by
+  theorem eqZeroOfAddRightEqZero (n₁ n₂: ℕ): n₁ + n₂ = (0: ℕ) → n₁ = (0: ℕ) := by
     intro h
     cases n₂ with
       | zero =>
@@ -207,7 +207,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ): n₁ + n₂ = 0 → n₂ = 0 := by
+  theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ): n₁ + n₂ = (0: ℕ) → n₂ = (0: ℕ) := by
     rw [addComm]
     apply eqZeroOfAddRightEqZero
 end Tactic
@@ -263,7 +263,7 @@ namespace Blended
   ## Add Left = Self
   -/
 
-  theorem addLeftEqSelf: ∀ n₁ n₂: ℕ, n₁ + n₂ = n₂ → n₁ = 0
+  theorem addLeftEqSelf: ∀ n₁ n₂: ℕ, n₁ + n₂ = n₂ → n₁ = (0: ℕ)
     | n₁, .zero, h =>
       calc n₁
         _ = n₁ + 0 := by simp
@@ -281,7 +281,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem addRightEqSelf (n₁ n₂: ℕ) (h: n₁ + n₂ = n₁): n₂ = 0 :=
+  theorem addRightEqSelf (n₁ n₂: ℕ) (h: n₁ + n₂ = n₁): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = n₁ :=
       calc n₂ + n₁
         _ = n₁ + n₂ := by rw [addComm]
@@ -293,7 +293,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem eqZeroOfAddRightEqZero: ∀ n₁ n₂: ℕ, n₁ + n₂ = 0 → n₁ = 0
+  theorem eqZeroOfAddRightEqZero: ∀ n₁ n₂: ℕ, n₁ + n₂ = (0: ℕ) → n₁ = (0: ℕ)
     | n₁, .zero, h =>
       calc n₁
         _ = n₁ + ℕ.zero := by simp
@@ -311,7 +311,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ) (h: n₁ + n₂ = 0): n₂ = 0 :=
+  theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ) (h: n₁ + n₂ = (0: ℕ)): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = 0 :=
       calc n₂ + n₁
         _ = n₁ + n₂ := by rw [addComm]

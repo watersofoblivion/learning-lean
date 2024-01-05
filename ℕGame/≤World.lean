@@ -23,7 +23,7 @@ namespace Term
   ## 0 ≤ x
   -/
 
-  theorem zeroLe (n: ℕ): 0 ≤ n :=
+  theorem zeroLe (n: ℕ): (0: ℕ) ≤ n :=
     have h: 0 + n = n := add0L n
     ⟨n, Eq.symm h⟩
 
@@ -45,7 +45,7 @@ namespace Term
   ## x ≤ 0 → x = 0
   -/
 
-  theorem leZero (n: ℕ): n ≤ 0 → n = 0 := sorry
+  theorem leZero (n: ℕ): n ≤ (0: ℕ) → n = (0: ℕ) := sorry
 end Term
 
 namespace Tactic
@@ -56,16 +56,18 @@ namespace Tactic
   @[local simp]
   theorem leRefl (n: ℕ): n ≤ n := by
     exists 0
-    sorry -- rw [ℕ.add0]
+    have: ℕ.add n 0 = n := ℕ.add0 n
+    simp_all
 
   /-
   ## 0 ≤ x
   -/
 
   @[local simp]
-  theorem zeroLe (n: ℕ): 0 ≤ n := by
+  theorem zeroLe (n: ℕ): (0: ℕ) ≤ n := by
     exists n
-    sorry -- rw [add0L]
+    have: ℕ.add 0 n = n := add0L n
+    simp_all
 
   /-
   ## x ≤ succ x
@@ -90,7 +92,7 @@ namespace Tactic
   -/
 
   @[local simp]
-  theorem leZero (n: ℕ): n ≤ 0 → n = 0 := by
+  theorem leZero (n: ℕ): n ≤ (0: ℕ) → n = (0: ℕ) := by
     intro h
     sorry
 end Tactic
@@ -102,7 +104,7 @@ namespace Blended
 
   @[local simp]
   theorem leRefl (n: ℕ): n ≤ n :=
-    have h: n + 0 = n := by rw [ℕ.add0]
+    have h: n + 0 = n := by simp
     ⟨0, Eq.symm h⟩
 
   /-
@@ -110,7 +112,7 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem zeroLe (n: ℕ): 0 ≤ n :=
+  theorem zeroLe (n: ℕ): (0: ℕ) ≤ n :=
     have h: 0 + n = n := by rw [add0L]
     ⟨n, Eq.symm h⟩
 
@@ -135,5 +137,5 @@ namespace Blended
   -/
 
   @[local simp]
-  theorem leZero (n: ℕ): n ≤ 0 → n = 0 := sorry
+  theorem leZero (n: ℕ): n ≤ (0: ℕ) → n = (0: ℕ) := sorry
 end Blended
