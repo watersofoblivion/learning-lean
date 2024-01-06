@@ -23,26 +23,27 @@ namespace Term
   -/
 
   example: (2: ℕ) = (0: ℕ).succ.succ :=
-    calc (2: ℕ)
-      _ = (1: ℕ).succ      := ℕ.twoSuccOfOne
-      _ = (0: ℕ).succ.succ := congrArg ℕ.succ ℕ.oneSuccOf0
+    calc 2
+      _ = (1: ℕ).succ      := twoSuccOfOne
+      _ = (0: ℕ).succ.succ := congrArg ℕ.succ oneSuccOf0
 
   /-
   ## Two is the number after the number after zero, proven backwards.
   -/
 
   example: (2: ℕ) = (0: ℕ).succ.succ :=
+    have h: (0: ℕ).succ = 1 := Eq.symm (oneSuccOf0)
     calc (0: ℕ).succ.succ
-      _ = (1: ℕ).succ := congrArg ℕ.succ (Eq.symm (ℕ.oneSuccOf0))
-      _ = (2: ℕ)      := Eq.symm (ℕ.twoSuccOfOne)
+      _ = (1: ℕ).succ := congrArg ℕ.succ h
+      _ = 2           := Eq.symm (twoSuccOfOne)
 
   /-
   ## Adding zero
   -/
 
   example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c :=
-    have hb: b + 0 = b := ℕ.addZero b
-    have hc: c + 0 = c := ℕ.addZero c
+    have hb: b + 0 = b := addZero b
+    have hc: c + 0 = c := addZero c
     have h: a + (b + 0) = a + b := congrArg (ℕ.add a) hb
     have hp: ℕ.add (a + (b + 0)) = ℕ.add (a + b) := congrArg ℕ.add h
     calc a + (b + 0) + (c + 0)
@@ -60,24 +61,28 @@ namespace Term
   -/
 
   theorem succEqAddOne (n: ℕ): n.succ = n + (1: ℕ) :=
+    have h₁: n = n + ℕ.zero := Eq.symm (addZero n)
+    have h₂: ℕ.zero.succ = 1 := Eq.symm (oneSuccOfZero)
     calc n.succ
-      _ = (n + ℕ.zero).succ := congrArg ℕ.succ (Eq.symm (ℕ.addZero n))
-      _ = n + ℕ.zero.succ   := Eq.symm (ℕ.addSucc n ℕ.zero)
-      _ = n + 1             := congrArg (ℕ.add n) (Eq.symm (ℕ.oneSuccOfZero))
+      _ = (n + ℕ.zero).succ := congrArg ℕ.succ h₁
+      _ = n + ℕ.zero.succ   := Eq.symm (addSucc n ℕ.zero)
+      _ = n + 1             := congrArg (ℕ.add n) h₂
 
   /-
   ## 2 + 2 = 4
   -/
 
   example: (2: ℕ) + (2: ℕ) = (4: ℕ) :=
+    let add2 := ℕ.add 2
+    let succSucc := ℕ.succ ∘ ℕ.succ
     calc (2: ℕ) + 2
-      _ = (2: ℕ) + (1: ℕ).succ        := congrArg (ℕ.add 2) ℕ.twoSuccOfOne
-      _ = (2: ℕ) + ℕ.zero.succ.succ   := congrArg (ℕ.add 2) (congrArg ℕ.succ ℕ.oneSuccOfZero)
-      _ = ((2: ℕ) + ℕ.zero.succ).succ := ℕ.addSucc 2 ℕ.zero.succ
-      _ = ((2: ℕ) + ℕ.zero).succ.succ := congrArg ℕ.succ (ℕ.addSucc 2 ℕ.zero)
-      _ = (2: ℕ).succ.succ            := congrArg (ℕ.succ ∘ ℕ.succ) (ℕ.addZero 2)
-      _ = (3: ℕ).succ                 := congrArg ℕ.succ (Eq.symm ℕ.threeSuccOfTwo)
-      _ = (4: ℕ)                      := Eq.symm ℕ.fourSuccOfThree
+      _ = 2 + (1: ℕ).succ        := congrArg add2 twoSuccOfOne
+      _ = 2 + ℕ.zero.succ.succ   := congrArg add2 (congrArg ℕ.succ oneSuccOfZero)
+      _ = (2 + ℕ.zero.succ).succ := addSucc 2 ℕ.zero.succ
+      _ = (2 + ℕ.zero).succ.succ := congrArg ℕ.succ (addSucc 2 ℕ.zero)
+      _ = (2: ℕ).succ.succ       := congrArg succSucc (addZero 2)
+      _ = (3: ℕ).succ            := congrArg ℕ.succ (Eq.symm threeSuccOfTwo)
+      _ = 4                      := Eq.symm fourSuccOfThree
 end Term
 
 namespace Tactic
@@ -100,46 +105,45 @@ namespace Tactic
   -/
 
   example: (2: ℕ) = (0: ℕ).succ.succ := by
-    rw [ℕ.twoSuccOfOne, ℕ.oneSuccOf0]
+    rw [twoSuccOfOne, oneSuccOf0]
 
   /-
   ## Two is the number after the number after zero, proven backwards.
   -/
 
   example: (2: ℕ) = (0: ℕ).succ.succ := by
-    rw [← ℕ.oneSuccOf0, ← ℕ.twoSuccOfOne]
+    rw [← oneSuccOf0, ← twoSuccOfOne]
 
   /-
   ## Adding zero
   -/
 
   example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c := by
-    repeat rw [ℕ.add0]
+    repeat rw [add0]
 
   /-
   ## Precision Rewriting
   -/
 
   example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c := by
-    rw [ℕ.add0 c, ℕ.add0 b]
+    rw [add0 c, add0 b]
 
   /-
   ## Add Successor
   -/
 
-  @[local simp]
   theorem succEqAddOne (n: ℕ): n.succ = n + (1: ℕ) := by
-    rw [ℕ.oneSuccOfZero, ℕ.addSucc, ℕ.addZero]
+    rw [oneSuccOfZero, addSucc, addZero]
 
   /-
   ## 2 + 2 = 4
   -/
 
   example: (2: ℕ) + (2: ℕ) = (4: ℕ) := by
-    rw [ℕ.twoSuccOfOne, ℕ.oneSuccOfZero]
-    rw [ℕ.fourSuccOfThree, ℕ.threeSuccOfTwo, ℕ.twoSuccOfOne, ℕ.oneSuccOfZero]
-    repeat rw [ℕ.addSucc]
-    rw [ℕ.addZero]
+    rw [twoSuccOfOne, oneSuccOfZero]
+    rw [fourSuccOfThree, threeSuccOfTwo, twoSuccOfOne, oneSuccOfZero]
+    repeat rw [addSucc]
+    rw [addZero]
 end Tactic
 
 namespace Blended
@@ -161,9 +165,9 @@ namespace Blended
   -/
 
   example: (2: ℕ) = (0: ℕ).succ.succ :=
-    calc (2: ℕ)
-      _ = (1: ℕ).succ      := by rw [ℕ.twoSuccOfOne]
-      _ = (0: ℕ).succ.succ := by rw [ℕ.oneSuccOf0]
+    calc 2
+      _ = (1: ℕ).succ      := by rw [twoSuccOfOne]
+      _ = (0: ℕ).succ.succ := by rw [oneSuccOf0]
 
   /-
   ## Two is the number after the number after zero, proven backwards.
@@ -171,8 +175,8 @@ namespace Blended
 
   example: (2: ℕ) = (0: ℕ).succ.succ :=
     calc (0: ℕ).succ.succ
-      _ = (1: ℕ).succ := by rw [← ℕ.oneSuccOf0]
-      _ = (2: ℕ)      := by rw [← ℕ.twoSuccOfOne]
+      _ = (1: ℕ).succ := by rw [← oneSuccOf0]
+      _ = 2           := by rw [← twoSuccOfOne]
 
   /-
   ## Adding zero
@@ -180,8 +184,8 @@ namespace Blended
 
   example (a b c: ℕ): a + (b + (0: ℕ)) + (c + (0: ℕ)) = a + b + c := by
     calc a + (b + 0) + (c + 0)
-      _ = a + b + (c + 0) := by rw [ℕ.add0]
-      _ = a + b + c       := by rw [ℕ.add0]
+      _ = a + b + (c + 0) := by rw [add0]
+      _ = a + b + c       := by rw [add0]
 
   /-
   ## Precision Rewriting
@@ -193,18 +197,17 @@ namespace Blended
   ## Add Successor
   -/
 
-  @[local simp]
   theorem succEqAddOne (n: ℕ): n.succ = n + (1: ℕ) := by
-    rw [ℕ.oneSuccOfZero, ℕ.addSucc, ℕ.addZero]
+    rw [oneSuccOfZero, addSucc, addZero]
 
   /-
   ## 2 + 2 = 4
   -/
 
   example: (2: ℕ) + (2: ℕ) = (4: ℕ) :=
-    calc (2: ℕ) + 2
-      _ = (2: ℕ) + ℕ.zero.succ.succ   := by rw [ℕ.twoSuccOfOne, ℕ.oneSuccOfZero]
-      _ = ((2: ℕ) + ℕ.zero).succ.succ := by repeat rw [ℕ.addSucc]
-      _ = (2: ℕ).succ.succ            := by rw [ℕ.addZero]
-      _ = (4: ℕ)                      := by rw [ℕ.fourSuccOfThree, ℕ.threeSuccOfTwo]
+    calc 2 + 2
+      _ = 2 + ℕ.zero.succ.succ   := by rw [twoSuccOfOne, oneSuccOfZero]
+      _ = (2 + ℕ.zero).succ.succ := by repeat rw [addSucc]
+      _ = (2: ℕ).succ.succ       := by rw [addZero]
+      _ = 4                      := by rw [fourSuccOfThree, threeSuccOfTwo]
 end Blended

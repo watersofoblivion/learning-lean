@@ -16,10 +16,10 @@ namespace Term
 
   theorem neSuccSelf: ∀ n: ℕ, n ≠ n.succ
     | .zero, h₁ =>
-      have h₂: 0 ≠ (0: ℕ).succ := ℕ.zeroNeSucc 0
+      have h₂: 0 ≠ (0: ℕ).succ := zeroNeSucc 0
       absurd h₁ h₂
     | .succ n, h =>
-      have h₁: n = n.succ := ℕ.succInj n n.succ h
+      have h₁: n = n.succ := succInj n n.succ h
       have h₂: n ≠ n.succ := neSuccSelf n
       absurd h₁ h₂
 
@@ -30,17 +30,17 @@ namespace Term
   theorem addRightCancel: ∀ n₁ n₂ n₃: ℕ, n₁ + n₃ = n₂ + n₃ → n₁ = n₂
     | n₁, n₂, .zero, h =>
       calc n₁
-        _ = n₁ + ℕ.zero := Eq.symm (ℕ.addZero n₁)
+        _ = n₁ + ℕ.zero := Eq.symm (addZero n₁)
         _ = n₂ + ℕ.zero := h
-        _ = n₂          := ℕ.addZero n₂
+        _ = n₂          := addZero n₂
     | n₁, n₂, .succ n₃, h =>
       have h₁: n₁ + n₃ = n₂ + n₃ :=
         have h₂: (n₁ + n₃).succ = (n₂ + n₃).succ :=
           calc (n₁ + n₃).succ
-            _ = n₁ + n₃.succ   := Eq.symm (ℕ.addSucc n₁ n₃)
+            _ = n₁ + n₃.succ   := Eq.symm (addSucc n₁ n₃)
             _ = n₂ + n₃.succ   := h
-            _ = (n₂ + n₃).succ := ℕ.addSucc n₂ n₃
-        ℕ.succInj (n₁ + n₃) (n₂ + n₃) h₂
+            _ = (n₂ + n₃).succ := addSucc n₂ n₃
+        succInj (n₁ + n₃) (n₂ + n₃) h₂
       addRightCancel n₁ n₂ n₃ h₁
 
   /-
@@ -62,14 +62,14 @@ namespace Term
   theorem addLeftEqSelf: ∀ n₁ n₂: ℕ, n₁ + n₂ = n₂ → n₁ = (0: ℕ)
     | n₁, .zero, h =>
       calc n₁
-        _ = n₁ + 0 := Eq.symm (ℕ.addZero n₁)
+        _ = n₁ + 0 := Eq.symm (addZero n₁)
         _ = 0      := h
     | n₁, .succ n₂, h =>
       have h₁: (n₁ + n₂).succ = n₂.succ :=
         calc (n₁ + n₂).succ
-          _ = n₁ + n₂.succ := Eq.symm (ℕ.addSucc n₁ n₂)
+          _ = n₁ + n₂.succ := Eq.symm (addSucc n₁ n₂)
           _ = n₂.succ      := h
-      have h₂: n₁ + n₂ = n₂ := ℕ.succInj (n₁ + n₂) n₂ h₁
+      have h₂: n₁ + n₂ = n₂ := succInj (n₁ + n₂) n₂ h₁
       addLeftEqSelf n₁ n₂ h₂
 
   /-
@@ -90,14 +90,14 @@ namespace Term
   theorem eqZeroOfAddRightEqZero: ∀ n₁ n₂: ℕ, n₁ + n₂ = (0: ℕ) → n₁ = (0: ℕ)
     | n₁, .zero, h =>
       calc n₁
-        _ = n₁ + ℕ.zero := Eq.symm (ℕ.addZero n₁)
+        _ = n₁ + ℕ.zero := Eq.symm (addZero n₁)
         _ = 0           := h
     | n₁, .succ n₂, h =>
       have h₁: 0 = (n₁ + n₂).succ :=
         calc 0
           _ = n₁ + n₂.succ   := Eq.symm h
-          _ = (n₁ + n₂).succ := ℕ.addSucc n₁ n₂
-      have h₂: 0 ≠ (n₁ + n₂).succ := ℕ.zeroNeSucc (n₁ + n₂)
+          _ = (n₁ + n₂).succ := addSucc n₁ n₂
+      have h₂: 0 ≠ (n₁ + n₂).succ := zeroNeSucc (n₁ + n₂)
       absurd h₁ h₂
 
   /-
@@ -117,14 +117,14 @@ namespace Tactic
   ## n ≠ n.succ
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem neSuccSelf (n: ℕ): n ≠ n.succ := by
     induction n with
-      | zero => apply ℕ.zeroNeSucc
+      | zero => apply zeroNeSucc
       | succ n ihₙ =>
         intro h
         have h₂: n = n.succ := by
-          rw [ℕ.succInj n.succ]
+          rw [succInj n.succ]
           apply Eq.symm
           exact h
         contradiction
@@ -133,7 +133,7 @@ namespace Tactic
   ## Add Right Cancel
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addRightCancel (n₁ n₂ n₃: ℕ): n₁ + n₃ = n₂ + n₃ → n₁ = n₂ := by
     intro h
     induction n₃ with
@@ -143,7 +143,7 @@ namespace Tactic
       | succ n₃ ihn₃ =>
         simp at h
         have h₂: n₁ + n₃ = n₂ + n₃ := by
-          rw [ℕ.succInj (n₁ + n₃) (n₂ + n₃)]
+          rw [succInj (n₁ + n₃) (n₂ + n₃)]
           simp
           exact h
         apply ihn₃ h₂
@@ -152,7 +152,7 @@ namespace Tactic
   ## Add Left Cancel
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addLeftCancel (n₁ n₂ n₃: ℕ): n₁ + n₂ = n₁ + n₃ → n₂ = n₃ := by
     repeat rw [addComm n₁]
     exact addRightCancel n₂ n₃ n₁
@@ -161,7 +161,7 @@ namespace Tactic
   ## Add Left = Self
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addLeftEqSelf (n₁ n₂: ℕ): n₁ + n₂ = n₂ → n₁ = (0: ℕ) := by
     intro h
     induction n₂ with
@@ -170,8 +170,8 @@ namespace Tactic
         exact h
       | succ n₂ ihn₂ =>
         have h₂: n₁ + n₂ = n₂ := by
-          rw [ℕ.addSucc] at h
-          apply ℕ.succInj
+          rw [addSucc] at h
+          apply succInj
           exact h
         apply ihn₂
         exact h₂
@@ -180,7 +180,7 @@ namespace Tactic
   ## Add Right = Self
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addRightEqSelf (n₁ n₂: ℕ): n₁ + n₂ = n₁ → n₂ = (0: ℕ) := by
     rw [addComm]
     exact addLeftEqSelf n₂ n₁
@@ -189,7 +189,7 @@ namespace Tactic
   ## a + b = 0 → a = 0
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem eqZeroOfAddRightEqZero (n₁ n₂: ℕ): n₁ + n₂ = (0: ℕ) → n₁ = (0: ℕ) := by
     intro h
     cases n₂ with
@@ -197,8 +197,8 @@ namespace Tactic
         simp at h
         exact h
       | succ n₂ =>
-        have h₁: 0 ≠ (n₁ + n₂).succ := by simp
-        rw [ℕ.addSucc] at h
+        have h₁: 0 ≠ (n₁ + n₂).succ := zeroNeSucc (n₁ + n₂)
+        rw [addSucc] at h
         symm at h
         contradiction
 
@@ -206,7 +206,7 @@ namespace Tactic
   ## a + b = 0 ⇒ b = 0
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ): n₁ + n₂ = (0: ℕ) → n₂ = (0: ℕ) := by
     rw [addComm]
     apply eqZeroOfAddRightEqZero
@@ -217,11 +217,11 @@ namespace Blended
   ## n ≠ n.succ
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem neSuccSelf: ∀ n: ℕ, n ≠ n.succ
     | .zero, h₁ => by contradiction
     | .succ n, h =>
-      have h₁: n = n.succ := ℕ.succInj n n.succ h
+      have h₁: n = n.succ := succInj n n.succ h
       have h₂: n ≠ n.succ := neSuccSelf n
       by contradiction
 
@@ -229,7 +229,7 @@ namespace Blended
   ## Add Right Cancel
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addRightCancel: ∀ n₁ n₂ n₃: ℕ, n₁ + n₃ = n₂ + n₃ → n₁ = n₂
     | n₁, n₂, .zero, h =>
       calc n₁
@@ -243,20 +243,20 @@ namespace Blended
             _ = n₁ + n₃.succ   := by simp
             _ = n₂ + n₃.succ   := h
             _ = (n₂ + n₃).succ := by simp
-        ℕ.succInj (n₁ + n₃) (n₂ + n₃) h₂
+        succInj (n₁ + n₃) (n₂ + n₃) h₂
       addRightCancel n₁ n₂ n₃ h₁
 
   /-
   ## Add Left Cancel
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addLeftCancel (n₁ n₂ n₃: ℕ) (h: n₁ + n₂ = n₁ + n₃): n₂ = n₃ :=
     have h₁: n₂ + n₁ = n₃ + n₁ :=
       calc n₂ + n₁
-        _ = n₁ + n₂ := by rw [addComm]
+        _ = n₁ + n₂ := by simp
         _ = n₁ + n₃ := h
-        _ = n₃ + n₁ := by rw [addComm]
+        _ = n₃ + n₁ := by simp
     addRightCancel n₂ n₃ n₁ h₁
 
   /-
@@ -273,18 +273,18 @@ namespace Blended
         calc (n₁ + n₂).succ
           _ = n₁ + n₂.succ := by simp
           _ = n₂.succ      := h
-      have h₂: n₁ + n₂ = n₂ := ℕ.succInj (n₁ + n₂) n₂ h₁
+      have h₂: n₁ + n₂ = n₂ := succInj (n₁ + n₂) n₂ h₁
       addLeftEqSelf n₁ n₂ h₂
 
   /-
   ## Add Right = Self
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addRightEqSelf (n₁ n₂: ℕ) (h: n₁ + n₂ = n₁): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = n₁ :=
       calc n₂ + n₁
-        _ = n₁ + n₂ := by rw [addComm]
+        _ = n₁ + n₂ := by simp
         _ = n₁      := h
     addLeftEqSelf n₂ n₁ h₁
 
@@ -292,7 +292,7 @@ namespace Blended
   ## a + b = 0 → a = 0
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem eqZeroOfAddRightEqZero: ∀ n₁ n₂: ℕ, n₁ + n₂ = (0: ℕ) → n₁ = (0: ℕ)
     | n₁, .zero, h =>
       calc n₁
@@ -303,18 +303,18 @@ namespace Blended
         calc 0
           _ = n₁ + n₂.succ   := by rw [h]
           _ = (n₁ + n₂).succ := by simp
-      have: 0 ≠ (n₁ + n₂).succ := by simp
+      have: 0 ≠ (n₁ + n₂).succ := zeroNeSucc (n₁ + n₂)
       by contradiction
 
   /-
   ## a + b = 0 ⇒ b = 0
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ) (h: n₁ + n₂ = (0: ℕ)): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = 0 :=
       calc n₂ + n₁
-        _ = n₁ + n₂ := by rw [addComm]
+        _ = n₁ + n₂ := by simp
         _ = 0       := h
     eqZeroOfAddRightEqZero n₂ n₁ h₁
 end Blended

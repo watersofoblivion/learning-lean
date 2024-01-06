@@ -42,8 +42,8 @@ namespace Term
       calc n.succ
         _ = n + 1       := succEqAddOne n
         _ = 4           := h
-        _ = (3: ℕ).succ := ℕ.fourSuccOfThree
-    ℕ.succInj n 3 h₁
+        _ = (3: ℕ).succ := fourSuccOfThree
+    succInj n 3 h₁
 
   /-
   ## Arguing backwards
@@ -68,7 +68,7 @@ namespace Term
         _ = n₁ + 1 := succEqAddOne n₁
         _ = n₂ + 1 := h
         _ = n₂.succ := Eq.symm (succEqAddOne n₂)
-    ℕ.succInj n₁ n₂ h₁
+    succInj n₁ n₂ h₁
 
   /--
   ## ≠
@@ -82,7 +82,7 @@ namespace Term
   -/
 
   theorem zeroNeOne: (0: ℕ) ≠ (1: ℕ)
-    | h => absurd h (ℕ.zeroNeSucc ℕ.zero)
+    | h => absurd h (zeroNeSucc ℕ.zero)
 
   /--
   ## 1 ≠ 0
@@ -127,8 +127,8 @@ namespace Tactic
   -/
 
   example (n: ℕ) (h: n + (1: ℕ) = (4: ℕ)): n = (3: ℕ) := by
-    rw [ℕ.fourSuccOfThree, ← succEqAddOne] at h
-    apply ℕ.succInj
+    rw [fourSuccOfThree, ← succEqAddOne] at h
+    apply succInj
     exact h
 
   /-
@@ -136,8 +136,8 @@ namespace Tactic
   -/
 
   example (n: ℕ) (h: n + (1) = (4: ℕ)): n = (3: ℕ) := by
-    apply ℕ.succInj
-    rw [succEqAddOne, ← ℕ.fourSuccOfThree]
+    apply succInj
+    rw [succEqAddOne, ← fourSuccOfThree]
     exact h
 
   /-
@@ -155,7 +155,7 @@ namespace Tactic
   example (n₁: ℕ): n₁ + (1: ℕ) = n₂ + (1: ℕ) → n₁ = n₂ := by
     intro h
     repeat rw [← succEqAddOne] at h
-    apply ℕ.succInj
+    apply succInj
     exact h
 
   /-
@@ -172,18 +172,18 @@ namespace Tactic
   ## Zero ≠ Succ
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem zeroNeOne: (0: ℕ) ≠ (1: ℕ) := by
     intro h
-    rw [ℕ.oneSuccOfZero] at h
-    apply ℕ.zeroNeSucc
+    rw [oneSuccOfZero] at h
+    apply zeroNeSucc
     exact h
 
   /-
   ## 1 ≠ 0
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem oneNeZero: (1: ℕ) ≠ (0: ℕ) := by
     symm
     exact zeroNeOne
@@ -194,12 +194,8 @@ namespace Tactic
 
   example: (2: ℕ) + (2: ℕ) ≠ (5: ℕ) := by
     intro h
-    repeat rw [ℕ.fiveSuccOfFour, ℕ.fourSuccOfThree, ℕ.threeSuccOfTwo, ℕ.twoSuccOfOne, ℕ.oneSuccOfZero] at h
-    repeat rw [ℕ.addSucc] at h
-    rw [ℕ.addZero] at h
-    repeat rw [ℕ.zeroNeSucc] at h
-    -- apply ℕ.succInj at h -- Equivalent outside the NNG?
-    sorry
+    repeat rw [fiveSuccOfFour, fourSuccOfThree, threeSuccOfTwo, twoSuccOfOne, oneSuccOfZero] at h
+    simp at h
 end Tactic
 
 namespace Blended
@@ -215,9 +211,9 @@ namespace Blended
 
   example (n₁: ℕ) (h: (0: ℕ) + n₁ = (0: ℕ) + n₂ + (2: ℕ)): n₁ = n₂ + (2: ℕ) :=
     calc n₁
-      _ = ℕ.zero + n₁     := by rw [zeroAdd]
+      _ = ℕ.zero + n₁     := by simp
       _ = ℕ.zero + n₂ + 2 := h
-      _ = n₂ + 2          := by rw [zeroAdd]
+      _ = n₂ + 2          := by simp
 
   /-
   ## The `apply` tactic
@@ -235,8 +231,8 @@ namespace Blended
       calc n.succ
         _ = n + 1       := by rw [succEqAddOne]
         _ = 4           := h
-        _ = (3: ℕ).succ := by rw [ℕ.fourSuccOfThree]
-    ℕ.succInj n 3 h₁
+        _ = (3: ℕ).succ := by rw [fourSuccOfThree]
+    succInj n 3 h₁
 
   /-
   ## Arguing backwards
@@ -261,7 +257,7 @@ namespace Blended
         _ = n₁ + 1 := by rw [succEqAddOne]
         _ = n₂ + 1 := h
         _ = n₂.succ := by rw [succEqAddOne]
-    ℕ.succInj n₁ n₂ h₁
+    succInj n₁ n₂ h₁
 
   /-
   ## ≠
@@ -274,7 +270,7 @@ namespace Blended
   ## Zero ≠ Succ
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem zeroNeOne: (0: ℕ) ≠ (1: ℕ)
     | _ => by contradiction
 
@@ -282,7 +278,7 @@ namespace Blended
   ## 1 ≠ 0
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem oneNeZero: (1: ℕ) ≠ (0: ℕ)
     | _ => by contradiction
 

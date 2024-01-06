@@ -69,7 +69,7 @@ namespace Tactic
   ## Add Left Commutative
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addLeftComm: ∀ n₁ n₂ n₃: ℕ, n₁ + (n₂ + n₃) = n₂ + (n₁ + n₃) := by
     sorry
 
@@ -105,7 +105,7 @@ namespace Tactic
   ## Successor Not Equal to Zero
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem succNeZero: ∀ n: ℕ, n.succ ≠ (0: ℕ) := by
     sorry
 
@@ -113,7 +113,7 @@ namespace Tactic
   ## Successor Not Equal to Successor
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem succNeSucc: ∀ n₁ n₂: ℕ, n₁ ≠ n₂ → n₁.succ ≠ n₂.succ := by
     sorry
 
@@ -137,7 +137,7 @@ namespace Blended
   ## Add Left Commutative
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem addLeftComm: ∀ n₁ n₂ n₃: ℕ, n₁ + (n₂ + n₃) = n₂ + (n₁ + n₃) := sorry
 
   /-
@@ -168,14 +168,14 @@ namespace Blended
   ## Successor Not Equal to Zero
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem succNeZero: ∀ n: ℕ, n.succ ≠ (0: ℕ) := sorry
 
   /-
   ## Successor Not Equal to Successor
   -/
 
-  @[local simp]
+  @[scoped simp]
   theorem succNeSucc: ∀ n₁ n₂: ℕ, n₁ ≠ n₂ → n₁.succ ≠ n₂.succ := sorry
 
   /-

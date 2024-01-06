@@ -10,22 +10,14 @@ inductive ℕ: Type where
   | zero: ℕ
   | succ: ℕ → ℕ
 
-/-- Convert a `Nat` from the Lean prelude into our custom `ℕ` type -/
 def ℕ.ofNat: Nat → ℕ
   | .zero => .zero
   | .succ n => .succ (ofNat n)
 
-/-- Convert our custom `ℕ` type into a `Nat` from the Lean prelude -/
-def ℕ.toNat: ℕ → Nat
-  | .zero => .zero
-  | .succ n => 1 + n.toNat
-
-/-- Add two natural numbers -/
 def ℕ.add: ℕ → ℕ → ℕ
   | .zero, n | n, .zero  => n
   | .succ n₁, n₂ => (n₁.add n₂).succ
 
-/-- Multiply two natural numbers -/
 def ℕ.mul: ℕ → ℕ → ℕ
   | _, .zero => .zero
   | n₁, .succ n₂ => (n₁.mul n₂).add n₂
@@ -34,126 +26,218 @@ def ℕ.pow: ℕ → ℕ → ℕ
   | _, .zero => .zero
   | n₁, .succ n₂ => (n₁.pow n₂).mul n₁
 
-/-- Less than or equals -/
 def ℕ.lte (n₁ n₂: ℕ): Prop :=
   ∃ (n₃: ℕ), n₂ = n₁.add n₃
 
-/-- Less than -/
 def ℕ.lt (n₁ n₂: ℕ): Prop :=
   n₁.lte n₂ ∧ ¬(¬n₂.lte n₁)
 
 section Instances
-  /-- Coerce instances `Nat` from the Lean prelude into our custom `ℕ`.  This is the base case.  -/
   instance: OfNat ℕ 0 where ofNat := ℕ.zero
-
-  /-- Coerce instances `Nat` from the Lean prelude into our custom `ℕ`.  This is the inductive case. -/
   instance: OfNat ℕ (n + 1) where ofNat := (ℕ.ofNat n).succ
 
-  /-- Add two instances of `ℕ`. -/
   instance: Add ℕ where add := ℕ.add
-
-  /-- Multiply two instances of `ℕ`. -/
   instance: Mul ℕ where mul := ℕ.mul
-
-  /-- Exponentiation of `ℕ` to `ℕ` -/
   instance: Pow ℕ ℕ where pow := ℕ.pow
 
-  /-- Comparison of ℕ ≤ ℕ -/
   instance: LE ℕ where le := ℕ.lte
-
-  /-- Comparison of ℕ < ℕ -/
   instance: LT ℕ where lt := ℕ.lt
 end Instances
 
-section Zero
-  /-- Conversion between `ℕ.zero` and the numeral `0` -/
-  theorem ℕ.zeroNumeral: ℕ.zero = (0: ℕ) := rfl
+namespace Term
+  /-
+  ## Supplied Theorems
+  -/
 
-  /-- Conversion between the numeral `0` and `ℕ.zero` -/
-  theorem ℕ.numeralZero: (0: ℕ) = ℕ.zero := rfl
-end Zero
+  /-
+  ### Zero
+  -/
 
-/-
-## Supplied Theorems
--/
+  axiom zeroNumeral: ℕ.zero = (0: ℕ)
+  axiom numeralZero: (0: ℕ) = ℕ.zero
 
-section Successors
-  /-- One is the successor of zero.  This explicitly uses `0` instead of `ℕ.zero`. -/
-  theorem ℕ.oneSuccOf0: (1: ℕ) = (0: ℕ).succ := rfl
+  /-
+  ### Successors
+  -/
 
-  /-- One is the successor of zero.  This explicitly uses `ℕ.zero` instead of `0`. -/
-  theorem ℕ.oneSuccOfZero: (1: ℕ) = ℕ.zero.succ := rfl
+  axiom oneSuccOf0: (1: ℕ) = (0: ℕ).succ
+  axiom oneSuccOfZero: (1: ℕ) = ℕ.zero.succ
+  axiom twoSuccOfOne: (2: ℕ) = (1: ℕ).succ
+  axiom threeSuccOfTwo: (3: ℕ) = (2: ℕ).succ
+  axiom fourSuccOfThree: (4: ℕ) = (3: ℕ).succ
+  axiom fiveSuccOfFour: (5: ℕ) = (4: ℕ).succ
 
-  /-- Two is the successor of one. -/
-  theorem ℕ.twoSuccOfOne: (2: ℕ) = (1: ℕ).succ := rfl
+  /-
+  ### Identity
+  -/
 
-  /-- Three is the successor of two. -/
-  theorem ℕ.threeSuccOfTwo: (3: ℕ) = (2: ℕ).succ := rfl
+  axiom add0: ∀ n: ℕ, n + (0: ℕ) = n
+  axiom addZero: ∀ n: ℕ, n + ℕ.zero = n
 
-  /-- Four is the successor of three. -/
-  theorem ℕ.fourSuccOfThree: (4: ℕ) = (3: ℕ).succ := rfl
+  /-
+  ### Successor
+  -/
 
-  /-- Five is the successor of four. -/
-  theorem ℕ.fiveSuccOfFour: (5: ℕ) = (4: ℕ).succ := rfl
-end Successors
+  axiom addSucc (n₁ n₂: ℕ): n₁ + n₂.succ = (n₁ + n₂).succ
 
-section Identity
-  /-- Zero is the right identity.  Explicitly uses `0`, not `ℕ.zero`. -/
-  @[simp]
-  theorem ℕ.add0: ∀ n: ℕ, n + (0: ℕ) = n
-    | .zero => rfl
-    | .succ _ => rfl
+  /-
+  ### Peano
+  -/
 
-  /-- Zero is the right identity.  Explicitly uses `ℕ.zero`, not `0`. -/
-  @[simp]
-  theorem ℕ.addZero: ∀ n: ℕ, n + ℕ.zero = n
-    | .zero => rfl
-    | .succ _ => rfl
-end Identity
+  axiom succInj (n₁ n₂: ℕ): n₁.succ = n₂.succ → n₁ = n₂
+  axiom zeroNeSucc (n: ℕ): (0: ℕ) ≠ n.succ
 
-section Successor
-  /-- Addition of successor is equivalent to the successor of addition -/
-  @[simp]
-  theorem ℕ.addSucc (n₁ n₂: ℕ): n₁ + n₂.succ = (n₁ + n₂).succ := by
-    induction n₂ with
-      | zero =>
-        rw [ℕ.addZero, ← ℕ.oneSuccOfZero]
-        sorry
-      | succ n₂ ihₙ₁ =>
-        rw [ihₙ₁]
-        sorry
-section Successor
+  /-
+  ### Inequality
+  -/
 
-section Peano
-  @[simp]
-  axiom ℕ.succInj (n₁ n₂: ℕ): n₁.succ = n₂.succ → n₁ = n₂
-
-  @[simp]
-  axiom ℕ.zeroNeSucc (n: ℕ): (0: ℕ) ≠ n.succ
-end Peano
-
-section Inequality
   @[symm] def neSymm {α: Type} (x y: α): x ≠ y → y ≠ x := Ne.symm
-end Inequality
 
-section Multiplication
-  @[simp]
-  theorem ℕ.mul0: ∀ n: ℕ, n * (0: ℕ) = (0: ℕ) := sorry
+  /-
+  ### Multiplication
+  -/
 
-  @[simp]
-  theorem ℕ.mulZero: ∀ n: ℕ, n * ℕ.zero = ℕ.zero := sorry
+  axiom mul0: ∀ n: ℕ, n * (0: ℕ) = (0: ℕ)
+  axiom mulZero: ∀ n: ℕ, n * ℕ.zero = ℕ.zero
+  axiom mulSucc: ∀ n₁ n₂: ℕ, n₁ * n₂.succ = n₁ * n₂ + n₁
 
-  @[simp]
-  theorem ℕ.mulSucc: ∀ n₁ n₂: ℕ, n₁ * n₂.succ = n₁ * n₂ + n₁ := sorry
-end Multiplication
+  /-
+  ### Exponentiation
+  -/
 
-section Exponentiation
-  @[simp]
-  theorem ℕ.pow0: ∀ n: ℕ, n ^ (0: ℕ) = (1: ℕ) := sorry
+  axiom pow0: ∀ n: ℕ, n ^ (0: ℕ) = (1: ℕ)
+  axiom powZero: ∀ n: ℕ, n ^ ℕ.zero = (1: ℕ)
+  axiom powSucc: ∀ n₁ n₂: ℕ, n₁ ^ n₂.succ = n₁ ^ n₂ * n₁
+end Term
 
-  @[simp]
-  theorem ℕ.powZero: ∀ n: ℕ, n ^ ℕ.zero = (1: ℕ) := sorry
+namespace Tactic
+  /-
+  ## Supplied Theorems
+  -/
 
-  @[simp]
-  theorem ℕ.powSucc: ∀ n₁ n₂: ℕ, n₁ ^ n₂.succ = n₁ ^ n₂ * n₁ := sorry
-end Exponentiation
+  /-
+  ### Zero
+  -/
+
+  axiom zeroNumeral: ℕ.zero = (0: ℕ)
+  axiom numeralZero: (0: ℕ) = ℕ.zero
+
+  /-
+  ### Successors
+  -/
+
+  axiom oneSuccOf0: (1: ℕ) = (0: ℕ).succ
+  axiom oneSuccOfZero: (1: ℕ) = ℕ.zero.succ
+  axiom twoSuccOfOne: (2: ℕ) = (1: ℕ).succ
+  axiom threeSuccOfTwo: (3: ℕ) = (2: ℕ).succ
+  axiom fourSuccOfThree: (4: ℕ) = (3: ℕ).succ
+  axiom fiveSuccOfFour: (5: ℕ) = (4: ℕ).succ
+
+  /-
+  ### Identity
+  -/
+
+  @[scoped simp] axiom add0: ∀ n: ℕ, n + (0: ℕ) = n
+  @[scoped simp] axiom addZero: ∀ n: ℕ, n + ℕ.zero = n
+
+  /-
+  ### Successor
+  -/
+
+  @[scoped simp] axiom addSucc (n₁ n₂: ℕ): n₁ + n₂.succ = (n₁ + n₂).succ
+
+  /-
+  ### Peano
+  -/
+
+  @[scoped simp] axiom succInj (n₁ n₂: ℕ): n₁.succ = n₂.succ → n₁ = n₂
+  @[scoped simp] axiom zeroNeSucc (n: ℕ): (0: ℕ) ≠ n.succ
+
+  /-
+  ### Inequality
+  -/
+
+  @[symm] def neSymm {α: Type} (x y: α): x ≠ y → y ≠ x := Ne.symm
+
+  /-
+  ### Multiplication
+  -/
+
+  @[scoped simp] axiom mul0: ∀ n: ℕ, n * (0: ℕ) = (0: ℕ)
+  @[scoped simp] axiom mulZero: ∀ n: ℕ, n * ℕ.zero = ℕ.zero
+  @[scoped simp] axiom mulSucc: ∀ n₁ n₂: ℕ, n₁ * n₂.succ = n₁ * n₂ + n₁
+
+  /-
+  ### Exponentiation
+  -/
+
+  @[scoped simp] axiom pow0: ∀ n: ℕ, n ^ (0: ℕ) = (1: ℕ)
+  @[scoped simp] axiom powZero: ∀ n: ℕ, n ^ ℕ.zero = (1: ℕ)
+  @[scoped simp] axiom powSucc: ∀ n₁ n₂: ℕ, n₁ ^ n₂.succ = n₁ ^ n₂ * n₁
+end Tactic
+
+namespace Blended
+  /-
+  ## Supplied Theorems
+  -/
+
+  /-
+  ### Zero
+  -/
+
+  axiom zeroNumeral: ℕ.zero = (0: ℕ)
+  axiom numeralZero: (0: ℕ) = ℕ.zero
+
+  /-
+  ### Successors
+  -/
+
+  axiom oneSuccOf0: (1: ℕ) = (0: ℕ).succ
+  axiom oneSuccOfZero: (1: ℕ) = ℕ.zero.succ
+  axiom twoSuccOfOne: (2: ℕ) = (1: ℕ).succ
+  axiom threeSuccOfTwo: (3: ℕ) = (2: ℕ).succ
+  axiom fourSuccOfThree: (4: ℕ) = (3: ℕ).succ
+  axiom fiveSuccOfFour: (5: ℕ) = (4: ℕ).succ
+
+  /-
+  ### Identity
+  -/
+
+  @[scoped simp] axiom add0: ∀ n: ℕ, n + (0: ℕ) = n
+  @[scoped simp] axiom addZero: ∀ n: ℕ, n + ℕ.zero = n
+
+  /-
+  ### Successor
+  -/
+
+  @[scoped simp] axiom addSucc (n₁ n₂: ℕ): n₁ + n₂.succ = (n₁ + n₂).succ
+
+  /-
+  ### Peano
+  -/
+
+  @[scoped simp] axiom succInj (n₁ n₂: ℕ): n₁.succ = n₂.succ → n₁ = n₂
+  @[scoped simp] axiom zeroNeSucc (n: ℕ): (0: ℕ) ≠ n.succ
+
+  /-
+  ### Inequality
+  -/
+
+  @[symm] def neSymm {α: Type} (x y: α): x ≠ y → y ≠ x := Ne.symm
+
+  /-
+  ### Multiplication
+  -/
+
+  @[scoped simp] axiom mul0: ∀ n: ℕ, n * (0: ℕ) = (0: ℕ)
+  @[scoped simp] axiom mulZero: ∀ n: ℕ, n * ℕ.zero = ℕ.zero
+  @[scoped simp] axiom mulSucc: ∀ n₁ n₂: ℕ, n₁ * n₂.succ = n₁ * n₂ + n₁
+
+  /-
+  ### Exponentiation
+  -/
+
+  @[scoped simp] axiom pow0: ∀ n: ℕ, n ^ (0: ℕ) = (1: ℕ)
+  @[scoped simp] axiom powZero: ∀ n: ℕ, n ^ ℕ.zero = (1: ℕ)
+  @[scoped simp] axiom powSucc: ∀ n₁ n₂: ℕ, n₁ ^ n₂.succ = n₁ ^ n₂ * n₁
+end Blended
