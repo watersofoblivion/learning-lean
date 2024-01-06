@@ -113,7 +113,7 @@ namespace Blended
 
   @[scoped simp]
   theorem zeroLe (n: ℕ): (0: ℕ) ≤ n :=
-    have h: 0 + n = n := by rw [add0L]
+    have h: 0 + n = n := by simp
     ⟨n, Eq.symm h⟩
 
   /-

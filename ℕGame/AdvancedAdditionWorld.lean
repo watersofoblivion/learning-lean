@@ -254,9 +254,9 @@ namespace Blended
   theorem addLeftCancel (n₁ n₂ n₃: ℕ) (h: n₁ + n₂ = n₁ + n₃): n₂ = n₃ :=
     have h₁: n₂ + n₁ = n₃ + n₁ :=
       calc n₂ + n₁
-        _ = n₁ + n₂ := by simp
+        _ = n₁ + n₂ := by rw [addComm]
         _ = n₁ + n₃ := h
-        _ = n₃ + n₁ := by simp
+        _ = n₃ + n₁ := by rw [addComm]
     addRightCancel n₂ n₃ n₁ h₁
 
   /-
@@ -284,7 +284,7 @@ namespace Blended
   theorem addRightEqSelf (n₁ n₂: ℕ) (h: n₁ + n₂ = n₁): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = n₁ :=
       calc n₂ + n₁
-        _ = n₁ + n₂ := by simp
+        _ = n₁ + n₂ := by rw [addComm]
         _ = n₁      := h
     addLeftEqSelf n₂ n₁ h₁
 
@@ -314,7 +314,7 @@ namespace Blended
   theorem eqZeroOfAddLeftEqZero (n₁ n₂: ℕ) (h: n₁ + n₂ = (0: ℕ)): n₂ = (0: ℕ) :=
     have h₁: n₂ + n₁ = 0 :=
       calc n₂ + n₁
-        _ = n₁ + n₂ := by simp
+        _ = n₁ + n₂ := by rw [addComm]
         _ = 0       := h
     eqZeroOfAddRightEqZero n₂ n₁ h₁
 end Blended

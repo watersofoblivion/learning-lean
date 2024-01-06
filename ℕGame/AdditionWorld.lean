@@ -131,7 +131,6 @@ namespace Tactic
   ## Add Commutivity
   -/
 
-  @[scoped simp]
   theorem addComm (n₁ n₂: ℕ): n₁ + n₂ = n₂ + n₁ := by
     induction n₁ with
       | zero => simp
@@ -143,7 +142,6 @@ namespace Tactic
   ## Add Associativity
   -/
 
-  @[scoped simp]
   theorem addAssoc (n₁ n₂ n₃: ℕ): (n₁ + n₂) + n₃ = n₁ + (n₂ + n₃) := by
     induction n₁ with
       | zero => simp
@@ -155,7 +153,6 @@ namespace Tactic
   ## Add Right Commutivity
   -/
 
-  @[scoped simp]
   theorem addRightComm (n₁ n₂ n₃: ℕ): n₁ + n₂ + n₃ = n₁ + n₃ + n₂ := by
     rw [addAssoc, addComm n₂ n₃, ← addAssoc]
 end Tactic
@@ -202,7 +199,6 @@ namespace Blended
   ## Add Commutivity
   -/
 
-  @[scoped simp]
   theorem addComm: ∀ n₁ n₂: ℕ, n₁ + n₂ = n₂ + n₁
     | n₁, .zero => by simp
     | n₁, .succ n₂ => by
@@ -215,7 +211,6 @@ namespace Blended
   ## Add Associativity
   -/
 
-  @[scoped simp]
   theorem addAssoc: ∀ n₁ n₂ n₃: ℕ, (n₁ + n₂) + n₃ = n₁ + (n₂ + n₃)
     | .zero, n₂, n₃ => by simp
     | .succ n₁, n₂, n₃ =>
@@ -228,7 +223,6 @@ namespace Blended
   ## Add Right Commutivity
   -/
 
-  @[scoped simp]
   theorem addRightComm (n₁ n₂ n₃: ℕ): n₁ + n₂ + n₃ = n₁ + n₃ + n₂ :=
     calc n₁ + n₂ + n₃
       _ = n₁ + (n₂ + n₃) := by rw [addAssoc]

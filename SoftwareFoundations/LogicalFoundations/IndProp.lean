@@ -170,7 +170,10 @@ theorem evInversion (n₁: Nat) (h: Even n₁): n₁ = 0 ∨ (∃ n₂: Nat, n�
 example (n: Nat): Even n.succ.succ → Even n
   | .succSucc _ h => h
 
-theorem evenSuccSuccEven (n: Nat) (h: Even n.succ.succ): Even n := by
+theorem evenSuccSuccEven (n: Nat): Even n.succ.succ → Even n
+  | .succSucc _ h => h
+
+example (n: Nat) (h: Even n.succ.succ): Even n := by
   cases h; assumption
 
 example: ¬(Even 1) := by
@@ -178,7 +181,7 @@ example: ¬(Even 1) := by
   contradiction
 
 example (n: Nat): Even n.succ.succ.succ.succ → Even n
-  | .succSucc _ (.succSucc n h) => h
+  | .succSucc _ (.succSucc _ h) => h
 
 example (n: Nat) (h: Even n.succ.succ.succ.succ): Even n := by
   cases h with
@@ -220,7 +223,7 @@ theorem evenEvenPropIff (n₁: Nat): Even n₁ ↔ Nat.evenProp n₁ := by
         rw [h]
         apply indEvenDouble
 
-example (n₁ n₂: Nat) (h₁: Even n₁) (h₂: Even n₂): Even (n₁ + n₂) := by
+theorem evenPlusEven (n₁ n₂: Nat) (h₁: Even n₁) (h₂: Even n₂): Even (n₁ + n₂) := by
   induction h₁ with
     | zero =>
       cases n₂ with
@@ -242,6 +245,17 @@ inductive EvenSum: Nat → Prop where
   | two: EvenSum 2
   | sum (n₁ n₂: Nat) (h₁: EvenSum n₁) (h₂: EvenSum n₂): EvenSum (n₁ + n₂)
 
+example (n: Nat): Even n ↔ EvenSum n :=
+  ⟨mp n, mpr n⟩
+  where
+    mp (n: Nat): Even n → EvenSum n
+      | .zero => .zero
+      | .succSucc k h => .sum k 2 (mp k h) .two
+    mpr (n: Nat): EvenSum n → Even n
+      | .zero => .zero
+      | .two => .succSucc 0 .zero
+      | .sum n₁ n₂ h₁ h₂ => evenPlusEven n₁ n₂ (mpr n₁ h₁) (mpr n₂ h₂)
+
 example (n: Nat): Even n ↔ EvenSum n := by
   apply Iff.intro
   · intro h
@@ -257,8 +271,10 @@ example (n: Nat): Even n ↔ EvenSum n := by
       | two =>
         apply Even.succSucc
         apply Even.zero
-      | sum n₁ n₂ h₁ h₂ ih₁ ih₂ =>
-        sorry
+      | sum n₁ n₂ _ _ ih₁ ih₂ =>
+        apply evenPlusEven
+        · assumption
+        · assumption
 
 theorem evenSum (n₁ n₂: Nat) (h₁: Even (n₁ + n₂)) (h₂: Even n₁): Even n₂ := by
   induction h₂ with

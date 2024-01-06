@@ -179,7 +179,6 @@ namespace Tactic
   ## Mul Commutative
   -/
 
-  @[scoped simp]
   theorem mulComm (n₁ n₂: ℕ): n₁ * n₂ = n₂ * n₁ := by
     induction n₁ with
       | zero =>
@@ -228,7 +227,7 @@ namespace Tactic
       | succ n₁ ih =>
         simp
         rw [ih]
-        simp
+        simp [addComm]
         -- rw [← succMul n₁ n₂, ← succMul n₁ n₃]
         -- rw [← ℕ.addAssoc, ← ℕ.addRightComm, ℕ.addAssoc (n₁ * n₂), ← ℕ.succMul, ℕ.addRightComm, ← ℕ.succMul]
         sorry
@@ -245,8 +244,7 @@ namespace Tactic
   ## Mul Assoc
   -/
 
-  @[scoped simp]
-  theorem ℕ.mulAssoc (n₁ n₂ n₃: ℕ): (n₁ * n₂) * n₃ = n₁ * (n₂ * n₃) := by
+  theorem mulAssoc (n₁ n₂ n₃: ℕ): (n₁ * n₂) * n₃ = n₁ * (n₂ * n₃) := by
     sorry
 end Tactic
 
@@ -281,25 +279,24 @@ namespace Blended
     | n₁, .zero => by simp
     | n₁, .succ n₂ =>
       calc n₁.succ * n₂.succ
-        _ = n₁.succ + n₁.succ * n₂   := by simp
+        _ = n₁.succ + n₁.succ * n₂   := by simp [addComm]
         _ = n₁.succ + (n₁ * n₂ + n₂) := by rw [succMul n₁ n₂]
-        _ = n₁ * n₂ + n₂ + n₁.succ   := by simp
+        _ = n₁ * n₂ + n₂ + n₁.succ   := by simp [addComm]
         _ = n₁ * n₂.succ + n₂.succ   := sorry
 
   /-
   ## Mul Commutative
   -/
 
-  @[scoped simp]
   theorem mulComm: ∀ n₁ n₂: ℕ, n₁ * n₂ = n₂ * n₁
     | .zero, n₂ =>
       have: ℕ.zero = 0 := by rfl
       by simp_all
     | .succ n₁, n₂ =>
       calc n₁.succ * n₂
-        _ = n₂ + n₁ * n₂ := by simp
+        _ = n₂ + n₁ * n₂ := by simp [addComm]
         _ = n₂ + n₂ * n₁ := by rw [mulComm n₁ n₂]
-        _ = n₂ * n₁.succ := by simp
+        _ = n₂ * n₁.succ := by simp [addComm]
 
   /-
   ## One Mul
@@ -310,7 +307,7 @@ namespace Blended
     | .zero => mul0 1
     | .succ n =>
       calc 1 * n.succ
-        _ = 1 + 1 * n := by simp
+        _ = 1 + 1 * n := by simp [addComm]
         _ = 1 + n     := by rw [oneMul n]
         _ = n.succ    := by sorry -- simp [succEqAddOne, addComm]
 
@@ -323,7 +320,7 @@ namespace Blended
     | .zero => mulZero 2
     | .succ n =>
       calc 2 * n.succ
-        _ = 2 + 2 * n             := by simp
+        _ = 2 + 2 * n             := by simp [addComm]
         _ = 2 + (n + n)           := by rw [twoMul n]
         -- _ = n + n + 2             := ℕ.addComm 2 (n + n)
         -- _ = n + n + (1: ℕ).succ   := sorry -- congrArg (Nat.add (n + n)) ℕ.twoSuccOfOne
@@ -346,7 +343,7 @@ namespace Blended
       by simp_all
     | .succ n₁, n₂, n₃ =>
       calc n₁.succ * (n₂ + n₃)
-        _ = n₂ + n₃ + n₁ * (n₂ + n₃)        := by simp
+        _ = n₂ + n₃ + n₁ * (n₂ + n₃)        := by simp [addComm]
         _ = n₂ + n₃ + (n₁ * n₂ + n₁ * n₃)   := by rw [mulAdd n₁ n₂ n₃]
         -- _ = n₂ + (n₃ + (n₁ * n₂ + n₁ * n₃)) := ℕ.addAssoc n₂ n₃ (n₁ * n₂ + n₁ * n₃)
         -- _ = n₂ + (n₃ + n₁ * n₂ + n₁ * n₃)   := congrArg (ℕ.add n₂) (Eq.symm (ℕ.addAssoc n₃ (n₁ * n₂) (n₁ * n₃)))
@@ -373,6 +370,5 @@ namespace Blended
   ## Mul Assoc
   -/
 
-  @[scoped simp]
   theorem mulAssoc: ∀ n₁ n₂ n₃: ℕ, (n₁ * n₂) * n₃ = n₁ * (n₂ * n₃) := sorry
 end Blended
