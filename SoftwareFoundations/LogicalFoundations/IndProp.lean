@@ -38,7 +38,7 @@ example: CollatzHoldsFor 12 := by
   apply CollatzHoldsFor.more; simp [f, Nat.div2]
   apply CollatzHoldsFor.done
 
-theorem collatz (n: Nat): CollatzHoldsFor n := by sorry
+example (n: Nat): CollatzHoldsFor n := by sorry
 
 /-
 ### Example: Ordering
@@ -167,9 +167,6 @@ theorem evInversion (n₁: Nat) (h: Even n₁): n₁ = 0 ∨ (∃ n₂: Nat, n�
       apply Or.inr
       exists n
 
-example (n: Nat): Even n.succ.succ → Even n
-  | .succSucc _ h => h
-
 theorem evenSuccSuccEven (n: Nat): Even n.succ.succ → Even n
   | .succSucc _ h => h
 
@@ -203,7 +200,7 @@ example (n: Nat) (h: n.succ = 0): 2 + 2 = 5 := by
 theorem evenEvenProp (n₁: Nat) (h₁: Even n₁): Nat.evenProp n₁ := by
   induction h₁ with
     | zero => exists 0
-    | succSucc n₂ h₂ ih =>
+    | succSucc n₂ _ ih =>
       unfold Nat.evenProp at ih
       cases ih with
         | intro w h₃ =>
@@ -230,15 +227,17 @@ theorem evenPlusEven (n₁ n₂: Nat) (h₁: Even n₁) (h₂: Even n₂): Even 
         | zero => apply Even.zero
         | succ n₂ =>
           simp
-          apply h₂
+          exact h₂
     | succSucc n₁ h₁ ih₁ =>
       cases n₂ with
         | zero =>
           rw [Nat.add_zero]
           apply Even.succSucc
-          apply h₁
+          exact h₁
         | succ n₂ =>
-          sorry
+          rw [Nat.succ_add, ← Nat.succ_eq_add_one, Nat.succ_add]
+          apply Even.succSucc
+          exact ih₁
 
 inductive EvenSum: Nat → Prop where
   | zero: EvenSum 0
@@ -261,7 +260,7 @@ example (n: Nat): Even n ↔ EvenSum n := by
   · intro h
     induction h with
       | zero => apply EvenSum.zero
-      | succSucc n h ih =>
+      | succSucc n _ ih =>
         apply EvenSum.sum n 2
         · assumption
         · apply EvenSum.two
@@ -281,15 +280,19 @@ theorem evenSum (n₁ n₂: Nat) (h₁: Even (n₁ + n₂)) (h₂: Even n₁): E
     | zero =>
       simp [Nat.zero_add] at h₁
       assumption
-    | succSucc n h ih =>
-      sorry
+    | succSucc n _ ih =>
+      rw [Nat.succ_add, Nat.succ_add] at h₁
+      have h₂: Even (n + n₂) := evenSuccSuccEven (n + n₂) h₁
+      apply ih h₂
 
 example (n₁ n₂ n₃: Nat) (h₁: Even (n₁ + n₂)) (h₂: Even (n₁ + n₃)): Even (n₂ + n₃) := by
   rw [Nat.add_comm] at h₁
   rw [Nat.add_comm] at h₂
   have h₃: Even ((n₁ + n₂) + (n₁ + n₃)) := by
-    rw [Nat.add_comm n₁ n₂, ← Nat.add_assoc]
-    sorry
+    rw [Nat.add_comm n₁ n₂]
+    rw [Nat.add_comm] at h₂
+    exact evenPlusEven (n₂ + n₁) (n₁ + n₃) h₁ h₂
+  simp [Nat.add_assoc, Nat.add_comm, Nat.add_right_comm] at h₃
   sorry
 
 /-
@@ -318,12 +321,12 @@ inductive TotalRelation: Nat → Nat → Prop where
 example (n₁ n₂: Nat): TotalRelation n₁ n₂ := by
   apply TotalRelation.related
 
-inductive EmptyRelation: Nat → Nat → Prop where
+inductive EmptyRelation: Nat → Nat → Prop
 
 example (n₁ n₂: Nat): ¬(EmptyRelation n₁ n₂) := by
   unfold Not
   intro h
-  sorry
+  contradiction
 
 theorem Leq.trans (n₁ n₂ n₃: Nat) (h₁: Leq n₁ n₂) (h₂: Leq n₂ n₃): Leq n₁ n₃ := by
   induction h₂ with
@@ -352,7 +355,6 @@ theorem Leq.succLeq (n₁ n₂: Nat) (h: Leq n₁.succ n₂.succ): Leq n₁ n₂
     | eq =>
       apply Leq.eq
     | less _ h =>
-      -- rw [Playground.lt n₁ n₂]
       sorry
 
 theorem Leq.ltGeCases (n₁ n₂: Nat): Playground.lt n₁ n₂ ∨ Leq n₁ n₂ := by
@@ -485,7 +487,33 @@ namespace R
   def fR (n₁ n₂: Nat): Nat := n₁ + n₂
 
   theorem fREqR (n₁ n₂ n₃: Nat): R n₁ n₂ n₃ ↔ fR n₁ n₂ = n₃ := by
-    sorry
+    unfold fR
+    apply Iff.intro
+    · intro h
+      induction h with
+        | c₁ => rfl
+        | c₂ n₁ n₂ n₃ h ih =>
+          rw [Nat.succ_add]
+          sorry
+        | c₃ n₁ n₂ n₃ h ih =>
+          rw [Nat.add_succ]
+          sorry
+        | c₄ n₁ n₂ n₃ h ih =>
+          apply succInj
+          apply succInj
+          rw [← Nat.add_succ n₁ n₂, ← Nat.succ_add n₁ n₂.succ]
+          exact ih
+        | c₅ n₁ n₂ n₃ h ih =>
+          rw [Nat.add_comm]
+          exact ih
+    · intro h
+      induction n₁ with
+        | zero =>
+          rw [Nat.zero_add] at h
+          simp
+          sorry
+        | succ n ih =>
+          sorry
 end R
 
 inductive Subsequence: List Nat → List Nat → Prop where
