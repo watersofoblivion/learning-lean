@@ -73,7 +73,8 @@ namespace Tapl.UntypedArith
     | .isZero n =>
       match n.eval with
         | .zero => .true
-        | _ => .false
+        | .succ _ => .false
+        | _ => sorry
     | .ite c t f =>
       match c.eval with
         | .true => t.eval

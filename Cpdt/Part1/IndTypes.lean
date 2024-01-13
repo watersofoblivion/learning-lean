@@ -62,8 +62,10 @@ theorem Nat.rightAddititiveIdentity: ∀ n: Nat, n + 0 = n
 theorem Nat.succInj (n₁ n₂: Nat) (h: n₁.succ = n₂.succ): n₁ = n₂ := by
   injection h
 
-theorem List.appLen: ∀ l₁ l₂: List α, (l₁ ++ l₂).length = l₁.length + l₂.length := by
-  intro l₁ l₂
-  induction l₁ with
-    | nil => sorry
-    | cons hd tl ih => sorry
+theorem List.appLen (l₁ l₂: List α): (l₁ ++ l₂).length = l₁.length + l₂.length := by
+  cases l₁ with
+    | nil =>
+      rw [List.nil_append, List.length, Nat.zero_add]
+    | cons hd tl =>
+      rw [List.cons_append, List.length_cons, List.length_cons, Nat.succ_add]
+      simp

@@ -522,7 +522,10 @@ inductive Subsequence: List Nat → List Nat → Prop where
   | notFound: Subsequence _ []
 
 theorem subseqRefl (l: List Nat): Subsequence l l := by
-  sorry
+  induction l with
+    | nil =>
+      exact Subsequence.nil
+    | cons hd tl ih => sorry
 
 theorem subseqApp (l₁ l₂ l₃: List Nat) (h: Subsequence l₁ l₂): Subsequence l₁ (l₂ ++ l₃) := by
   sorry

@@ -134,6 +134,7 @@ namespace Typed
   end Test
 
   namespace Ty
+    @[reducible]
     def eval: Ty → Type
       | bool => Bool
       | nat => Nat
@@ -158,6 +159,7 @@ namespace Typed
   end BinOp
 
   namespace Stack
+    @[reducible]
     def vars: Stack → Type
       | .nil => Unit
       | .cons t ts => t.eval × vars ts
