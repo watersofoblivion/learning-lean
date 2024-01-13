@@ -5,7 +5,7 @@ import Mathlib.Data.Nat.Basic
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Card
 
-namespace Tapl
+namespace «Tapl»
 
   /-
   ## Sets, Relations, and Functions
@@ -26,4 +26,4 @@ namespace Tapl
   -/
 
   def deterministic (R: α → α → Prop) (x₁ x₂ x₃: α): R x₁ x₂ → R x₁ x₃ → x₂ = x₃ := sorry
-end Tapl
+end «Tapl»

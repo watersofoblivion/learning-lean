@@ -92,16 +92,16 @@ namespace Tapl.TyArith
     | ite (c: Term .bool) (t f: Term α): TypeOf (.ite c t f) α
 
   inductive Numeric: Term .nat → Prop where
-    | zero: Numeric Term.zero
-    | succ: ∀ nv: Term .nat, Numeric nv → Numeric nv.succ
+    | zero: Numeric .zero
+    | succ: Numeric nv → Numeric nv.succ
 
   inductive Value: Term α → Prop where
-    | numeric: ∀ nv: Term .nat, Numeric nv → Value nv
-    | true: Value Term.true
-    | false: Value Term.false
+    | numeric: Numeric nv → Value nv
+    | true: Value .true
+    | false: Value .false
 
   inductive Eval₁: Term α → Term α → Prop where
-    | iteTrue: ∀ t f: Term α , Eval₁ (.ite .true t f) t
+    | iteTrue: ∀ t f: Term α, Eval₁ (.ite .true t f) t
     | iteFalse: ∀ t f: Term α, Eval₁ (.ite .false t f) f
     | ite: ∀ c₁ c₂: Term .bool, ∀ t f: Term α, Eval₁ c₁ c₂ → Eval₁ (.ite c₁ t f) (.ite c₂ t f)
     | succ: ∀ t₁ t₂: Term .nat, Eval₁ t₁ t₂ → Eval₁ t₁.succ t₂.succ
@@ -134,8 +134,13 @@ namespace Tapl.TyArith
 
   theorem ty_deriv_uniq: True := sorry
 
-  theorem canonical_forms₁: ∀ t: Term .bool, Value t → v = Term.true ∨ v = Term.false := sorry
-  theorem canonical_forms₂: ∀ t: Term .nat, Value t → Numeric v := sorry
+  theorem canonical_forms₁: ∀ t: Term .bool, Value t → t = Term.true ∨ t = Term.false
+    | .true, .true => .inl (rfl)
+    | .false, .false => .inr (rfl)
+
+  theorem canonical_forms₂: ∀ t: Term .nat, Value t → Numeric t
+    | .zero, .numeric nv => nv
+    | .succ _, .numeric nv => nv
 
   theorem TypeOf.progress: ∀ t₁: Term α, TypeOf t₁ α → Value t₁ ∨ ∃ t₂: Term α, Eval₁ t₁ t₂ := sorry
   theorem TypeOf.preservation: ∀ t₁ t₂: Term α, Eval₁ t₁ t₂ → TypeOf t₂ α := sorry
