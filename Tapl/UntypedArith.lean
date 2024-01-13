@@ -7,7 +7,7 @@ import «Tapl».«Preliminaries»
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Card
 
-namespace Tapl.UntypedArith
+namespace «Tapl».«UntypedArith»
   inductive Term: Type where
     | true: Term
     | false: Term
@@ -150,4 +150,4 @@ namespace Tapl.UntypedArith
   -- theorem normal_unique (t₁ t₂ t₃: Term): t₂.isNormal → t₂.isNormal → Eval t₁ t₂ → Eval t₂ t₃ → t₂ = t₃ := sorry
 
   -- theorem Eval.termination (t₁: Term): ∃ t₂: Term, t₂.isNormal ∧ Eval t₁ t₂ := sorry
-end Tapl.UntypedArith
+end «Tapl».«UntypedArith»

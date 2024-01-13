@@ -4,7 +4,7 @@
 
 import «Tapl».«Preliminaries»
 
-namespace Tapl.TyArith
+namespace «Tapl».«TyArith»
   inductive Ty: Type where
     | bool: Ty
     | nat: Ty
@@ -144,4 +144,4 @@ namespace Tapl.TyArith
 
   theorem TypeOf.progress: ∀ t₁: Term α, TypeOf t₁ α → Value t₁ ∨ ∃ t₂: Term α, Eval₁ t₁ t₂ := sorry
   theorem TypeOf.preservation: ∀ t₁ t₂: Term α, Eval₁ t₁ t₂ → TypeOf t₂ α := sorry
-end Tapl.TyArith
+end «Tapl».«TyArith»
