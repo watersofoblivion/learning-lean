@@ -330,10 +330,29 @@ example (n₁ n₂: Nat): ¬(EmptyRelation n₁ n₂) := by
 
 theorem Leq.trans (n₁ n₂ n₃: Nat) (h₁: Leq n₁ n₂) (h₂: Leq n₂ n₃): Leq n₁ n₃ := by
   induction h₂ with
-    | eq => assumption
-    | less _ _ _ =>
+    | eq => exact h₁
+    | less n _ ih =>
       apply Leq.less
-      assumption
+      exact ih
+
+example {n₁ n₂ n₃: Nat} (h₁: Leq n₁ n₂) (h₂: Leq n₂ n₃): Leq n₁ n₃ := by
+  induction h₁ with
+    | eq => exact h₂
+    | less n h ih =>
+      have h₃: Leq n n₃ :=
+        -- _example
+        sorry
+      apply ih h₃
+
+example {n₁ n₂ n₃: Nat}: Leq n₁ n₂ → Leq n₂ n₃ → Leq n₁ n₃
+  | h₁, .eq _ => h₁
+  | h₁, .less _ n h₂ => sorry
+
+example {n₁ n₂ n₃: Nat}: Leq n₁ n₂ → Leq n₂ n₃ → Leq n₁ n₃
+  | h₁, .eq _ => h₁
+  | h₁, .less _ n h₂ =>
+    have h₃: Leq n₁ n := _example h₁ h₂
+    Leq.less n₁ n h₃
 
 theorem Leq.zeroLeqSucc (n: Nat): Leq 0 n := by
   induction n with
@@ -342,7 +361,11 @@ theorem Leq.zeroLeqSucc (n: Nat): Leq 0 n := by
       apply Leq.less 0 n
       assumption
 
-theorem Leq.leqSucc (n₁ n₂: Nat) (h: Leq n₁ n₂): Leq n₁.succ n₂.succ := by
+example: ∀ n: Nat, Leq 0 n
+  | .zero => Leq.eq 0
+  | .succ n => Leq.less 0 n (_example n)
+
+theorem Leq.leqSucc {n₁ n₂: Nat} (h: Leq n₁ n₂): Leq n₁.succ n₂.succ := by
   induction h with
     | eq =>
       apply Leq.eq
@@ -350,12 +373,15 @@ theorem Leq.leqSucc (n₁ n₂: Nat) (h: Leq n₁ n₂): Leq n₁.succ n₂.succ
       apply Leq.less
       apply ih
 
+-- example {n₁ n₂: Nat}: Leq n₁ n₂ → Leq n₁.succ n₂.succ
+--   | .eq _ => sorry
+--   | .less _ n₃ h => _example (Leq.less n₁ n₃ h)
+
 theorem Leq.succLeq (n₁ n₂: Nat) (h: Leq n₁.succ n₂.succ): Leq n₁ n₂ := by
   cases h with
     | eq =>
       apply Leq.eq
-    | less _ h =>
-      sorry
+    | less n h => sorry
 
 theorem Leq.ltGeCases (n₁ n₂: Nat): Playground.lt n₁ n₂ ∨ Leq n₁ n₂ := by
   unfold Playground.lt
@@ -370,7 +396,7 @@ theorem Leq.ltGeCases (n₁ n₂: Nat): Playground.lt n₁ n₂ ∨ Leq n₁ n�
           apply zeroLeqSucc
     | succ n₁ ih => sorry
 
-theorem Leq.lePlus1 (n₁ n₂: Nat): Leq n₁ (n₁ + n₂) := by
+theorem Leq.lePlusL (n₁ n₂: Nat): Leq n₁ (n₁ + n₂) := by
   induction n₁ with
     | zero =>
       simp
@@ -378,13 +404,30 @@ theorem Leq.lePlus1 (n₁ n₂: Nat): Leq n₁ (n₁ + n₂) := by
     | succ n₁ ih =>
       rw [Nat.succ_add]
       apply Leq.leqSucc
-      apply ih
+      exact ih
+
+example: ∀ n₁ n₂: Nat, Leq n₁ (n₁ + n₂)
+  | .zero, n₂ => sorry
+  | .succ n₁, n₂ =>
+    have h₁: n₁.succ + n₂ = (n₁ + n₂).succ := Nat.succ_add n₁ n₂
+    have h₂: Leq n₁.succ (n₁ + n₂).succ    := Leq.leqSucc (_example n₁ n₂)
+    have h₃: Leq n₁.succ (n₁.succ + n₂) = Leq n₁.succ (n₁ + n₂).succ :=
+      calc Leq n₁.succ (n₁.succ + n₂)
+        _ = Leq n₁.succ (n₁ + n₂).succ := by rw [h₁]
+    sorry
 
 theorem Leq.plusLeq (n₁ n₂ n₃: Nat) (h: Leq (n₁ + n₂) n₃): Leq n₁ n₃ ∨ Leq n₂ n₃ := by
   sorry
 
 theorem Leq.addLeCases (n₁ n₂ n₃ n₄: Nat) (h: Leq (n₁ + n₂) (n₃ + n₄)): Leq n₁ n₃ ∨ Leq n₂ n₄ := by
-  sorry
+  induction n₁ with
+    | zero =>
+      simp
+      apply Or.inl
+      apply Leq.zeroLeqSucc
+    | succ n₁ ih =>
+      rw [Nat.succ_add] at h
+      sorry
 
 theorem Leq.plusLeqCompatLeft (n₁ n₂ n₃: Nat) (h: Leq n₁ n₂): Leq (n₃ + n₁) (n₃ + n₂) := by
   induction n₃ with
@@ -396,6 +439,10 @@ theorem Leq.plusLeqCompatLeft (n₁ n₂ n₃: Nat) (h: Leq n₁ n₂): Leq (n�
       apply Leq.leqSucc
       apply ih
 
+example: ∀ n₁ n₂ n₃: Nat, Leq n₁ n₂ → Leq (n₃ + n₁) (n₃ + n₂)
+  | n₁, n₂, .zero, h => sorry
+  | n₁, n₂, .succ n₃, h => sorry
+
 theorem Leq.plusLeqCompatRight (n₁ n₂ n₃: Nat) (h: Leq n₁ n₂): Leq (n₁ + n₃) (n₂ + n₃) := by
   induction n₃ with
     | zero =>
@@ -406,13 +453,20 @@ theorem Leq.plusLeqCompatRight (n₁ n₂ n₃: Nat) (h: Leq n₁ n₂): Leq (n�
       apply Leq.leqSucc
       apply ih
 
+example: ∀ n₁ n₂ n₃: Nat, Leq n₁ n₂ →  Leq (n₁ + n₃) (n₂ + n₃)
+  | n₁, .zero, n₃, h => sorry
+  | n₁, .succ n₂, n₃, h => sorry
+
 theorem Leq.plusTrans (n₁ n₂ n₃: Nat) (h: Leq n₁ n₂): Leq n₁ (n₂ + n₃) := by
   induction n₂ with
     | zero =>
       simp_all
       cases n₃ with
         | zero => simp_all
-        | succ n₃ => sorry
+        | succ n₃ =>
+          have h₂: n₁ = 0 := sorry
+          rw [h₂]
+          apply Leq.zeroLeqSucc
     | succ n₂ ih =>
       simp [Nat.succ_add]
       apply Leq.less

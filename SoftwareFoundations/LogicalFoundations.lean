@@ -5,3 +5,6 @@ import «SoftwareFoundations».«LogicalFoundations».«Poly»
 import «SoftwareFoundations».«LogicalFoundations».«Tactics»
 import «SoftwareFoundations».«LogicalFoundations».«Logic»
 import «SoftwareFoundations».«LogicalFoundations».«IndProp»
+import «SoftwareFoundations».«LogicalFoundations».«Maps»
+import «SoftwareFoundations».«LogicalFoundations».«ProofObjects»
+import «SoftwareFoundations».«LogicalFoundations».«IndPrinciples»
