@@ -2,8 +2,9 @@
 # Simple Imperative Programs
 -/
 
-import «SoftwareFoundations».«LogicalFoundations».«Maps»
 import Mathlib.tactic.linarith
+
+import «SoftwareFoundations».«LogicalFoundations».«Maps»
 
 /-
 ## Arithmetic and Boolean Expressions
@@ -20,12 +21,14 @@ namespace AExp
     | minus (e₁ e₂: Arith): Arith
     | mult (e₁ e₂: Arith): Arith
 
+  @[reducible]
   def Arith.eval: Arith → Nat
     | .num n => n
     | .plus e₁ e₂ => e₁.eval + e₂.eval
     | .minus e₁ e₂ => e₁.eval - e₂.eval
     | .mult e₁ e₂ => e₁.eval * e₂.eval
 
+  @[reducible]
   def Arith.optZeroPlus: Arith → Arith
     | .num n => .num n
     | .plus (.num 0) e₂ => e₂.optZeroPlus
@@ -43,8 +46,10 @@ namespace AExp
         cases e₁ with
           | num n =>
             cases n with
-              | zero => sorry
-              | succ n => sorry
+              | zero => simp_all
+              | succ n =>
+                unfold optZeroPlus eval
+                simp_all
           | plus e₃ e₄ =>
             unfold optZeroPlus eval
             rw [ih₁, ih₂]
@@ -71,16 +76,18 @@ namespace AExp
     | not (e: Logic): Logic
     | and (e₁ e₂: Logic): Logic
 
+  @[reducible]
   def Logic.eval: Logic → Bool
     | .true => Bool.true
     | .false => Bool.false
     | .eq e₁ e₂ => e₁.eval == e₂.eval
-    | .neq e₁ e₂ => e₁.eval != e₂.eval
+    | .neq e₁ e₂ => !(e₁.eval == e₂.eval)
     | .le e₁ e₂ => e₁.eval ≤ e₂.eval
     | .gt e₁ e₂ => e₁.eval > e₂.eval
     | .not e => !e.eval
     | .and e₁ e₂ => e₁.eval && e₂.eval
 
+  @[reducible]
   def Logic.optZeroPlus: Logic → Logic
     | .true => .true
     | .false => .false
@@ -133,8 +140,10 @@ namespace AExp
       try (unfold Arith.optZeroPlus Arith.eval; rw [ih₁, ih₂])
       case num n =>
         cases n with
-          | zero => sorry
-          | succ n => sorry
+          | zero => simp_all
+          | succ n =>
+            unfold Arith.optZeroPlus Arith.eval
+            simp_all
 
   /-
   ### The `repeat` Tactical
@@ -207,7 +216,7 @@ namespace AExp
     | true: LogicEval .true true
     | false: LogicEval .false false
     | eq (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.eq e₁ e₂) (n₁ == n₂)
-    | neq (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) (n₁ != n₂)
+    | neq (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) !(n₁ == n₂)
     | le (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) (n₁ ≤ n₂)
     | gt (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) (n₁ > n₂)
     | not (e: Logic) (b: Bool) (h: LogicEval e b): LogicEval (.not e) !b
@@ -241,15 +250,28 @@ namespace AExp
         | false => rfl
         | eq e₁ e₂ n₁ n₂ h₁ h₂ =>
           unfold Logic.eval
+          rw [arith_eval_eval] at *
+          simp_all
+        | neq e₁ e₂ n₁ n₂ h₁ h₂ =>
+          unfold Logic.eval
+          rw [arith_eval_eval] at *
+          simp_all
+        | le e₁ e₂ n₁ n₂ h₁ h₂ =>
+          unfold Logic.eval
+          rw [arith_eval_eval] at *
+          simp_all
           sorry
-        -- Other Arith cases
+        | gt e₁ e₂ n₁ n₂ h₁ h₂ =>
+          unfold Logic.eval
+          rw [arith_eval_eval] at *
+          simp_all
+          sorry
         | not e b h ih =>
           unfold Logic.eval
           rw [ih]
         | and e₁ e₂ b₁ b₂ h₁ h₂ ih₁ ih₂ =>
           unfold Logic.eval
           rw [ih₁, ih₂]
-        | _ => sorry
     · intro h
       induction l with
         | true =>
@@ -260,7 +282,9 @@ namespace AExp
           cases b with
             | true => contradiction
             | false => exact LogicEval.false
-        | eq e₁ e₂ => sorry
+        | eq e₁ e₂ =>
+          unfold Logic.eval at h
+          sorry
         -- Other Arith cases
         | not e ih => sorry
         | and e₁ e₂ ih₁ ih₂ => sorry
@@ -571,15 +595,14 @@ example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus
       apply Eq.symm
       exact h
 
-example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₂ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Y" = n₁ * n₂ := by
+example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Z" = n₁ * n₂ := by
   cases h₃ with
-    | assign _ _ n₃ _ h =>
-      simp_all
+    | assign state e n₃ id h =>
       repeat unfold Arith.eval at h
       repeat unfold Arith.eval at h
-      unfold TotalMap.update at h₂
+      rw [TotalMap.updateEq]
+      rw [h₁, h₂] at h
       simp_all
-      sorry
 
 example (s₁ s₂: State): ¬CommandEval loopForever s₁ s₂ := by
   unfold Not
