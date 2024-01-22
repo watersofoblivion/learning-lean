@@ -12,14 +12,14 @@ import «SoftwareFoundations».«LogicalFoundations».«Logic»
 ### Example: The Collatz Conjecture
 -/
 
-def Nat.div2: Nat → Nat
+def div2: Nat → Nat
   | 0 => 0
   | .succ .zero => 0
-  | .succ (.succ n) => n.div2.succ
+  | .succ (.succ n) => (div2 n).succ
 
 def f (n: Nat): Nat :=
   if n.isEven
-  then n.div2
+  then div2 n
   else (3 * n) + 1
 
 inductive CollatzHoldsFor: Nat → Prop where
@@ -27,15 +27,15 @@ inductive CollatzHoldsFor: Nat → Prop where
   | more (n: Nat): CollatzHoldsFor (f n) → CollatzHoldsFor n
 
 example: CollatzHoldsFor 12 := by
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
-  apply CollatzHoldsFor.more; simp [f, Nat.div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
+  apply CollatzHoldsFor.more; simp [f, div2]
   apply CollatzHoldsFor.done
 
 example (n: Nat): CollatzHoldsFor n := by sorry
@@ -321,12 +321,14 @@ inductive TotalRelation: Nat → Nat → Prop where
 example (n₁ n₂: Nat): TotalRelation n₁ n₂ := by
   apply TotalRelation.related
 
-inductive EmptyRelation: Nat → Nat → Prop
+namespace Ignored
+  inductive EmptyRelation: Nat → Nat → Prop
 
-example (n₁ n₂: Nat): ¬(EmptyRelation n₁ n₂) := by
-  unfold Not
-  intro h
-  contradiction
+  example (n₁ n₂: Nat): ¬(EmptyRelation n₁ n₂) := by
+    unfold Not
+    intro h
+    contradiction
+end Ignored
 
 theorem Leq.trans (n₁ n₂ n₃: Nat) (h₁: Leq n₁ n₂) (h₂: Leq n₂ n₃): Leq n₁ n₃ := by
   induction h₂ with

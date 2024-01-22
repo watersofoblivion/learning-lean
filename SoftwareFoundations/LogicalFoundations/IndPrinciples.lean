@@ -63,12 +63,14 @@ inductive Time: Type where
 
 #check Time.recOn
 
-inductive RGB: Type where
-  | red
-  | green
-  | blue
+namespace Duplicated
+  inductive RGB: Type where
+    | red
+    | green
+    | blue
 
--- RGB.recOn.{u}: ({motive: RGB → Sort u} (t: RGB) (red: motive RGB.red) (green: motive RGB.green) (blue: motive RGB.blue): motive t)
+  -- RGB.recOn.{u}: ({motive: RGB → Sort u} (t: RGB) (red: motive RGB.red) (green: motive RGB.green) (blue: motive RGB.blue): motive t)
+end Duplicated
 
 inductive NatList: Type where
   | nil: NatList
@@ -106,12 +108,12 @@ example: ToyRecType := Toy.recOn
 
 #check List.recOn
 
-inductive Tree (α: Type): Type where
-  | leaf (x: α): Tree α
-  | node (l r: Tree α): Tree α
+inductive MyTree (α: Type): Type where
+  | leaf (x: α): MyTree α
+  | node (l r: MyTree α): MyTree α
 
-def TreeRecType: Prop := ∀ {α: Type}, ∀ {motive: Tree α → Prop}, ∀ t: Tree α, (leaf: (x: α) → motive (Tree.leaf x)) → (node: (l r: Tree α) → motive l → motive r → motive (Tree.node l r)) → motive t
-example: TreeRecType := Tree.recOn
+def MyTreeRecType: Prop := ∀ {α: Type}, ∀ {motive: MyTree α → Prop}, ∀ t: MyTree α, (leaf: (x: α) → motive (MyTree.leaf x)) → (node: (l r: MyTree α) → motive l → motive r → motive (MyTree.node l r)) → motive t
+example: MyTreeRecType := MyTree.recOn
 
 inductive MyType (α: Type): Type where
   | constr1 (x: α): MyType α
@@ -237,49 +239,51 @@ example (n₁ n₂: Nat): n₁ + n₂ = n₂ + n₁ := by
 ## Induction Principles for Propositions
 -/
 
-inductive Even: Nat → Prop where
-  | zero: Even 0
-  | succSucc (n: Nat) (h: Even n): Even n.succ.succ
+namespace Duplicated
+  inductive Even: Nat → Prop where
+    | zero: Even 0
+    | succSucc (n: Nat) (h: Even n): Even n.succ.succ
 
-#check Even.recOn
+  #check Even.recOn
 
-inductive AwkwardEven: Nat → Prop where
-  | zero: AwkwardEven 0
-  | two: AwkwardEven 2
-  | sum (n₁ n₂: Nat) (h₁: AwkwardEven n₁) (h₂: AwkwardEven n₂): AwkwardEven (n₁ + n₂)
+  inductive AwkwardEven: Nat → Prop where
+    | zero: AwkwardEven 0
+    | two: AwkwardEven 2
+    | sum (n₁ n₂: Nat) (h₁: AwkwardEven n₁) (h₂: AwkwardEven n₂): AwkwardEven (n₁ + n₂)
 
-#check AwkwardEven.recOn
+  #check AwkwardEven.recOn
 
-example (n: Nat): Even n → AwkwardEven n
-  | .zero => AwkwardEven.zero
-  | .succSucc n h =>
-    have h₁: AwkwardEven n := _example n h
-    AwkwardEven.sum n 2 h₁ AwkwardEven.two
+  example (n: Nat): Even n → AwkwardEven n
+    | .zero => AwkwardEven.zero
+    | .succSucc n h =>
+      have h₁: AwkwardEven n := _example n h
+      AwkwardEven.sum n 2 h₁ AwkwardEven.two
 
-example (n: Nat) (h: Even n): AwkwardEven n :=
-  have zero: AwkwardEven 0 := AwkwardEven.zero
-  have succSucc (n: Nat) (_: Even n) (h₂: AwkwardEven n): AwkwardEven n.succ.succ :=
-    AwkwardEven.sum n 2 h₂ AwkwardEven.two
-  Even.recOn (motive := fun n _ => AwkwardEven n)
-    h
-    zero
-    succSucc
+  example (n: Nat) (h: Even n): AwkwardEven n :=
+    have zero: AwkwardEven 0 := AwkwardEven.zero
+    have succSucc (n: Nat) (_: Even n) (h₂: AwkwardEven n): AwkwardEven n.succ.succ :=
+      AwkwardEven.sum n 2 h₂ AwkwardEven.two
+    Even.recOn (motive := fun n _ => AwkwardEven n)
+      h
+      zero
+      succSucc
 
-example (n: Nat): Even n → AwkwardEven n := by sorry
-  -- apply Even.recOn (motive := fun n h => AwkwardEven n)
-  -- · apply AwkwardEven.zero
-  -- · sorry
+  example (n: Nat): Even n → AwkwardEven n := by sorry
+    -- apply Even.recOn (motive := fun n h => AwkwardEven n)
+    -- · apply AwkwardEven.zero
+    -- · sorry
 
-inductive Le₁: Nat → Nat → Prop where
-  | eq (n: Nat): Le₁ n n
-  | succ (n₁ n₂: Nat) (h: Le₁ n₁ n₂): Le₁ n₁ n₂.succ
+  inductive Le₁: Nat → Nat → Prop where
+    | eq (n: Nat): Le₁ n n
+    | succ (n₁ n₂: Nat) (h: Le₁ n₁ n₂): Le₁ n₁ n₂.succ
 
-inductive Le₂ (n: Nat): Nat → Prop where
-  | eq: Le₂ n n
-  | succ (n₂: Nat) (h: Le₂ n n₂): Le₂ n n₂.succ
+  inductive Le₂ (n: Nat): Nat → Prop where
+    | eq: Le₂ n n
+    | succ (n₂: Nat) (h: Le₂ n n₂): Le₂ n n₂.succ
 
-#check Le₁.recOn
-#check Le₂.recOn
+  #check Le₁.recOn
+  #check Le₂.recOn
+end Duplicated
 
 /-
 ## Another Form of Induction Principles on Propositions (Optional)
