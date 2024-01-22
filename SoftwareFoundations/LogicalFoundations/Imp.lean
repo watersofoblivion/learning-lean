@@ -50,21 +50,12 @@ namespace AExp
               | succ n =>
                 unfold optZeroPlus eval
                 simp_all
-          | plus e₃ e₄ =>
+          | plus | minus | mult =>
             unfold optZeroPlus eval
-            rw [ih₁, ih₂]
-          | minus e₃ e₄ =>
-            unfold optZeroPlus eval
-            rw [ih₁, ih₂]
-          | mult e₃ e₄ =>
-            unfold optZeroPlus eval
-            rw [ih₁, ih₂]
-      | minus e₁ e₂ ih₁ ih₂ =>
+            simp_all
+      | minus _ _ ih₁ ih₂ | mult _ _ ih₁ ih₂ =>
         unfold optZeroPlus eval
-        rw [ih₁, ih₂]
-      | mult e₁ e₂ ih₁ ih₂ =>
-        unfold optZeroPlus eval
-        rw [ih₁, ih₂]
+        simp_all
 
   inductive Logic: Type where
     | true: Logic
@@ -130,14 +121,14 @@ namespace AExp
   -/
 
   example (a: Arith): a.optZeroPlus.eval = a.eval := by
-    induction a
-    try rfl
-    case minus e₁ e₂ ih₁ ih₂ | mult e₁ e₂ ih₁ ih₂ =>
-      unfold Arith.optZeroPlus Arith.eval
-      rw [ih₁, ih₂]
+    induction a <;>
+    try (first | rfl
+               | unfold Arith.optZeroPlus Arith.eval
+                 simp_all)
     case plus e₁ _ ih₁ ih₂ =>
       cases e₁ <;>
-      try (unfold Arith.optZeroPlus Arith.eval; rw [ih₁, ih₂])
+      try (unfold Arith.optZeroPlus Arith.eval
+           rw [ih₁, ih₂])
       case num n =>
         cases n with
           | zero => simp_all
@@ -331,6 +322,7 @@ def State: Type := TotalMap Nat
 
 def State.empty: State := TotalMap.empty 0
 
+@[reducible]
 def State.build (l: List (String × Nat)): State :=
   fold State.empty l
   where
@@ -386,6 +378,7 @@ instance: Neg Logic where
 ### Evaluation
 -/
 
+@[reducible]
 def Arith.eval (state: State): Arith → Nat
   | num n => n
   | ident id => state id
@@ -393,6 +386,7 @@ def Arith.eval (state: State): Arith → Nat
   | minus e₁ e₂ => (e₁.eval state) - (e₂.eval state)
   | mult e₁ e₂ => (e₁.eval state) * (e₂.eval state)
 
+@[reducible]
 def Logic.eval (state: State): Logic → Bool
   | true => Bool.true
   | false => Bool.false
@@ -589,7 +583,7 @@ theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (h₁: Co
 example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus2 s₁ s₂): s₂ "X" = n + 2 := by
   cases h₂ with
     | assign _ _ n₁ _ h =>
-      rw [TotalMap.updateEq]
+      simp
       repeat unfold Arith.eval at h
       rw [h₁] at h
       apply Eq.symm
@@ -600,7 +594,6 @@ example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ 
     | assign state e n₃ id h =>
       repeat unfold Arith.eval at h
       repeat unfold Arith.eval at h
-      rw [TotalMap.updateEq]
       rw [h₁, h₂] at h
       simp_all
 
@@ -643,6 +636,7 @@ inductive StackInstr: Type where
   | minus: StackInstr
   | mult: StackInstr
 
+@[reducible]
 def StackInstr.eval (state: State): StackInstr → Stack → Stack
   | .push n, stack => n :: stack
   | .load id, stack => (state id) :: stack
@@ -653,12 +647,14 @@ def StackInstr.eval (state: State): StackInstr → Stack → Stack
 
 abbrev Program: Type := List StackInstr
 
+@[reducible]
 def Program.eval (state: State) (program: Program) (init: Stack): Stack :=
   program.foldl (fun stack instr => instr.eval state stack) init
 
 example: Program.eval State.empty [StackInstr.push 5, .push 3, .push 1, .minus] Stack.empty = [2, 5] := by rfl
 example: Program.eval (State.build [("X", 3)]) [StackInstr.push 4, .load "X", .mult, .plus] [3, 4] = [15, 4] := rfl
 
+@[reducible]
 def Arith.compile: Arith → Program
   | .num n => [.push n]
   | .ident id => [.load id]
@@ -677,6 +673,7 @@ theorem Arith.compile.correct (state: State) (e: Arith): e.compile.eval state St
   helper (state: State) (stack: Stack) (e: Arith): e.compile.eval state stack = e.eval state :: stack := by
     sorry
 
+@[reducible]
 def Logic.shortCircuitEval (state: State): Logic → Bool
   | .and e₁ e₂ =>
     if e₁.eval state

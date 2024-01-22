@@ -25,20 +25,25 @@ def TotalMap.update {α: Type} (m: TotalMap α) (k: String) (v: α): TotalMap α
 example: TotalMap Bool :=
   ((TotalMap.empty false).update "foo" true).update "bar" true
 
+@[simp]
 theorem TotalMap.applyEmpty (k: String) (v: α): (TotalMap.empty v) k = v := by rfl
 
+@[simp]
 theorem TotalMap.updateEq (m: TotalMap α) (k: String) (v: α): (m.update k v) k = v := by
   unfold TotalMap.update
   simp
 
+@[simp]
 theorem TotalMap.updateNeq (m: TotalMap α) (k₁ k₂: String) (v: α) (h: k₁ ≠ k₂): (m.update k₁ v) k₂ = m k₂ := by
   unfold TotalMap.update
   simp_all
 
+@[simp]
 theorem TotalMap.updateShadow (m: TotalMap α) (k: String) (v₁ v₂: α): ((m.update k v₁).update k v₂) k = (m.update k v₂) k := by
   unfold TotalMap.update
   simp
 
+@[simp]
 theorem TotalMap.updateSame (m: TotalMap α) (k: String): (m.update k (m k)) = m := by
   unfold TotalMap.update
   funext x
@@ -79,15 +84,18 @@ theorem PartialMap.updateEq (m: PartialMap α) (k: String) (v: α): (m.update k 
   unfold PartialMap.update
   rw [TotalMap.updateEq]
 
+@[simp]
 theorem PartialMap.updateNeq (m: PartialMap α) (k₁ k₂: String) (v: α) (h: k₁ ≠ k₂): (m.update k₁ v) k₂ = m k₂ := by
   unfold PartialMap.update
   rw [TotalMap.updateNeq]
   assumption
 
+@[simp]
 theorem PartialMap.updateShadow (m: PartialMap α) (k: String) (v₁ v₂: α): ((m.update k v₁).update k v₂) k = (m.update k v₂) k := by
   unfold PartialMap.update
   rw [TotalMap.updateShadow]
 
+@[simp]
 theorem PartialMap.updateSame (m: PartialMap α) (k: String) (v: α) (h: m k = .some v): (m.update k v) = m := by
   unfold PartialMap.update
   rw [← h]
