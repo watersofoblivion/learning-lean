@@ -50,6 +50,7 @@ theorem TotalMap.updateSame (m: TotalMap α) (k: String): (m.update k (m k)) = m
   cases k == x with
     | true =>
       simp
+      congr
       sorry
     | false => simp
 
@@ -107,9 +108,8 @@ theorem PartialMap.updatePermute (m: PartialMap α) (k₁ k₂: String) (v₁ v�
   assumption
 
 theorem PartialMap.includesUpdate (m₁ m₂: PartialMap α) (k: String) (v: α) (h: m₁.includes m₂): (m₁.update k v).includes (m₂.update k v) := by
-  unfold PartialMap.update
   unfold PartialMap.includes
-  intro x h₁ h₂
-  cases k == x with
-    | true => sorry
+  intro k₁ v₁ h₂
+  cases k == k₁ with
+    | true =>sorry
     | false => sorry

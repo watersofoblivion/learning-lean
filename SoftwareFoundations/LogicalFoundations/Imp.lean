@@ -72,7 +72,7 @@ namespace AExp
     | .true => Bool.true
     | .false => Bool.false
     | .eq e₁ e₂ => e₁.eval == e₂.eval
-    | .neq e₁ e₂ => !(e₁.eval == e₂.eval)
+    | .neq e₁ e₂ => e₁.eval != e₂.eval
     | .le e₁ e₂ => e₁.eval ≤ e₂.eval
     | .gt e₁ e₂ => e₁.eval > e₂.eval
     | .not e => !e.eval
@@ -207,7 +207,7 @@ namespace AExp
     | true: LogicEval .true true
     | false: LogicEval .false false
     | eq (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.eq e₁ e₂) (n₁ == n₂)
-    | neq (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) !(n₁ == n₂)
+    | neq (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) (n₁ != n₂)
     | le (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) (n₁ ≤ n₂)
     | gt (e₁ e₂: Arith) (n₁ n₂: Nat) (h₁: ArithEval e₁ n₁) (h₂: ArithEval e₂ n₂): LogicEval (.neq e₁ e₂) (n₁ > n₂)
     | not (e: Logic) (b: Bool) (h: LogicEval e b): LogicEval (.not e) !b
@@ -563,9 +563,14 @@ section
       repeat unfold instCoeListCommand.conv
       sorry
 
-  def sum: Command := sorry
+  def sum: Command :=
+    Command.seq
+      (.assign "Y" 0)
+      (.while (.gt "X" 0)
+        (.seq (.assign "Y" ("X" + "Y"))
+              (.assign "X" ("X" - 1))))
 
-  example: CommandEval sum (State.build [("X", 2)]) (State.build [("X", 0), ("Y", 3), ("X", 1), ("Y", 2), ("Y", 0), ("X", 2)]) :=
+  example: CommandEval sum (State.build [("X", 2)]) (State.build [("X", 2), ("Y", 0), ("Y", 2), ("X", 1), ("Y", 3), ("X", 0)]) :=
     sorry
 end
 
@@ -682,7 +687,10 @@ def Logic.shortCircuitEval (state: State): Logic → Bool
   | l => l.eval state
 
 theorem Logic.shortCircuitEval.eval (state: State) (b: Logic): b.shortCircuitEval state = b.eval state := by
-  sorry
+  induction b
+  <;> try rfl
+  case and e₁ e₂ h₁ h₂ =>
+    sorry
 
 namespace BreakImp
   inductive Command: Type where
