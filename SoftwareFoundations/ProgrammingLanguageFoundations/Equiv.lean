@@ -232,6 +232,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   end Term
 
   namespace Tactic
+    @[scoped simp]
     theorem Command.skip_left (c: Command): (Command.seq .skip c).equiv c := by
       unfold Command.equiv
       intro s₁ s₂
@@ -256,6 +257,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           · apply CommandEval.whileFalse
             repeat assumption
 
+    @[scoped simp]
     theorem Command.skip_right (c: Command): (Command.seq c .skip).equiv c := by
       unfold Command.equiv
       intro s₁ s₂
@@ -308,6 +310,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           . apply CommandEval.whileFalse
             repeat assumption
 
+    @[scoped simp]
     theorem Command.if_true (b: Logic) (c₁ c₂: Command) (h₁: b.equiv .true): (Command.if b c₁ c₂).equiv c₁ := by
       unfold Command.equiv
       intro s₁ s₂
@@ -340,6 +343,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           · apply CommandEval.whileFalse
             repeat assumption
 
+    @[scoped simp]
     theorem Command.if_false (b: Logic) (c₁ c₂: Command) (h₁: b.equiv .false): (Command.if b c₁ c₂).equiv c₂ := by
       unfold Command.equiv
       intro s₁ s₂
@@ -354,6 +358,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       · sorry
       · sorry
 
+    @[scoped simp]
     theorem Command.while_false (c: Logic) (b: Command) (h₁: c.equiv .false): (Command.while c b).equiv Command.skip := by
       unfold Command.equiv
       intro s₁ s₂
@@ -363,6 +368,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       where
         nonterm: Nat := sorry
 
+    @[scoped simp]
     theorem Command.while_true (c: Logic) (b: Command) (h₁: c.equiv .true): (Command.while c b).equiv (Command.while .true Command.skip) := by
       unfold Command.equiv
       intro s₁ s₂
@@ -386,6 +392,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       · sorry
       · sorry
 
+    @[scoped simp]
     theorem Command.identity_assignment (id: String): (Command.assign "X" "X").equiv Command.skip := by
       unfold Command.equiv
       intro s₁ s₂
@@ -405,16 +412,22 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     private def trueFalse (b: Logic) (s: State) (h₁: b.eval s = true) (h₂: b.eval s = false): α :=
       False.elim (by simp_all)
 
+    @[scoped simp]
     theorem Command.skip_left (c: Command): (Command.seq .skip c).equiv c := by sorry
+    @[scoped simp]
     theorem Command.skip_right (c: Command): (Command.seq c .skip).equiv c := by sorry
     example (t f: Command): (Command.if .true t f).equiv t := by sorry
+    @[scoped simp]
     theorem Command.if_true (b: Logic) (c₁ c₂: Command) (h₁: b.equiv .true): (Command.if b c₁ c₂).equiv c₁ := by sorry
+    @[scoped simp]
     theorem Command.if_false (b: Logic) (c₁ c₂: Command) (h₁: b.equiv .false): (Command.if b c₁ c₂).equiv c₂ := by sorry
     theorem Command.if_swap (b: Logic) (c₁ c₂: Command): (Command.if b c₁ c₂).equiv (Command.if (.not b) c₂ c₁) := by sorry
+    @[scoped simp]
     theorem Command.while_false (c: Logic) (b: Command) (h₁: c.equiv .false): (Command.while c b).equiv Command.skip := by sorry
     theorem Command.while_true (c: Logic) (b: Command) (h₁: c.equiv .true): (Command.while c b).equiv (Command.while .true Command.skip) := by sorry
     theorem Command.loop_unrolling (c: Logic) (b: Command): (Command.while c b).equiv (Command.if c (Command.seq b (Command.while c b)) .skip) := by sorry
     theorem Command.seq_assoc (c₁ c₂ c₂: Command): (Command.seq (Command.seq c₁ c₂) c₃).equiv (Command.seq c₁ (Command.seq c₂ c₃)) := by sorry
+    @[scoped simp]
     theorem Command.identity_assignment (id: String): (Command.assign "X" "X").equiv Command.skip := by sorry
     theorem Command.assign_arith_equiv (id: String) (e: Arith) (h₁: (id: Arith).equiv e): Command.skip.equiv (Command.assign id e) := by sorry
   end Blended
@@ -589,6 +602,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   ### Constant Folding Optimization
   -/
 
+  @[reducible]
   def _root_.Arith.constFold: _root_.Arith → _root_.Arith
     | .num n => .num n
     | .ident id => .ident id
@@ -608,6 +622,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   example: (((1: Arith) + 2) * "X").constFold = 3 * "X" := rfl
   example: ("X" - (((0: Arith) * 6) + "Y")).constFold = "X" - (0 + "Y") := rfl
 
+  @[reducible]
   def _root_.Logic.constFold: _root_.Logic → _root_.Logic
     | .true => .true
     | .false => .false
@@ -645,6 +660,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   example: (Logic.and .true (.not (.false && .true))).constFold = .true := rfl
   example: (Logic.and (.eq "X" "Y") (.eq 0 (2 - (1 + 1)))).constFold = .and (.eq "X" "Y") .true := rfl
 
+  @[reducible]
   def _root_.Command.constFold: Command → Command
     | .skip => .skip
     | .assign id e => .assign id e.constFold
@@ -719,10 +735,12 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   ### Soundness of `0 + n` Elimination, Redux
   -/
 
+  @[reducible]
   def _root_.Arith.opt0Plus: Arith → Arith
     | .plus (.num 0) e₂ => e₂
     | e => e
 
+  @[reducible]
   def _root_.Logic.opt0Plus: Logic → Logic
     | .eq e₁ e₂ => .eq e₁.opt0Plus e₂.opt0Plus
     | .neq e₁ e₂ => .neq e₁.opt0Plus e₂.opt0Plus
@@ -732,6 +750,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     | .and b₁ b₂ => .and (opt0Plus b₁) (opt0Plus b₂)
     | b => b
 
+  @[reducible]
   def _root_.Command.opt0Plus: Command → Command
     | .assign id e => .assign id e.opt0Plus
     | .seq c₁ c₂ => .seq (opt0Plus c₁) (opt0Plus c₂)
@@ -764,6 +783,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   #### Transitive Optimization
   -/
 
+  @[reducible]
   def Command.opt (c: Command): Command := c.constFold.opt0Plus
 
   namespace Term
@@ -782,6 +802,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   ## Proving Inequivalence
   -/
 
+  @[reducible]
   def _root_.Arith.subst (within: Arith) (var: String) (repl: Arith): Arith :=
     match within with
       | .num n => .num n
@@ -872,9 +893,11 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       example: xy.equiv yx ∨ ¬(xy.equiv yx) := sorry
       example: xy.equiv copy ∨ ¬(xy.equiv copy) := sorry
 
-      theorem whileHavoc.may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := sorry
-      theorem whileSkip.may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := sorry
-      example: whileHavoc.equiv whileSkip := sorry
+      example: whileHavoc.equiv whileSkip :=
+        sorry
+        where
+          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := sorry
+          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := sorry
 
       example: ¬(havocHavoc.equiv noHavoc) := sorry
 
@@ -888,9 +911,11 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       example: xy.equiv yx ∨ ¬(xy.equiv yx) := by sorry
       example: xy.equiv copy ∨ ¬(xy.equiv copy) := by sorry
 
-      theorem whileHavoc.may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := by sorry
-      theorem whileSkip.may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := by sorry
-      example: whileHavoc.equiv whileSkip := by sorry
+      example: whileHavoc.equiv whileSkip := by
+        sorry
+        where
+          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := by sorry
+          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := by sorry
 
       example: ¬(havocHavoc.equiv noHavoc) := by sorry
 
@@ -904,9 +929,11 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       example: xy.equiv yx ∨ ¬(xy.equiv yx) := sorry
       example: xy.equiv copy ∨ ¬(xy.equiv copy) := sorry
 
-      theorem whileHavoc.may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := sorry
-      theorem whileSkip.may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := sorry
-      example: whileHavoc.equiv whileSkip := sorry
+      example: whileHavoc.equiv whileSkip :=
+        sorry
+        where
+          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := sorry
+          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := sorry
 
       example: ¬(havocHavoc.equiv noHavoc) := sorry
 
