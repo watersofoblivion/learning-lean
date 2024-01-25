@@ -914,7 +914,52 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       --     _ = e₁.opt0Plus.eval s * e₂.opt0Plus.eval s := congr (congrArg Nat.mul ih₁) ih₂
       --     _ = (Arith.mult e₁ e₂).opt0Plus.eval s      := rfl
 
-    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus := sorry
+    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus
+      | .true, _ => rfl
+      | .false, _ => rfl
+      | .eq e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        calc (Logic.eq e₁ e₂).eval s
+          _ = BEq.beq (e₁.eval s) (e₂.eval s)                   := rfl
+          _ = BEq.beq (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s) := congr (congrArg BEq.beq ih₁) ih₂
+          _ = (Logic.eq e₁ e₂).opt0Plus.eval s                  := rfl
+      | .neq e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        calc (Logic.neq e₁ e₂).eval s
+          _ = not (BEq.beq (e₁.eval s) (e₂.eval s))                   := rfl
+          _ = not (BEq.beq (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s)) := sorry --congr (congr (congrArg not BEq.beq ih₁) ih₂
+          _ = (Logic.neq e₁ e₂).opt0Plus.eval s                       := rfl
+      | .le e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        sorry
+        -- calc (Logic.le e₁ e₂).eval s
+        --   _ = (LE.le (e₁.eval s) (e₂.eval s): Bool)                   := rfl
+        --   _ = (LE.le (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s): Bool) := congr (congrArg LE.le ih₁) ih₂
+        --   _ = (Logic.le e₁ e₂).opt0Plus.eval s                        := rfl
+      | .gt e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        sorry
+        -- calc (Logic.gt e₁ e₂).eval s
+        --   _ = (GT.gt (e₁.eval s) (e₂.eval s): Bool)                   := rfl
+        --   _ = (GT.gt (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s): Bool) := congr (congrArg GT.gt ih₁) ih₂
+        --   _ = (Logic.gt e₁ e₂).opt0Plus.eval s                        := rfl
+      | .not b, s =>
+        have ih := sound b s
+        calc (Logic.not b).eval s
+          _ = not (b.eval s)                := rfl
+          _ = not (b.opt0Plus.eval s)       := congrArg not ih
+          _ = (Logic.not b).opt0Plus.eval s := rfl
+      | .and b₁ b₂, s =>
+        have ih₁ := sound b₁ s
+        have ih₂ := sound b₂ s
+        calc (Logic.and b₁ b₂).eval s
+          _ = and (b₁.eval s) (b₂.eval s)                   := rfl
+          _ = and (b₁.opt0Plus.eval s) (b₂.opt0Plus.eval s) := congr (congrArg and ih₁) ih₂
+          _ = (Logic.and b₁ b₂).opt0Plus.eval s              := rfl
 
     theorem Command.opt0Plus.sound: Command.transform_sound Command.opt0Plus := sorry
   end Term
@@ -938,19 +983,27 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
               unfold Arith.opt0Plus
               simp_all
         case ident | plus | minus | mult =>
-          unfold Arith.opt0Plus
-          unfold Arith.eval
+          unfold Arith.opt0Plus Arith.eval
           simp_all
 
-    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus := by sorry
+    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus := by
+      intro b s
+      induction b
+      <;> try rfl
+      case eq | neq | le | gt =>
+        unfold Logic.opt0Plus Logic.eval
+        repeat rw [← Arith.opt0Plus.sound]
+      case not | and =>
+        unfold Logic.opt0Plus Logic.eval
+        simp_all
 
     theorem Command.opt0Plus.sound: Command.transform_sound Command.opt0Plus := by sorry
   end Tactic
 
   namespace Blended
     theorem Arith.opt0Plus.sound: Arith.transform_sound Arith.opt0Plus
-      | .num _, s => rfl
-      | .ident _, s => rfl
+      | .num _, _ => rfl
+      | .ident _, _ => rfl
       | .plus (.num 0) e₂, s =>
         have ih₁ := sound (.num 0) s
         have ih₂ := sound e₂ s
@@ -981,7 +1034,50 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           _ = e₁.opt0Plus.eval s * e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
           _ = (Arith.mult e₁ e₂).opt0Plus.eval s      := by rfl
 
-    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus := sorry
+    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus
+      | .true, _ => rfl
+      | .false, _ => rfl
+      | .eq e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        calc (Logic.eq e₁ e₂).eval s
+          _ = BEq.beq (e₁.eval s) (e₂.eval s)                   := by rfl
+          _ = BEq.beq (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s) := by rw [ih₁, ih₂]
+          _ = (Logic.eq e₁ e₂).opt0Plus.eval s                  := by rfl
+      | .neq e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        calc (Logic.neq e₁ e₂).eval s
+          _ = not (BEq.beq (e₁.eval s) (e₂.eval s))                   := by rfl
+          _ = not (BEq.beq (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s)) := by rw [ih₁, ih₂]
+          _ = (Logic.neq e₁ e₂).opt0Plus.eval s                       := by rfl
+      | .le e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        calc (Logic.le e₁ e₂).eval s
+          _ = (LE.le (e₁.eval s) (e₂.eval s): Bool)                   := by rfl
+          _ = (LE.le (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s): Bool) := by rw [ih₁, ih₂]
+          _ = (Logic.le e₁ e₂).opt0Plus.eval s                        := by rfl
+      | .gt e₁ e₂, s =>
+        have ih₁ := Arith.opt0Plus.sound e₁ s
+        have ih₂ := Arith.opt0Plus.sound e₂ s
+        calc (Logic.gt e₁ e₂).eval s
+          _ = (GT.gt (e₁.eval s) (e₂.eval s): Bool)                   := by rfl
+          _ = (GT.gt (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s): Bool) := by rw [ih₁, ih₂]
+          _ = (Logic.gt e₁ e₂).opt0Plus.eval s                        := by rfl
+      | .not b, s =>
+        have ih := sound b s
+        calc (Logic.not b).eval s
+          _ = not (b.eval s)                := by rfl
+          _ = not (b.opt0Plus.eval s)       := by rw [ih]
+          _ = (Logic.not b).opt0Plus.eval s := by rfl
+      | .and b₁ b₂, s =>
+        have ih₁ := sound b₁ s
+        have ih₂ := sound b₂ s
+        calc (Logic.and b₁ b₂).eval s
+          _ = and (b₁.eval s) (b₂.eval s)                   := by rfl
+          _ = and (b₁.opt0Plus.eval s) (b₂.opt0Plus.eval s) := by rw [ih₁, ih₂]
+          _ = (Logic.and b₁ b₂).opt0Plus.eval s             := by rfl
 
     theorem Command.opt0Plus.sound: Command.transform_sound Command.opt0Plus := sorry
   end Blended

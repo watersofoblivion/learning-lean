@@ -336,6 +336,7 @@ inductive Arith: Type where
   | plus (e₁ e₂: Arith): Arith
   | minus (e₁ e₂: Arith): Arith
   | mult (e₁ e₂: Arith): Arith
+deriving DecidableEq
 
 inductive Logic: Type where
   | true: Logic
@@ -346,6 +347,7 @@ inductive Logic: Type where
   | gt (e₁ e₂: Arith): Logic
   | not (e: Logic): Logic
   | and (e₁ e₂: Logic): Logic
+deriving DecidableEq
 
 /-
 ### Notations
