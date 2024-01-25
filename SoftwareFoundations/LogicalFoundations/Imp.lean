@@ -506,19 +506,19 @@ def Command.noBueno (state: State): Command → State
 -/
 
 inductive CommandEval: Command → State → State → Prop where
-  | skip {s: State}: CommandEval .skip s s
-  | assign {s: State} {e: Arith} {n: Nat} {id: String} (h: e.eval s = n): CommandEval (.assign id e) s (s.update id n)
-  | seq {c₁ c₂: Command} {s₁ s₂ s₃: State} (h₁: CommandEval c₁ s₁ s₂) (h₂: CommandEval c₂ s₂ s₃): CommandEval (.seq c₁ c₂) s₁ s₃
-  | ifTrue {s₁ s₂: State} {c: Logic} {t f: Command} (h₁: c.eval s₁ = .true) (h₂: CommandEval t s₁ s₂): CommandEval (.if c t f) s₁ s₂
-  | ifFalse {s₁ s₂: State} {c: Logic} {t f: Command} (h₁: c.eval s₁ = .false) (h₂: CommandEval f s₁ s₂): CommandEval (.if c t f) s₁ s₂
-  | whileTrue {s₁ s₂ s₃: State} {c: Logic} {b: Command} (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ s₂) (h₃: CommandEval (.while c b) s₂ s₃): CommandEval (.while c b) s₁ s₃
-  | whileFalse {c: Logic} {s: State} {b: Command} (h₁: c.eval s = .false): CommandEval (.while c b) s s
+  | skip (s: State): CommandEval .skip s s
+  | assign {e: Arith} {n: Nat} {id: String} (s: State) (h: e.eval s = n): CommandEval (.assign id e) s (s.update id n)
+  | seq {c₁ c₂: Command} (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ s₂) (h₂: CommandEval c₂ s₂ s₃): CommandEval (.seq c₁ c₂) s₁ s₃
+  | ifTrue {c: Logic} {t f: Command} (s₁ s₂: State) (h₁: c.eval s₁ = .true) (h₂: CommandEval t s₁ s₂): CommandEval (.if c t f) s₁ s₂
+  | ifFalse {c: Logic} {t f: Command} (s₁ s₂: State) (h₁: c.eval s₁ = .false) (h₂: CommandEval f s₁ s₂): CommandEval (.if c t f) s₁ s₂
+  | whileTrue {c: Logic} {b: Command} (s₁ s₂ s₃: State) (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ s₂) (h₃: CommandEval (.while c b) s₂ s₃): CommandEval (.while c b) s₁ s₃
+  | whileFalse {c: Logic} {b: Command} (s: State) (h₁: c.eval s = .false): CommandEval (.while c b) s s
 
 def assignment (id: String) (n: Nat) (s: State): CommandEval (Command.assign id (n: Arith)) s (s.update id n) :=
     have h: (n: Arith).eval s = n := by
       unfold Arith.eval
       rfl
-    CommandEval.assign h
+    CommandEval.assign s h
 
 section
   /- Useful definitions to save typing -/
@@ -548,11 +548,11 @@ section
         unfold Logic.eval
         rfl
       have h₂: CommandEval z4 s₂ s₃ := assignment "Z" 4 s₂
-      CommandEval.ifFalse h₁ h₂
+      CommandEval.ifFalse s₂ s₃ h₁ h₂
 
     by
       repeat unfold instCoeListCommand.conv
-      exact CommandEval.seq h₁ h₂
+      exact CommandEval.seq s₁ s₂ s₃ h₁ h₂
 
   /- x := 0; y := 1; z := 2 -/
   example: CommandEval [x0, y1, z2] State.empty (State.build [("X", 0), ("Y", 1), ("Z", 2)]) :=
@@ -589,7 +589,7 @@ theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (h₁: Co
 
 example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus2 s₁ s₂): s₂ "X" = n + 2 := by
   cases h₂ with
-    | assign h =>
+    | assign _ h =>
       simp
       repeat unfold Arith.eval at h
       rw [h₁] at h
@@ -598,7 +598,7 @@ example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus
 
 example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Z" = n₁ * n₂ := by
   cases h₃ with
-    | assign h =>
+    | assign _ h =>
       repeat unfold Arith.eval at h
       repeat unfold Arith.eval at h
       rw [h₁, h₂] at h
@@ -708,14 +708,14 @@ namespace BreakImp
     | break: Result
 
   inductive CommandEval: Command → State → Result → State → Prop where
-    | skip (state: State): CommandEval .skip state .continue state
-    | break (state: State): CommandEval .break state .break state
-    | assign (state: State) (e: Arith) (n: Nat) (id: String) (h: e.eval state = n): CommandEval (.assign id e) state .continue (state.update id n)
-    | seq (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₃
-    | ifTrue (s₁ s₂: State) (c: Logic) (t f: Command) (h₁: c.eval s₁ = .true) (h₂: CommandEval t s₁ .continue s₂): CommandEval (.if c t f) s₁ .continue s₂
-    | ifFalse (s₁ s₂: State) (c: Logic) (t f: Command) (h₁: c.eval s₁ = .false) (h₂: CommandEval f s₁ .continue s₂): CommandEval (.if c t f) s₁ .continue s₂
-    | whileTrue (s₁ s₂ s₃: State) (c: Logic) (b: Command) (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ .continue s₂) (h₃: CommandEval (.while c b) s₂ .continue s₃): CommandEval (.while c b) s₁ .continue s₃
-    | whileFalse (c: Logic) (s: State) (b: Command) (h₁: c.eval s = .false): CommandEval (.while c b) s .continue s
+    | skip (s: State): CommandEval .skip s .continue s
+    | break (s: State): CommandEval .break s .break s
+    | assign {e: Arith} {n: Nat} {id: String} (s: State) (h: e.eval s = n): CommandEval (.assign id e) s .continue (s.update id n)
+    | seq {c₁ c₂: Command} (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₃
+    | ifTrue {c: Logic} {t f: Command} (s₁ s₂: State) (h₁: c.eval s₁ = .true) (h₂: CommandEval t s₁ .continue s₂): CommandEval (.if c t f) s₁ .continue s₂
+    | ifFalse {c: Logic} {t f: Command} (s₁ s₂: State) (h₁: c.eval s₁ = .false) (h₂: CommandEval f s₁ .continue s₂): CommandEval (.if c t f) s₁ .continue s₂
+    | whileTrue {c: Logic} {b: Command} (s₁ s₂ s₃: State) (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ .continue s₂) (h₃: CommandEval (.while c b) s₂ .continue s₃): CommandEval (.while c b) s₁ .continue s₃
+    | whileFalse {c: Logic} {b: Command} (s: State) (h₁: c.eval s = .false): CommandEval (.while c b) s .continue s
 
   example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := by
     sorry
