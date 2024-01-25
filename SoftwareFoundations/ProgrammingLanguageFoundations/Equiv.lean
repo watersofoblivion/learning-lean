@@ -608,34 +608,34 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
   namespace Tactic
     theorem Arith.equiv.refl (e: Arith): e.equiv e := by
-      intro s
+      intro
       rfl
     theorem Arith.equiv.symm (e₁ e₂: Arith) (h: e₁.equiv e₂): e₂.equiv e₁ := by
-      intro s
-      rw [h s]
+      intro
+      rw [h _]
     theorem Arith.equiv.trans (e₁ e₂ e₃: Arith) (h₁: e₁.equiv e₂) (h₂: e₂.equiv e₃): e₁.equiv e₃ := by
-      intro s
-      rw [h₁ s, h₂ s]
+      intro
+      rw [h₁ _, h₂ _]
 
     theorem Logic.equiv.refl (b: Logic): b.equiv b := by
-      intro s
+      intro
       rfl
     theorem Logic.equiv.symm (b₁ b₂: Logic) (h: b₁.equiv b₂): b₂.equiv b₁ := by
-      intro s
-      rw [h s]
+      intro
+      rw [h _]
     theorem Logic.equiv.trans (b₁ b₂ b₃: Logic) (h₁: b₁.equiv b₂) (h₂: b₂.equiv b₃): b₁.equiv b₃ := by
-      intro s
-      rw [h₁ s, h₂ s]
+      intro
+      rw [h₁ _, h₂ _]
 
     theorem Command.equiv.refl (c: Command): c.equiv c := by
-      intro s₁ s₂
+      intro _ _
       rfl
     theorem Command.equiv.symm (c₁ c₂: Command) (h: c₁.equiv c₂): c₂.equiv c₁ := by
-      intro s₁ s₂
-      rw [h s₁ s₂]
+      intro _ _
+      rw [h _ _]
     theorem Command.equiv.trans (c₁ c₂ c₃: Command) (h₁: c₁.equiv c₂) (h₂: c₂.equiv c₃): c₁.equiv c₃ := by
-      intro s₁ s₂
-      rw [h₁ s₁ s₂, h₂ s₁ s₂]
+      intro _ _
+      rw [h₁ _ _, h₂ _ _]
   end Tactic
 
   namespace Blended
@@ -883,39 +883,67 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   example: (Command.while (.neq "X" 0) (.assign "X" (0 + "X" - 1))).opt0Plus = .while (.neq "X" 0) (.assign "X" ("X" - 1)) := rfl
 
   namespace Term
-    theorem Arith.opt0Plus.sound: Arith.transform_sound Arith.opt0Plus := sorry
-      -- | .num _ => fun s => rfl
-      -- | .ident _ => fun s => rfl
-      -- | .plus (.num 0) e₂, s =>
-      --   have ih₁ := sound (.num 0) s
-      --   have ih₂ := sound e₂ s
-      --   calc (Arith.plus (.num 0) e₂).eval s
-      --     _ = (Arith.num 0).eval s + e₂.eval s                       := rfl
-      --     _ = (Arith.num 0).opt0Plus.eval s + e₂.opt0Plus.eval s     := congr (congrArg Nat.add ih₁) ih₂
-      --     _ = (Arith.plus (Arith.num 0).opt0Plus e₂.opt0Plus).eval s := rfl
-      --     _ = (Arith.plus (Arith.num 0) e₂).opt0Plus.eval s          := by simp -- congrArg (Arith.eval s) rfl -- TODO: Remove Tactic Block
-      --     _ = e₂.opt0Plus.eval s                                     := rfl
-      -- | .plus (.num (.succ n)) e₂ => fun s =>
-      --   have ih₁ := sound (.num (.succ n)) s
-      --   have ih₂ := sound e₂ s
-      --   calc (Arith.plus (.num (.succ n)) e₂).eval s
-      --     _ = (Arith.num (.succ n)).eval s + e₂.eval s                   := rfl
-      --     _ = (Arith.num (.succ n)).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
-      --     _ = (Arith.plus (.num (.succ n)) e₂).opt0Plus.eval s           := rfl
-      -- | .minus e₁ e₂ => fun s =>
-      --   have ih₁ := sound e₁ s
-      --   have ih₂ := sound e₂ s
-      --   calc (Arith.minus e₁ e₂).eval s
-      --     _ = e₁.eval s - e₂.eval s                   := rfl
-      --     _ = e₁.opt0Plus.eval s - e₂.opt0Plus.eval s := congr (congrArg Nat.sub ih₁) ih₂
-      --     _ = (Arith.minus e₁ e₂).opt0Plus.eval s     := rfl
-      -- | .mult e₁ e₂ => fun s =>
-      --   have ih₁ := sound e₁ s
-      --   have ih₂ := sound e₂ s
-      --   calc (Arith.mult e₁ e₂).eval s
-      --     _ = e₁.eval s * e₂.eval s                   := rfl
-      --     _ = e₁.opt0Plus.eval s * e₂.opt0Plus.eval s := congr (congrArg Nat.mul ih₁) ih₂
-      --     _ = (Arith.mult e₁ e₂).opt0Plus.eval s      := rfl
+    theorem Arith.opt0Plus.sound: Arith.transform_sound Arith.opt0Plus
+      | .num _, s => rfl
+      | .ident _, s => rfl
+      | .plus (.num 0) e₂, s =>
+        have ih₁ := sound (.num 0) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (.num 0) e₂).eval s
+          _ = (Arith.num 0).eval s + e₂.eval s                       := rfl
+          _ = (Arith.num 0).opt0Plus.eval s + e₂.opt0Plus.eval s     := congr (congrArg Nat.add ih₁) ih₂
+          _ = (Arith.plus (Arith.num 0).opt0Plus e₂.opt0Plus).eval s := rfl
+          _ = (Arith.plus (Arith.num 0) e₂).opt0Plus.eval s          := by simp -- congrArg (Arith.eval s) rfl -- TODO: Remove Tactic Block
+          _ = e₂.opt0Plus.eval s                                     := rfl
+      | .plus (.num (.succ _)) e₂, s =>
+        have ih₁ := sound (.num (.succ _)) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (.num (.succ _)) e₂).eval s
+          _ = (Arith.num (.succ _)).eval s + e₂.eval s                   := rfl
+          _ = (Arith.num (.succ _)).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+          _ = (Arith.plus (.num (.succ _)) e₂).opt0Plus.eval s           := rfl
+      | .plus (.ident _) e₂, s =>
+        have ih₁ := sound (.ident _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (.ident _) e₂).eval s
+          _ = (Arith.ident _).eval s + e₂.eval s                   := rfl
+          _ = (Arith.ident _).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+          _ = (Arith.plus (.ident _) e₂).opt0Plus.eval s           := rfl
+      | .plus (.plus _ _) e₂, s =>
+        have ih₁ := sound (.plus _ _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (.plus _ _) e₂).eval s
+          _ = (Arith.plus _ _).eval s + e₂.eval s                   := rfl
+          _ = (Arith.plus _ _).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+          _ = (Arith.plus (.plus _ _) e₂).opt0Plus.eval s           := rfl
+      | .plus (.minus _ _) e₂, s =>
+        have ih₁ := sound (.minus _ _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (.minus _ _) e₂).eval s
+          _ = (Arith.minus _ _).eval s + e₂.eval s                   := rfl
+          _ = (Arith.minus _ _).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+          _ = (Arith.plus (.minus _ _) e₂).opt0Plus.eval s           := rfl
+      | .plus (.mult _ _) e₂, s =>
+        have ih₁ := sound (.mult _ _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (.mult _ _) e₂).eval s
+          _ = (Arith.mult _ _).eval s + e₂.eval s                   := rfl
+          _ = (Arith.mult _ _).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+          _ = (Arith.plus (.mult _ _) e₂).opt0Plus.eval s           := rfl
+      | .minus e₁ e₂, s =>
+        have ih₁ := sound e₁ s
+        have ih₂ := sound e₂ s
+        calc (Arith.minus e₁ e₂).eval s
+          _ = e₁.eval s - e₂.eval s                   := rfl
+          _ = e₁.opt0Plus.eval s - e₂.opt0Plus.eval s := congr (congrArg Nat.sub ih₁) ih₂
+          _ = (Arith.minus e₁ e₂).opt0Plus.eval s     := rfl
+      | .mult e₁ e₂, s =>
+        have ih₁ := sound e₁ s
+        have ih₂ := sound e₂ s
+        calc (Arith.mult e₁ e₂).eval s
+          _ = e₁.eval s * e₂.eval s                   := rfl
+          _ = e₁.opt0Plus.eval s * e₂.opt0Plus.eval s := congr (congrArg Nat.mul ih₁) ih₂
+          _ = (Arith.mult e₁ e₂).opt0Plus.eval s      := rfl
 
     theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus
       | .true, _ => rfl
@@ -1015,13 +1043,41 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           _ = (Arith.num 0).opt0Plus.eval s + e₂.opt0Plus.eval s  := by rw [ih₁, ih₂]
           _ = (Arith.plus (Arith.num 0) e₂).opt0Plus.eval s       := by simp
           _ = e₂.opt0Plus.eval s                                  := by rfl
-      | .plus e₁ e₂, s =>
-        have ih₁ := sound e₁ s
+      | .plus (Arith.num (.succ _)) e₂, s =>
+        have ih₁ := sound (Arith.num (.succ _)) s
         have ih₂ := sound e₂ s
-        calc (Arith.plus e₁ e₂).eval s
-          _ = e₁.eval s + e₂.eval s                   := by rfl
-          _ = e₁.opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
-          _ = (Arith.plus e₁ e₂).opt0Plus.eval s      := by sorry --rfl
+        calc (Arith.plus (Arith.num (.succ _)) e₂).eval s
+          _ = (Arith.num (.succ _)).eval s + e₂.eval s                   := by rfl
+          _ = (Arith.num (.succ _)).opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.plus (Arith.num (.succ _)) e₂).opt0Plus.eval s      := by rfl
+      | .plus (Arith.ident _) e₂, s =>
+        have ih₁ := sound (Arith.ident _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (Arith.ident _) e₂).eval s
+          _ = (Arith.ident _).eval s + e₂.eval s                   := by rfl
+          _ = (Arith.ident _).opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.plus (Arith.ident _) e₂).opt0Plus.eval s      := by rfl
+      | .plus (Arith.plus _ _) e₂, s =>
+        have ih₁ := sound (Arith.plus _ _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (Arith.plus _ _) e₂).eval s
+          _ = (Arith.plus _ _).eval s + e₂.eval s                   := by rfl
+          _ = (Arith.plus _ _).opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.plus (Arith.plus _ _) e₂).opt0Plus.eval s      := by rfl
+      | .plus (Arith.minus _ _) e₂, s =>
+        have ih₁ := sound (Arith.minus _ _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (Arith.minus _ _) e₂).eval s
+          _ = (Arith.minus _ _).eval s + e₂.eval s                   := by rfl
+          _ = (Arith.minus _ _).opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.plus (Arith.minus _ _) e₂).opt0Plus.eval s      := by rfl
+      | .plus (Arith.mult _ _) e₂, s =>
+        have ih₁ := sound (Arith.mult _ _) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (Arith.mult _ _) e₂).eval s
+          _ = (Arith.mult _ _).eval s + e₂.eval s                   := by rfl
+          _ = (Arith.mult _ _).opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.plus (Arith.mult _ _) e₂).opt0Plus.eval s      := by rfl
       | .minus e₁ e₂, s =>
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
