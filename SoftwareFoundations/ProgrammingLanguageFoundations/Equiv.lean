@@ -710,9 +710,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   ## Program Transformations
   -/
 
-  def Arith.trans_sound (t: Arith → Arith): Prop := ∀ e: Arith, e.equiv (t e)
-  def Logic.trans_sound (t: Logic → Logic): Prop := ∀ b: Logic, b.equiv (t b)
-  def Command.trans_sound (t: Command → Command): Prop := ∀ c: Command, c.equiv (t c)
+  def Arith.transform_sound (t: Arith → Arith): Prop := ∀ e: Arith, e.equiv (t e)
+  def Logic.transform_sound (t: Logic → Logic): Prop := ∀ b: Logic, b.equiv (t b)
+  def Command.transform_sound (t: Command → Command): Prop := ∀ c: Command, c.equiv (t c)
 
   /-
   ### Constant Folding Optimization
@@ -830,21 +830,21 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   -/
 
   namespace Term
-    theorem Arith.constFold.sound: Arith.trans_sound Arith.constFold := sorry
-    theorem Logic.constFold.sound: Logic.trans_sound Logic.constFold := sorry
-    theorem Command.constFold.sound: Command.trans_sound Command.constFold := sorry
+    theorem Arith.constFold.sound: Arith.transform_sound Arith.constFold := sorry
+    theorem Logic.constFold.sound: Logic.transform_sound Logic.constFold := sorry
+    theorem Command.constFold.sound: Command.transform_sound Command.constFold := sorry
   end Term
 
   namespace Tactic
-    theorem Arith.constFold.sound: Arith.trans_sound Arith.constFold := by sorry
-    theorem Logic.constFold.sound: Logic.trans_sound Logic.constFold := by sorry
-    theorem Command.constFold.sound: Command.trans_sound Command.constFold := by sorry
+    theorem Arith.constFold.sound: Arith.transform_sound Arith.constFold := by sorry
+    theorem Logic.constFold.sound: Logic.transform_sound Logic.constFold := by sorry
+    theorem Command.constFold.sound: Command.transform_sound Command.constFold := by sorry
   end Tactic
 
   namespace Blended
-    theorem Arith.constFold.sound: Arith.trans_sound Arith.constFold := sorry
-    theorem Logic.constFold.sound: Logic.trans_sound Logic.constFold := sorry
-    theorem Command.constFold.sound: Command.trans_sound Command.constFold := sorry
+    theorem Arith.constFold.sound: Arith.transform_sound Arith.constFold := sorry
+    theorem Logic.constFold.sound: Logic.transform_sound Logic.constFold := sorry
+    theorem Command.constFold.sound: Command.transform_sound Command.constFold := sorry
   end Blended
 
   /-
@@ -880,30 +880,47 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   example: (Command.while (.neq "X" 0) (.assign "X" (0 + "X" - 1))).opt0Plus = .while (.neq "X" 0) (.assign "X" ("X" - 1)) := rfl
 
   namespace Term
-    theorem Arith.opt0Plus.sound: Arith.trans_sound Arith.opt0Plus := sorry
-      -- | .num _, s => sorry
-      -- | .ident _, s => sorry
-      -- | .plus (.num 0) e₂, s => sorry
-      -- | .plus (.num (.succ n)) e₂ =>
-      --   fun s =>
-      --     have ih₁ := Arith.opt0Plus.sound (.num (.succ n))
-      --     have ih₂ := sound e₂ s
-      --     sorry
-      -- | .minus e₁ e₂, s =>
+    theorem Arith.opt0Plus.sound: Arith.transform_sound Arith.opt0Plus := sorry
+      -- | .num _ => fun s => rfl
+      -- | .ident _ => fun s => rfl
+      -- | .plus (.num 0) e₂, s =>
+      --   have ih₁ := sound (.num 0) s
+      --   have ih₂ := sound e₂ s
+      --   calc (Arith.plus (.num 0) e₂).eval s
+      --     _ = (Arith.num 0).eval s + e₂.eval s                       := rfl
+      --     _ = (Arith.num 0).opt0Plus.eval s + e₂.opt0Plus.eval s     := congr (congrArg Nat.add ih₁) ih₂
+      --     _ = (Arith.plus (Arith.num 0).opt0Plus e₂.opt0Plus).eval s := rfl
+      --     _ = (Arith.plus (Arith.num 0) e₂).opt0Plus.eval s          := by simp -- TODO: Remove Tactic Block
+      --     _ = e₂.opt0Plus.eval s                                     := rfl
+      -- | .plus (.num (.succ n)) e₂ => fun s =>
+      --   have ih₁ := sound (.num (.succ n)) s
+      --   have ih₂ := sound e₂ s
+      --   calc (Arith.plus (.num (.succ n)) e₂).eval s
+      --     _ = (Arith.num (.succ n)).eval s + e₂.eval s                   := rfl
+      --     _ = (Arith.num (.succ n)).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+      --     _ = (Arith.plus (.num (.succ n)) e₂).opt0Plus.eval s           := rfl
+      -- | .minus e₁ e₂ => fun s =>
       --   have ih₁ := sound e₁ s
       --   have ih₂ := sound e₂ s
-      --   sorry
-      -- | .mult e₁ e₂, s =>
+      --   calc (Arith.minus e₁ e₂).eval s
+      --     _ = e₁.eval s - e₂.eval s                   := rfl
+      --     _ = e₁.opt0Plus.eval s - e₂.opt0Plus.eval s := congr (congrArg Nat.sub ih₁) ih₂
+      --     _ = (Arith.minus e₁ e₂).opt0Plus.eval s     := rfl
+      -- | .mult e₁ e₂ => fun s =>
       --   have ih₁ := sound e₁ s
       --   have ih₂ := sound e₂ s
-      --   sorry
-      -- | _ => sorry
-    theorem Logic.opt0Plus.sound: Logic.trans_sound Logic.opt0Plus := sorry
-    theorem Command.opt0Plus.sound: Command.trans_sound Command.opt0Plus := sorry
+      --   calc (Arith.mult e₁ e₂).eval s
+      --     _ = e₁.eval s * e₂.eval s                   := rfl
+      --     _ = e₁.opt0Plus.eval s * e₂.opt0Plus.eval s := congr (congrArg Nat.mul ih₁) ih₂
+      --     _ = (Arith.mult e₁ e₂).opt0Plus.eval s      := rfl
+
+    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus := sorry
+
+    theorem Command.opt0Plus.sound: Command.transform_sound Command.opt0Plus := sorry
   end Term
 
   namespace Tactic
-    theorem Arith.opt0Plus.sound: Arith.trans_sound Arith.opt0Plus := by
+    theorem Arith.opt0Plus.sound: Arith.transform_sound Arith.opt0Plus := by
       intro e s
       induction e
       <;> try rfl
@@ -921,32 +938,52 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
               unfold Arith.opt0Plus
               simp_all
         case ident | plus | minus | mult =>
-          unfold Arith.opt0Plus Arith.eval
+          unfold Arith.opt0Plus
+          unfold Arith.eval
           simp_all
-    theorem Logic.opt0Plus.sound: Logic.trans_sound Logic.opt0Plus := by sorry
-    theorem Command.opt0Plus.sound: Command.trans_sound Command.opt0Plus := by sorry
+
+    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus := by sorry
+
+    theorem Command.opt0Plus.sound: Command.transform_sound Command.opt0Plus := by sorry
   end Tactic
 
   namespace Blended
-    theorem Arith.opt0Plus.sound: Arith.trans_sound Arith.opt0Plus
+    theorem Arith.opt0Plus.sound: Arith.transform_sound Arith.opt0Plus
       | .num _, s => rfl
       | .ident _, s => rfl
-      | .plus (.num 0) _, s => sorry
-      | .plus (.num (.succ n)) e₂, s => sorry
+      | .plus (.num 0) e₂, s =>
+        have ih₁ := sound (.num 0) s
+        have ih₂ := sound e₂ s
+        calc (Arith.plus (.num 0) e₂).eval s
+          _ = (Arith.num 0).eval s + e₂.eval s                    := by rfl
+          _ = (Arith.num 0).opt0Plus.eval s + e₂.opt0Plus.eval s  := by rw [ih₁, ih₂]
+          _ = (Arith.plus (Arith.num 0) e₂).opt0Plus.eval s       := by simp
+          _ = e₂.opt0Plus.eval s                                  := by rfl
       | .plus e₁ e₂, s =>
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
-        sorry
+        calc (Arith.plus e₁ e₂).eval s
+          _ = e₁.eval s + e₂.eval s                   := by rfl
+          _ = e₁.opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.plus e₁ e₂).opt0Plus.eval s      := by sorry --rfl
       | .minus e₁ e₂, s =>
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
-        sorry
+        calc (Arith.minus e₁ e₂).eval s
+          _ = e₁.eval s - e₂.eval s                   := by rfl
+          _ = e₁.opt0Plus.eval s - e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.minus e₁ e₂).opt0Plus.eval s     := by rfl
       | .mult e₁ e₂, s =>
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
-        sorry
-    theorem Logic.opt0Plus.sound: Logic.trans_sound Logic.opt0Plus := sorry
-    theorem Command.opt0Plus.sound: Command.trans_sound Command.opt0Plus := sorry
+        calc (Arith.mult e₁ e₂).eval s
+          _ = e₁.eval s * e₂.eval s                   := by rfl
+          _ = e₁.opt0Plus.eval s * e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
+          _ = (Arith.mult e₁ e₂).opt0Plus.eval s      := by rfl
+
+    theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus := sorry
+
+    theorem Command.opt0Plus.sound: Command.transform_sound Command.opt0Plus := sorry
   end Blended
 
   /-
@@ -957,15 +994,15 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   def Command.opt (c: Command): Command := c.constFold.opt0Plus
 
   namespace Term
-    theorem Command.opt.sound: Command.trans_sound Command.opt := sorry
+    theorem Command.opt.sound: Command.transform_sound Command.opt := sorry
   end Term
 
   namespace Tactic
-    theorem Command.opt.sound: Command.trans_sound Command.opt := by sorry
+    theorem Command.opt.sound: Command.transform_sound Command.opt := by sorry
   end Tactic
 
   namespace Blended
-    theorem Command.opt.sound: Command.trans_sound Command.opt := sorry
+    theorem Command.opt.sound: Command.transform_sound Command.opt := sorry
   end Blended
 
   /-
