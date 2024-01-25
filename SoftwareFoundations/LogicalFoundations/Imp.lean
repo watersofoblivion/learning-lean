@@ -506,19 +506,19 @@ def Command.noBueno (state: State): Command → State
 -/
 
 inductive CommandEval: Command → State → State → Prop where
-  | skip (state: State): CommandEval .skip state state
-  | assign (state: State) (e: Arith) (n: Nat) (id: String) (h: e.eval state = n): CommandEval (.assign id e) state (state.update id n)
-  | seq (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ s₂) (h₂: CommandEval c₂ s₂ s₃): CommandEval (.seq c₁ c₂) s₁ s₃
-  | ifTrue (s₁ s₂: State) (c: Logic) (t f: Command) (h₁: c.eval s₁ = .true) (h₂: CommandEval t s₁ s₂): CommandEval (.if c t f) s₁ s₂
-  | ifFalse (s₁ s₂: State) (c: Logic) (t f: Command) (h₁: c.eval s₁ = .false) (h₂: CommandEval f s₁ s₂): CommandEval (.if c t f) s₁ s₂
-  | whileTrue (s₁ s₂ s₃: State) (c: Logic) (b: Command) (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ s₂) (h₃: CommandEval (.while c b) s₂ s₃): CommandEval (.while c b) s₁ s₃
-  | whileFalse (c: Logic) (s: State) (b: Command) (h₁: c.eval s = .false): CommandEval (.while c b) s s
+  | skip {s: State}: CommandEval .skip s s
+  | assign {s: State} {e: Arith} {n: Nat} {id: String} (h: e.eval s = n): CommandEval (.assign id e) s (s.update id n)
+  | seq {c₁ c₂: Command} {s₁ s₂ s₃: State} (h₁: CommandEval c₁ s₁ s₂) (h₂: CommandEval c₂ s₂ s₃): CommandEval (.seq c₁ c₂) s₁ s₃
+  | ifTrue {s₁ s₂: State} {c: Logic} {t f: Command} (h₁: c.eval s₁ = .true) (h₂: CommandEval t s₁ s₂): CommandEval (.if c t f) s₁ s₂
+  | ifFalse {s₁ s₂: State} {c: Logic} {t f: Command} (h₁: c.eval s₁ = .false) (h₂: CommandEval f s₁ s₂): CommandEval (.if c t f) s₁ s₂
+  | whileTrue {s₁ s₂ s₃: State} {c: Logic} {b: Command} (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ s₂) (h₃: CommandEval (.while c b) s₂ s₃): CommandEval (.while c b) s₁ s₃
+  | whileFalse {c: Logic} {s: State} {b: Command} (h₁: c.eval s = .false): CommandEval (.while c b) s s
 
 def assignment (id: String) (n: Nat) (s: State): CommandEval (Command.assign id (n: Arith)) s (s.update id n) :=
     have h: (n: Arith).eval s = n := by
       unfold Arith.eval
       rfl
-    CommandEval.assign s n n id h
+    CommandEval.assign h
 
 section
   /- Useful definitions to save typing -/
@@ -548,11 +548,11 @@ section
         unfold Logic.eval
         rfl
       have h₂: CommandEval z4 s₂ s₃ := assignment "Z" 4 s₂
-      CommandEval.ifFalse s₂ s₃ xLe1 y3 z4 h₁ h₂
+      CommandEval.ifFalse h₁ h₂
 
     by
       repeat unfold instCoeListCommand.conv
-      exact CommandEval.seq x2 branch s₁ s₂ s₃ h₁ h₂
+      exact CommandEval.seq h₁ h₂
 
   /- x := 0; y := 1; z := 2 -/
   example: CommandEval [x0, y1, z2] State.empty (State.build [("X", 0), ("Y", 1), ("Z", 2)]) :=
@@ -589,7 +589,7 @@ theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (h₁: Co
 
 example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus2 s₁ s₂): s₂ "X" = n + 2 := by
   cases h₂ with
-    | assign _ _ n₁ _ h =>
+    | assign h =>
       simp
       repeat unfold Arith.eval at h
       rw [h₁] at h
@@ -598,7 +598,7 @@ example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus
 
 example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Z" = n₁ * n₂ := by
   cases h₃ with
-    | assign state e n₃ id h =>
+    | assign h =>
       repeat unfold Arith.eval at h
       repeat unfold Arith.eval at h
       rw [h₁, h₂] at h
@@ -609,8 +609,8 @@ example (s₁ s₂: State): ¬CommandEval loopForever s₁ s₂ := by
   intro h
   unfold loopForever at h
   cases h with
-    | whileTrue _ s₃ _ _ _ h₁ h₂ h₃ => sorry
-    | whileFalse _ _ _ h₁ => contradiction
+    | whileTrue h₁ h₂ h₃ => sorry
+    | whileFalse h₁ => contradiction
 
 def Command.noWhiles: Command → Bool
   | .skip | .assign _ _ | .seq _ _ | .if _ _ _ => true
@@ -618,9 +618,9 @@ def Command.noWhiles: Command → Bool
 
 inductive NoWhiles: Command → Prop where
   | skip: NoWhiles .skip
-  | assign (id: String) (e: Arith): NoWhiles (.assign id e)
-  | seq (c₁ c₂: Command): NoWhiles (.seq c₁ c₂)
-  | if (c: Logic) (t f: Command): NoWhiles (.if c t f)
+  | assign {id: String} {e: Arith}: NoWhiles (.assign id e)
+  | seq {c₁ c₂: Command}: NoWhiles (.seq c₁ c₂)
+  | if {c: Logic} {t f: Command}: NoWhiles (.if c t f)
 
 theorem NoWhiles.noWhiles (c: Command): c.noWhiles = true ↔ NoWhiles c := by
   sorry
