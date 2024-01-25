@@ -73,7 +73,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   ### Simple Examples
   -/
 
-  private def _root_.Logic.trueFalse (b: Logic) (s: State) (h₁: b.eval s = true) (h₂: b.eval s = false): α :=
+  private def _root_.Logic.trueFalse {s: State} (b: Logic) (h₁: b.eval s = true) (h₂: b.eval s = false): α :=
     False.elim (by simp_all)
 
   namespace Term
@@ -109,7 +109,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have mp: CommandEval (.if .true t f) s₁ s₂ → CommandEval t s₁ s₂
           | .ifTrue _ _ _ h₂ => h₂
-          | .ifFalse _ _ h₁ _ => Logic.true.trueFalse s₁ rfl h₁
+          | .ifFalse _ _ h₁ _ => Logic.true.trueFalse rfl h₁
         have mpr: CommandEval t s₁ s₂ → CommandEval (.if .true t f) s₁ s₂
           | .skip _                   => .ifTrue _ _ rfl (.skip _)
           | .assign _ h               => .ifTrue _ _ rfl (.assign _ h)
@@ -125,7 +125,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         have tru: b.eval s₁ = Logic.true.eval s₁ := h _
         have mp: CommandEval (.if b c₁ c₂) s₁ s₂ → CommandEval c₁ s₁ s₂
           | .ifTrue _ _ _ h₂ => h₂
-          | .ifFalse _ _ h₁ _ => b.trueFalse s₁ tru h₁
+          | .ifFalse _ _ h₁ _ => b.trueFalse tru h₁
         have mpr: CommandEval c₁ s₁ s₂ → CommandEval (.if b c₁ c₂) s₁ s₂
           | .skip _                   => .ifTrue _ _ tru (.skip _)
           | .assign _ h₁              => .ifTrue _ _ tru (.assign _ h₁)
@@ -140,7 +140,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have fls: b.eval s₁ = Logic.false.eval s₁ := h _
         have mp: CommandEval (.if b c₁ c₂) s₁ s₂ → CommandEval c₂ s₁ s₂
-          | .ifTrue _ _ h₁ _ => b.trueFalse s₁ h₁ fls
+          | .ifTrue _ _ h₁ _ => b.trueFalse h₁ fls
           | .ifFalse _ _ _ h₂ => h₂
         have mpr: CommandEval c₂ s₁ s₂ → CommandEval (.if b c₁ c₂) s₁ s₂
           | .skip _                   => .ifFalse _ _ fls (.skip _)
@@ -162,7 +162,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have fls: c.eval s₁ = Logic.false.eval s₁ := h _
         have mp: CommandEval (.while c b) s₁ s₂ → CommandEval .skip s₁ s₂
-          | .whileTrue _ _ _ h₁ _ _=> c.trueFalse s₁ h₁ fls
+          | .whileTrue _ _ _ h₁ _ _=> c.trueFalse h₁ fls
           | .whileFalse _ _ => .skip _
         have mpr: CommandEval .skip s₁ s₂ → CommandEval (.while c b) s₁ s₂
           | .skip _ => .whileFalse _ fls
@@ -171,29 +171,27 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.while_true (c: Logic) (b: Command) (h: c.equiv .true): (Command.while c b).equiv (Command.while .true Command.skip)
       | s₁, s₂ =>
         have tru: c.eval s₁ = Logic.true.eval s₁ := h _
+        have hh: Logic.true.equiv .true
+          | _ => rfl
         have mp: CommandEval (.while c b) s₁ s₂ → CommandEval (.while .true .skip) s₁ s₂
-          | .whileTrue _ _ _ h₁ _ h₃ => sorry --nonterm (_) .skip _ _ h
-          | .whileFalse _ h₁ => c.trueFalse s₁ tru h₁
+          | .whileTrue _ _ _ h₁ h₂ h₃ => absurd (CommandEval.whileTrue _ _ _ h₁ h₂ h₃) (nonterm _ _ _ _ h)
+          | .whileFalse _ h₁ => c.trueFalse tru h₁
         have mpr: CommandEval (.while .true .skip) s₁ s₂ → CommandEval (.while c b) s₁ s₂
-          | .whileTrue _ _ _ h₁ h₂ (.whileTrue _ _ _ h₄ h₅ h₆) => sorry -- .whileTrue tru _ _
-          | .whileTrue _ _ _ h₁ h₂ (.whileFalse _ h₃) => sorry -- .whileTrue tru _ _
-          | .whileFalse _ h₁ => Logic.true.trueFalse s₂ rfl h₁
+          | .whileTrue _ _ _ h₁ h₂ h₃ => absurd (CommandEval.whileTrue _ _ _ h₁ h₂ h₃) (nonterm _ _ _ _ hh)
+          | .whileFalse _ h₁ => Logic.true.trueFalse rfl h₁
         ⟨mp, mpr⟩
       where
         nonterm (c: Logic) (b: Command) (s₁ s₂: State) (h: c.equiv .true): ¬(CommandEval (.while c b) s₁ s₂)
-          | .whileTrue _ _ _ h₁ h₂ h₃ => sorry
-          | .whileFalse _ h₁ => c.trueFalse s₁ (h _) h₁
+          | .whileTrue _ _ _ _ _ h₃ => sorry
+          | .whileFalse _ h₁ => c.trueFalse (h _) h₁
 
     theorem Command.loop_unrolling (c: Logic) (b: Command): (Command.while c b).equiv (Command.if c (Command.seq b (Command.while c b)) .skip)
       | s₁, s₂ =>
         have mp: CommandEval (.while c b) s₁ s₂ → CommandEval (.if c (.seq b (.while c b)) .skip) s₁ s₂
-          | .whileTrue s₁ s₂ s₃ h₁ h₂ h₃ =>
-            have ih: CommandEval (.while c b) s₂ s₃ := sorry
-            .ifTrue _ _ h₁ (.seq _ _ _ h₂ ih)
+          | .whileTrue _ _ _ h₁ h₂ h₃ => .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃)
           | .whileFalse _ h₁ => .ifFalse _ _ h₁ (.skip _)
         have mpr: CommandEval (.if c (.seq b (.while c b)) .skip) s₁ s₂ → CommandEval (.while c b) s₁ s₂
-          | .ifTrue _ _ h₁ (.seq _ _ _ h₂ (.whileTrue _ _ _ _ h₃ _)) => sorry --.whileTrue h₁ h₂ _
-          | .ifTrue _ _ _ (.seq _ _ _ _ (.whileFalse _ _)) => sorry -- .whileTrue _ _ _
+          | .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃) => .whileTrue _ _ _ h₁ h₂ h₃
           | .ifFalse _ _ h₁ (.skip _) => .whileFalse _ h₁
         ⟨mp, mpr⟩
 
@@ -381,8 +379,23 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.loop_unrolling (c: Logic) (b: Command): (Command.while c b).equiv (Command.if c (Command.seq b (Command.while c b)) .skip) := by
       intro s₁ s₂
       apply Iff.intro
-      · sorry
-      · sorry
+      · intro
+        | .whileTrue _ _ _ _ _ _ =>
+          apply CommandEval.ifTrue
+          · assumption
+          · apply CommandEval.seq
+            repeat assumption
+        | .whileFalse _ h₁ =>
+          apply CommandEval.ifFalse
+          · assumption
+          · apply CommandEval.skip
+      · intro
+        | .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃) =>
+          apply CommandEval.whileTrue
+          repeat assumption
+        | .ifFalse _ _ h₁ (.skip _) =>
+          apply CommandEval.whileFalse
+          assumption
 
     theorem Command.seq_assoc (c₁ c₂ c₂: Command): (Command.seq (Command.seq c₁ c₂) c₃).equiv (Command.seq c₁ (Command.seq c₂ c₃)) := by
       intro s₁ s₂
@@ -451,7 +464,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have mp: CommandEval (.if .true t f) s₁ s₂ → CommandEval t s₁ s₂
           | .ifTrue _ _ _ h₂ => h₂
-          | .ifFalse _ _ h₁ _ => Logic.true.trueFalse s₁ rfl h₁
+          | .ifFalse _ _ h₁ _ => Logic.true.trueFalse rfl h₁
         have mpr: CommandEval t s₁ s₂ → CommandEval (.if .true t f) s₁ s₂
           | .skip _                   => .ifTrue _ _ rfl (.skip _)
           | .assign _ h               => .ifTrue _ _ rfl (.assign _ h)
@@ -468,7 +481,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         have tru: b.eval s₁ = Logic.true.eval s₁ := h _
         have mp: CommandEval (.if b c₁ c₂) s₁ s₂ → CommandEval c₁ s₁ s₂
           | .ifTrue _ _ _ h₂ => h₂
-          | .ifFalse _ _ h₁ _ => b.trueFalse s₁ tru h₁
+          | .ifFalse _ _ h₁ _ => b.trueFalse tru h₁
         have mpr: CommandEval c₁ s₁ s₂ → CommandEval (.if b c₁ c₂) s₁ s₂
           | .skip _                   => .ifTrue _ _ tru (.skip _)
           | .assign _ h₁              => .ifTrue _ _ tru (.assign _ h₁)
@@ -484,7 +497,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have fls: b.eval s₁ = Logic.false.eval s₁ := h _
         have mp: CommandEval (.if b c₁ c₂) s₁ s₂ → CommandEval c₂ s₁ s₂
-          | .ifTrue _ _ h₁ _ => b.trueFalse s₁ h₁ fls
+          | .ifTrue _ _ h₁ _ => b.trueFalse h₁ fls
           | .ifFalse _ _ _ h₂ => h₂
         have mpr: CommandEval c₂ s₁ s₂ → CommandEval (.if b c₁ c₂) s₁ s₂
           | .skip _                   => .ifFalse _ _ fls (.skip _)
@@ -503,7 +516,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have fls: c.eval s₁ = Logic.false.eval s₁ := h _
         have mp: CommandEval (.while c b) s₁ s₂ → CommandEval .skip s₁ s₂
-          | .whileTrue _ _ _ h₁ _ _=> c.trueFalse s₁ h₁ fls
+          | .whileTrue _ _ _ h₁ _ _=> c.trueFalse h₁ fls
           | .whileFalse _ _ => .skip _
         have mpr: CommandEval .skip s₁ s₂ → CommandEval (.while c b) s₁ s₂
           | .skip _ => .whileFalse _ fls
@@ -513,9 +526,29 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.while_true (c: Logic) (b: Command) (h: c.equiv .true): (Command.while c b).equiv (Command.while .true Command.skip)
       | s₁, s₂ =>
         have tru: c.eval s₁ = Logic.true.eval s₁ := h _
-        sorry
+        have hh: Logic.true.equiv .true
+          | _ => rfl
+        have mp: CommandEval (.while c b) s₁ s₂ → CommandEval (.while .true .skip) s₁ s₂
+          | .whileTrue _ _ _ h₁ h₂ h₃ => absurd (CommandEval.whileTrue _ _ _ h₁ h₂ h₃) (nonterm _ _ _ _ h)
+          | .whileFalse _ h₁ => c.trueFalse tru h₁
+        have mpr: CommandEval (.while .true .skip) s₁ s₂ → CommandEval (.while c b) s₁ s₂
+          | .whileTrue _ _ _ h₁ h₂ h₃ => absurd (CommandEval.whileTrue _ _ _ h₁ h₂ h₃) (nonterm _ _ _ _ hh)
+          | .whileFalse _ h₁ => Logic.true.trueFalse rfl h₁
+        ⟨mp, mpr⟩
+      where
+        nonterm (c: Logic) (b: Command) (s₁ s₂: State) (h: c.equiv .true): ¬(CommandEval (.while c b) s₁ s₂)
+          | .whileTrue _ _ _ _ _ h₃ => sorry
+          | .whileFalse _ h₁ => c.trueFalse (h _) h₁
 
-    theorem Command.loop_unrolling (c: Logic) (b: Command): (Command.while c b).equiv (Command.if c (Command.seq b (Command.while c b)) .skip) := by sorry
+    theorem Command.loop_unrolling (c: Logic) (b: Command): (Command.while c b).equiv (Command.if c (Command.seq b (Command.while c b)) .skip)
+      | s₁, s₂ =>
+        have mp: CommandEval (.while c b) s₁ s₂ → CommandEval (.if c (.seq b (.while c b)) .skip) s₁ s₂
+          | .whileTrue _ _ _ h₁ h₂ h₃ => .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃)
+          | .whileFalse _ h₁ => .ifFalse _ _ h₁ (.skip _)
+        have mpr: CommandEval (.if c (.seq b (.while c b)) .skip) s₁ s₂ → CommandEval (.while c b) s₁ s₂
+          | .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃) => .whileTrue _ _ _ h₁ h₂ h₃
+          | .ifFalse _ _ h₁ (.skip _) => .whileFalse _ h₁
+        ⟨mp, mpr⟩
 
     theorem Command.seq_assoc (c₁ c₂ c₃: Command): (Command.seq (Command.seq c₁ c₂) c₃).equiv (Command.seq c₁ (Command.seq c₂ c₃))
       | s₁, s₂ =>
