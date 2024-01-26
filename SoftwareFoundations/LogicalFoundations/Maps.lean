@@ -16,6 +16,7 @@ def TotalMap (α: Type): Type := String → α
 
 def TotalMap.empty {α: Type} (default: α): TotalMap α := fun _ => default
 
+@[reducible]
 def TotalMap.update {α: Type} (m: TotalMap α) (k: String) (v: α): TotalMap α :=
   fun k₁ =>
     if k == k₁
@@ -75,7 +76,10 @@ theorem TotalMap.updatePermute (m: TotalMap α) (k₁ k₂: String) (v₁ v₂: 
 def PartialMap (α: Type): Type := TotalMap (Option α)
 
 def PartialMap.empty: PartialMap α := TotalMap.empty .none
+
+@[reducible]
 def PartialMap.update (m: PartialMap α) (k: String) (v: α): PartialMap α := TotalMap.update m k v
+
 def PartialMap.includes (m₁ m₂: PartialMap α): Prop := ∀ k: String, ∀ v: α, m₁ k = .some v → m₂ k = .some v
 
 theorem PartialMap.applyEmpty (k: String): @PartialMap.empty α k = .none := by rfl
