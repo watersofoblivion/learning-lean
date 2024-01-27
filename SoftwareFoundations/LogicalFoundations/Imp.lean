@@ -40,92 +40,98 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     example: (Arith.plus (.num 2) (.num 2)).eval = 4 := rfl
     example: (Arith.plus (.num 2) (.plus (.num 0) (.plus (.num 0) (.num 1)))).optZeroPlus = .plus (.num 2) (.num 1) := rfl
 
-    example: (a: Arith) → a.optZeroPlus.eval = a.eval
-      | .num _ => rfl
-      | .plus e₁ e₂ =>
-        have ih₁: e₁.optZeroPlus.eval = e₁.eval := _example e₁
-        have ih₂: e₂.optZeroPlus.eval = e₂.eval := _example e₂
-        match e₁ with
-          | .num n =>
-            match n with
-              | .zero =>
-                calc (Arith.plus (.num 0) e₂).optZeroPlus.eval
-                  _ = e₂.optZeroPlus.eval                := rfl
-                  _ = e₂.eval                            := ih₂
-                  _ = 0 + e₂.eval                        := Eq.symm (Nat.zero_add e₂.eval)
-              | .succ n =>
-                calc (Arith.plus (.num n.succ) e₂).optZeroPlus.eval
-                  _ = (Arith.num n.succ).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
-                  _ = (Arith.num n.succ).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
-          | .plus _ _ =>
-            calc (Arith.plus (Arith.plus _ _) e₂).optZeroPlus.eval
-              _ = (Arith.plus _ _).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
-              _ = (Arith.plus _ _).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
-          | .minus _ _ =>
-            calc (Arith.plus (Arith.minus _ _) e₂).optZeroPlus.eval
-              _ = (Arith.minus _ _).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
-              _ = (Arith.minus _ _).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
-          | .mult _ _ =>
-            calc (Arith.plus (Arith.mult _ _) e₂).optZeroPlus.eval
-              _ = (Arith.mult _ _).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
-              _ = (Arith.mult _ _).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
-      | .minus e₁ e₂ =>
-        have ih₁: e₁.optZeroPlus.eval = e₁.eval := _example e₁
-        have ih₂: e₂.optZeroPlus.eval = e₂.eval := _example e₂
-        calc (Arith.minus e₁ e₂).optZeroPlus.eval
-          _ = e₁.optZeroPlus.eval - e₂.optZeroPlus.eval := rfl
-          _ = e₁.eval - e₂.eval                         := congr (congrArg Nat.sub ih₁) ih₂
-      | .mult e₁ e₂ =>
-        have ih₁: e₁.optZeroPlus.eval = e₁.eval := _example e₁
-        have ih₂: e₂.optZeroPlus.eval = e₂.eval := _example e₂
-        calc (Arith.mult e₁ e₂).optZeroPlus.eval
-          _ = e₁.optZeroPlus.eval * e₂.optZeroPlus.eval := rfl
-          _ = e₁.eval * e₂.eval                         := congr (congrArg Nat.mul ih₁) ih₂
-          _ = (Arith.mult e₁ e₂).eval                   := rfl
+    namespace Term
+      theorem Arith.optZeroPlus.sound: (a: Arith) → a.optZeroPlus.eval = a.eval
+        | .num _ => rfl
+        | .plus e₁ e₂ =>
+          have ih₁: e₁.optZeroPlus.eval = e₁.eval := sound e₁
+          have ih₂: e₂.optZeroPlus.eval = e₂.eval := sound e₂
+          match e₁ with
+            | .num n =>
+              match n with
+                | .zero =>
+                  calc (Arith.plus (.num 0) e₂).optZeroPlus.eval
+                    _ = e₂.optZeroPlus.eval                := rfl
+                    _ = e₂.eval                            := ih₂
+                    _ = 0 + e₂.eval                        := Eq.symm (Nat.zero_add e₂.eval)
+                | .succ n =>
+                  calc (Arith.plus (.num n.succ) e₂).optZeroPlus.eval
+                    _ = (Arith.num n.succ).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
+                    _ = (Arith.num n.succ).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
+            | .plus _ _ =>
+              calc (Arith.plus (Arith.plus _ _) e₂).optZeroPlus.eval
+                _ = (Arith.plus _ _).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
+                _ = (Arith.plus _ _).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
+            | .minus _ _ =>
+              calc (Arith.plus (Arith.minus _ _) e₂).optZeroPlus.eval
+                _ = (Arith.minus _ _).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
+                _ = (Arith.minus _ _).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
+            | .mult _ _ =>
+              calc (Arith.plus (Arith.mult _ _) e₂).optZeroPlus.eval
+                _ = (Arith.mult _ _).optZeroPlus.eval + e₂.optZeroPlus.eval := rfl
+                _ = (Arith.mult _ _).eval + e₂.eval                         := congr (congrArg Nat.add ih₁) ih₂
+        | .minus e₁ e₂ =>
+          have ih₁: e₁.optZeroPlus.eval = e₁.eval := sound e₁
+          have ih₂: e₂.optZeroPlus.eval = e₂.eval := sound e₂
+          calc (Arith.minus e₁ e₂).optZeroPlus.eval
+            _ = e₁.optZeroPlus.eval - e₂.optZeroPlus.eval := rfl
+            _ = e₁.eval - e₂.eval                         := congr (congrArg Nat.sub ih₁) ih₂
+        | .mult e₁ e₂ =>
+          have ih₁: e₁.optZeroPlus.eval = e₁.eval := sound e₁
+          have ih₂: e₂.optZeroPlus.eval = e₂.eval := sound e₂
+          calc (Arith.mult e₁ e₂).optZeroPlus.eval
+            _ = e₁.optZeroPlus.eval * e₂.optZeroPlus.eval := rfl
+            _ = e₁.eval * e₂.eval                         := congr (congrArg Nat.mul ih₁) ih₂
+            _ = (Arith.mult e₁ e₂).eval                   := rfl
+    end Term
 
-    theorem Arith.optZeroPlus.sound (a: Arith): a.optZeroPlus.eval = a.eval := by
-      induction a with
-        | num n => rfl
-        | plus e₁ e₂ ih₁ ih₂ =>
-          cases e₁ with
-            | num n =>
-              cases n with
-                | zero => simp_all
-                | succ n =>
-                  unfold optZeroPlus eval
-                  simp_all
-            | plus | minus | mult =>
-              unfold optZeroPlus eval
-              simp_all
-        | minus _ _ ih₁ ih₂ | mult _ _ ih₁ ih₂ =>
-          unfold optZeroPlus eval
-          simp_all
+    namespace Tactic
+      theorem Arith.optZeroPlus.sound (a: Arith): a.optZeroPlus.eval = a.eval := by
+        induction a with
+          | num n => rfl
+          | plus e₁ e₂ ih₁ ih₂ =>
+            cases e₁ with
+              | num n =>
+                cases n with
+                  | zero => simp_all
+                  | succ n =>
+                    unfold Arith.optZeroPlus Arith.eval
+                    simp_all
+              | plus | minus | mult =>
+                unfold Arith.optZeroPlus Arith.eval
+                simp_all
+          | minus _ _ ih₁ ih₂ | mult _ _ ih₁ ih₂ =>
+            unfold Arith.optZeroPlus Arith.eval
+            simp_all
+    end Tactic
 
-    example: (a: Arith) → a.optZeroPlus.eval = a.eval
-      | .num _ => by rfl
-      | .plus e₁ e₂ =>
-        have ih₁: e₁.optZeroPlus.eval = e₁.eval := _example e₁
-        have ih₂: e₂.optZeroPlus.eval = e₂.eval := _example e₂
-        match e₁ with
-          | .num n =>
-            match n with
-              | .zero =>
-                calc (Arith.plus (.num 0) e₂).optZeroPlus.eval
-                  _ = e₂.optZeroPlus.eval                := by rfl
-                  _ = e₂.eval                            := by rw [ih₂]
-                  _ = 0 + e₂.eval                        := by rw [Nat.zero_add]
-              | .succ n =>
-                calc (Arith.plus (.num n.succ) e₂).optZeroPlus.eval
-                  _ = (Arith.num n.succ).optZeroPlus.eval + e₂.optZeroPlus.eval := by rfl
-                  _ = (Arith.num n.succ).eval + e₂.eval                         := by rw [ih₁, ih₂]
-          | .plus _ _ | .minus _ _ | .mult _ _ => by
-            unfold Arith.eval
-            rw [ih₁, ih₂]
-      | .minus e₁ e₂ | .mult e₁ e₂ => by
-        have ih₁: e₁.optZeroPlus.eval = e₁.eval := _example e₁
-        have ih₂: e₂.optZeroPlus.eval = e₂.eval := _example e₂
-        unfold Arith.eval
-        rw [ih₁, ih₂]
+    namespace Blended
+      theorem Arith.optZeroPlus.sound: (a: Arith) → a.optZeroPlus.eval = a.eval
+        | .num _ => by rfl
+        | .plus e₁ e₂ =>
+          have ih₁: e₁.optZeroPlus.eval = e₁.eval := sound e₁
+          have ih₂: e₂.optZeroPlus.eval = e₂.eval := sound e₂
+          match e₁ with
+            | .num n =>
+              match n with
+                | .zero =>
+                  calc (Arith.plus (.num 0) e₂).optZeroPlus.eval
+                    _ = e₂.optZeroPlus.eval                := by rfl
+                    _ = e₂.eval                            := by rw [ih₂]
+                    _ = 0 + e₂.eval                        := by rw [Nat.zero_add]
+                | .succ n =>
+                  calc (Arith.plus (.num n.succ) e₂).optZeroPlus.eval
+                    _ = (Arith.num n.succ).optZeroPlus.eval + e₂.optZeroPlus.eval := by rfl
+                    _ = (Arith.num n.succ).eval + e₂.eval                         := by rw [ih₁, ih₂]
+            | .plus _ _ | .minus _ _ | .mult _ _ => by
+              unfold Arith.eval
+              rw [ih₁, ih₂]
+        | .minus e₁ e₂ | .mult e₁ e₂ => by
+          have ih₁: e₁.optZeroPlus.eval = e₁.eval := sound e₁
+          have ih₂: e₂.optZeroPlus.eval = e₂.eval := sound e₂
+          unfold Arith.eval
+          rw [ih₁, ih₂]
+    end Blended
 
     inductive Logic: Type where
       | true: Logic
@@ -163,127 +169,140 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     ## Lean (Coq) Automation
     -/
 
+    namespace Tactic
+      /-
+      ### The `try` Tactical
+      -/
+
+
+      example (P: Prop) (h: P): P := by
+        try rfl
+        apply h
+
+      example (a: Arith): a.eval = a.eval := by
+        try rfl
+
+      /-
+      ### The `<;>` Tactical (Simple Form)
+      -/
+
+      example (n: Nat): 0 ≤ n := by
+        cases n with
+          | zero => simp
+          | succ n => simp
+
+      example (n: Nat): 0 ≤ n := by
+        cases n <;> simp
+
+      /-
+      ### The `<;>` Tactical (General Form)
+      -/
+
+      example (a: Arith): a.optZeroPlus.eval = a.eval := by
+        induction a <;>
+        try (first | rfl
+                   | unfold Arith.optZeroPlus Arith.eval
+                     simp_all)
+        case plus e₁ _ ih₁ ih₂ =>
+          cases e₁ <;>
+          try (unfold Arith.optZeroPlus Arith.eval
+               rw [ih₁, ih₂])
+          case num n =>
+            cases n with
+              | zero => simp_all
+              | succ n =>
+                unfold Arith.optZeroPlus Arith.eval
+                simp_all
+
+      /-
+      ### The `repeat` Tactical
+      -/
+
+      def In (x: α) (l: List α): Prop :=
+        match l with
+          | [] => False
+          | b :: m => b = x ∨ In x m
+
+      example: In 10 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] := by
+        repeat (try (first | apply Or.inl; rfl | apply Or.inr))
+    end Tactic
+
+    namespace Term
+      theorem Logic.optZeroPlus.sound: (b: Logic) → b.optZeroPlus.eval = b.eval
+        | .true | .false => rfl
+        | .eq e₁ e₂ =>
+          have h₁ := Arith.optZeroPlus.sound e₁
+          have h₂ := Arith.optZeroPlus.sound e₂
+          calc (Logic.eq e₁ e₂).optZeroPlus.eval
+            _ = BEq.beq e₁.optZeroPlus.eval e₂.optZeroPlus.eval := rfl
+            _ = BEq.beq e₁.eval e₂.eval                         := congr (congrArg BEq.beq h₁) h₂
+        | .neq e₁ e₂ =>
+          have h₁ := Arith.optZeroPlus.sound e₁
+          have h₂ := Arith.optZeroPlus.sound e₂
+          calc (Logic.neq e₁ e₂).optZeroPlus.eval
+            _ = not (BEq.beq e₁.optZeroPlus.eval e₂.optZeroPlus.eval) := rfl
+            _ = not (BEq.beq e₁.eval e₂.eval)                         := congrArg not (congr (congrArg BEq.beq h₁) h₂)
+        | .le e₁ e₂ =>
+          have h₁ := Arith.optZeroPlus.sound e₁
+          have h₂ := Arith.optZeroPlus.sound e₂
+          calc (Logic.le e₁ e₂).optZeroPlus.eval
+            _ = (LE.le e₁.optZeroPlus.eval e₂.optZeroPlus.eval: Bool) := rfl
+            _ = (LE.le e₁.eval e₂.eval: Bool)                         := sorry -- congr (congrArg LE.le h₁) h₂
+        | .gt e₁ e₂ =>
+          have h₁ := Arith.optZeroPlus.sound e₁
+          have h₂ := Arith.optZeroPlus.sound e₂
+          calc (Logic.gt e₁ e₂).optZeroPlus.eval
+            _ = (GT.gt e₁.optZeroPlus.eval e₂.optZeroPlus.eval: Bool) := rfl
+            _ = (GT.gt e₁.eval e₂.eval: Bool)                         := sorry -- congr (congrArg LE.le h₁) h₂
+        | .not b =>
+          have ih := sound b
+          calc (Logic.not b).optZeroPlus.eval
+            _ = not b.optZeroPlus.eval := rfl
+            _ = not b.eval             := congrArg not ih
+        | .and b₁ b₂ =>
+          have ih₁ := sound b₁
+          have ih₂ := sound b₂
+          calc (Logic.and b₁ b₂).optZeroPlus.eval
+            _ = and b₁.optZeroPlus.eval b₂.optZeroPlus.eval := rfl
+            _ = and b₁.eval b₂.eval                         := congr (congrArg and ih₁) ih₂
+    end Term
+
+    namespace Tactic
+      theorem Logic.optZeroPlus.sound (e: Logic): e.optZeroPlus.eval = e.eval := by
+        induction e <;>
+        try (first | rfl
+                   | unfold Logic.optZeroPlus Logic.eval
+                     simp [Arith.optZeroPlus.sound])
+        case not e ih =>
+          unfold Logic.optZeroPlus Logic.eval
+          rw [ih]
+        case and e₁ e₂ ih₁ ih₂ =>
+          unfold Logic.optZeroPlus Logic.eval
+          rw [ih₁, ih₂]
+    end Tactic
+
+    namespace Blended
+      theorem Logic.optZeroPlus.sound: (b: Logic) → b.optZeroPlus.eval = b.eval
+        | .true | .false => by rfl
+        | .eq e₁ e₂ | .neq e₁ e₂ | .le e₁ e₂ | .gt e₁ e₂ => by
+          have h₁ := Arith.optZeroPlus.sound e₁
+          have h₂ := Arith.optZeroPlus.sound e₂
+          unfold Logic.eval
+          rw [h₁, h₂]
+        | .not b => by
+          have ih := sound b
+          unfold Logic.eval
+          rw [ih]
+        | .and b₁ b₂ => by
+          have ih₁ := sound b₁
+          have ih₂ := sound b₂
+          unfold Logic.eval
+          rw [ih₁, ih₂]
+    end Blended
+
     /-
-    ### The `try` Tactical
+    #### MOAR OPTIMIZATION: Constant Folding
     -/
-
-    example (P: Prop) (h: P): P := by
-      try rfl
-      apply h
-
-    example (a: Arith): a.eval = a.eval := by
-      try rfl
-
-    /-
-    ### The `<;>` Tactical (Simple Form)
-    -/
-
-    example (n: Nat): 0 ≤ n := by
-      cases n with
-        | zero => simp
-        | succ n => simp
-
-    example (n: Nat): 0 ≤ n := by
-      cases n <;> simp
-
-    /-
-    ### The `<;>` Tactical (General Form)
-    -/
-
-    example (a: Arith): a.optZeroPlus.eval = a.eval := by
-      induction a <;>
-      try (first | rfl
-                 | unfold Arith.optZeroPlus Arith.eval
-                   simp_all)
-      case plus e₁ _ ih₁ ih₂ =>
-        cases e₁ <;>
-        try (unfold Arith.optZeroPlus Arith.eval
-             rw [ih₁, ih₂])
-        case num n =>
-          cases n with
-            | zero => simp_all
-            | succ n =>
-              unfold Arith.optZeroPlus Arith.eval
-              simp_all
-
-    /-
-    ### The `repeat` Tactical
-    -/
-
-    def In (x: α) (l: List α): Prop :=
-      match l with
-        | [] => False
-        | b :: m => b = x ∨ In x m
-
-    example: In 10 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] := by
-      repeat (try (first | apply Or.inl; rfl | apply Or.inr))
-
-    example: (b: Logic) → b.optZeroPlus.eval = b.eval
-      | .true | .false => rfl
-      | .eq e₁ e₂ =>
-        have h₁ := Arith.optZeroPlus.sound e₁
-        have h₂ := Arith.optZeroPlus.sound e₂
-        calc (Logic.eq e₁ e₂).optZeroPlus.eval
-          _ = BEq.beq e₁.optZeroPlus.eval e₂.optZeroPlus.eval := rfl
-          _ = BEq.beq e₁.eval e₂.eval                         := congr (congrArg BEq.beq h₁) h₂
-      | .neq e₁ e₂ =>
-        have h₁ := Arith.optZeroPlus.sound e₁
-        have h₂ := Arith.optZeroPlus.sound e₂
-        calc (Logic.neq e₁ e₂).optZeroPlus.eval
-          _ = not (BEq.beq e₁.optZeroPlus.eval e₂.optZeroPlus.eval) := rfl
-          _ = not (BEq.beq e₁.eval e₂.eval)                         := congrArg not (congr (congrArg BEq.beq h₁) h₂)
-      | .le e₁ e₂ =>
-        have h₁ := Arith.optZeroPlus.sound e₁
-        have h₂ := Arith.optZeroPlus.sound e₂
-        calc (Logic.le e₁ e₂).optZeroPlus.eval
-          _ = (LE.le e₁.optZeroPlus.eval e₂.optZeroPlus.eval: Bool) := rfl
-          _ = (LE.le e₁.eval e₂.eval: Bool)                         := sorry -- congr (congrArg LE.le h₁) h₂
-      | .gt e₁ e₂ =>
-        have h₁ := Arith.optZeroPlus.sound e₁
-        have h₂ := Arith.optZeroPlus.sound e₂
-        calc (Logic.gt e₁ e₂).optZeroPlus.eval
-          _ = (GT.gt e₁.optZeroPlus.eval e₂.optZeroPlus.eval: Bool) := rfl
-          _ = (GT.gt e₁.eval e₂.eval: Bool)                         := sorry -- congr (congrArg LE.le h₁) h₂
-      | .not b =>
-        have ih := _example b
-        calc (Logic.not b).optZeroPlus.eval
-          _ = not b.optZeroPlus.eval := rfl
-          _ = not b.eval             := congrArg not ih
-      | .and b₁ b₂ =>
-        have ih₁ := _example b₁
-        have ih₂ := _example b₂
-        calc (Logic.and b₁ b₂).optZeroPlus.eval
-          _ = and b₁.optZeroPlus.eval b₂.optZeroPlus.eval := rfl
-          _ = and b₁.eval b₂.eval                         := congr (congrArg and ih₁) ih₂
-
-    theorem Logic.optZeroPlus.sound (e: Logic): e.optZeroPlus.eval = e.eval := by
-      induction e <;>
-      try (first | rfl
-                 | unfold Logic.optZeroPlus Logic.eval
-                   simp [Arith.optZeroPlus.sound])
-      case not e ih =>
-        unfold Logic.optZeroPlus Logic.eval
-        rw [ih]
-      case and e₁ e₂ ih₁ ih₂ =>
-        unfold Logic.optZeroPlus Logic.eval
-        rw [ih₁, ih₂]
-
-    example: (b: Logic) → b.optZeroPlus.eval = b.eval
-      | .true | .false => by rfl
-      | .eq e₁ e₂ | .neq e₁ e₂ | .le e₁ e₂ | .gt e₁ e₂ => by
-        have h₁ := Arith.optZeroPlus.sound e₁
-        have h₂ := Arith.optZeroPlus.sound e₂
-        unfold Logic.eval
-        rw [h₁, h₂]
-      | .not b => by
-        have ih := _example b
-        unfold Logic.eval
-        rw [ih]
-      | .and b₁ b₂ => by
-        have ih₁ := _example b₁
-        have ih₂ := _example b₂
-        unfold Logic.eval
-        rw [ih₁, ih₂]
 
     @[reducible]
     def Arith.constFold: Arith → Arith
@@ -300,82 +319,6 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           | .num n₁, .num n₂ => .num (n₁ * n₂)
           | e₁, e₂ => .mult e₁ e₂
       | e => e
-
-    -- MOAR OPTIMIZATION: Constant Folding
-
-    -- TODO: Remove Tactic Blocks
-    example: (e: Arith) → e.constFold.eval = e.eval
-      | .num _ => rfl
-      | .plus e₁ e₂ =>
-        have ih₁ := _example e₁
-        have ih₂ := _example e₂
-        match h₁: e₁.constFold with
-          | .num n₁ =>
-            match h₂: e₂.constFold with
-              | .num n₂ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.num n₂)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.num n₂).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval           := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                               := by rw [ih₁, ih₂]
-              | .plus _ _ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.plus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.plus _ _).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-              | .minus _ _ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.minus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.minus _ _).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval              := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                                  := by rw [ih₁, ih₂]
-              | .mult _ _ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.mult _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.mult _ _).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-          | _ => sorry
-      | _ => sorry
-
-    theorem Arith.constFold.sound (e: Arith): e.constFold.eval = e.eval := by sorry
-
-    example: (e: Arith) → e.constFold.eval = e.eval
-      | .num _ => rfl
-      | .plus e₁ e₂ =>
-        have ih₁ := _example e₁
-        have ih₂ := _example e₂
-        match h₁: e₁.constFold with
-          | .num n₁ =>
-            match h₂: e₂.constFold with
-              | .num n₂ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.num n₂)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.num n₂).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval           := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                               := by rw [ih₁, ih₂]
-              | .plus _ _ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.plus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.plus _ _).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-              | .minus _ _ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.minus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.minus _ _).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval              := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                                  := by rw [ih₁, ih₂]
-              | .mult _ _ =>
-                calc (Arith.plus e₁ e₂).constFold.eval
-                  _ = (Arith.plus (Arith.num n₁) (Arith.mult _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                  _ = (Arith.num n₁).eval + (Arith.mult _ _).eval       := by rfl
-                  _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                  _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-          | _ => sorry
-      | _ => sorry
-
 
     def Logic.constFold: Logic → Logic
       | .eq e₁ e₂ =>
@@ -406,9 +349,89 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           | b₁, b₂ => .and b₁ b₂
       | b => b
 
-    example: (b: Logic) → b.constFold.eval = b.eval := sorry
-    theorem Logic.constFold.sound (b: Logic): b.constFold.eval = b.eval := by sorry
-    example: (b: Logic) → b.constFold.eval = b.eval := sorry
+    namespace Term
+      -- TODO: Remove Tactic Blocks
+      theorem Arith.constFold.sound: (e: Arith) → e.constFold.eval = e.eval
+        | .num _ => rfl
+        | .plus e₁ e₂ =>
+          have ih₁ := sound e₁
+          have ih₂ := sound e₂
+          match h₁: e₁.constFold with
+            | .num n₁ =>
+              match h₂: e₂.constFold with
+                | .num n₂ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.num n₂)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.num n₂).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval           := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                               := by rw [ih₁, ih₂]
+                | .plus _ _ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.plus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.plus _ _).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
+                | .minus _ _ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.minus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.minus _ _).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval              := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                                  := by rw [ih₁, ih₂]
+                | .mult _ _ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.mult _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.mult _ _).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
+            | _ => sorry
+        | _ => sorry
+
+      theorem Logic.constFold.sound: (b: Logic) → b.constFold.eval = b.eval := sorry
+    end Term
+
+    namespace Tactic
+      theorem Arith.constFold.sound (e: Arith): e.constFold.eval = e.eval := by sorry
+      theorem Logic.constFold.sound (b: Logic): b.constFold.eval = b.eval := by sorry
+    end Tactic
+
+    namespace Blended
+      theorem Arith.constFold.sound: (e: Arith) → e.constFold.eval = e.eval
+        | .num _ => rfl
+        | .plus e₁ e₂ =>
+          have ih₁ := sound e₁
+          have ih₂ := sound e₂
+          match h₁: e₁.constFold with
+            | .num n₁ =>
+              match h₂: e₂.constFold with
+                | .num n₂ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.num n₂)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.num n₂).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval           := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                               := by rw [ih₁, ih₂]
+                | .plus _ _ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.plus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.plus _ _).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
+                | .minus _ _ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.minus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.minus _ _).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval              := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                                  := by rw [ih₁, ih₂]
+                | .mult _ _ =>
+                  calc (Arith.plus e₁ e₂).constFold.eval
+                    _ = (Arith.plus (Arith.num n₁) (Arith.mult _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.mult _ _).eval       := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
+            | _ => sorry
+        | _ => sorry
+
+      theorem Logic.constFold.sound: (b: Logic) → b.constFold.eval = b.eval := sorry
+    end Blended
 
     /-
     ## Defining New Tactics
@@ -465,45 +488,50 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     ### Equivalence of Definitions
     -/
 
-    example {e: Arith} {n: Nat}: ArithEval e n ↔ e.eval = n :=
-      ⟨mp, mpr⟩
-      where
-        mp {e: Arith} {n: Nat}: ArithEval e n → e.eval = n
-          | .num n => rfl
-          | .plus _ _ _ _ h₁ h₂ => mpf (mp h₁) (mp h₂) Nat.add rfl
-          | .minus _ _ _ _ h₁ h₂ => mpf (mp h₁) (mp h₂) Nat.sub rfl
-          | .mult _ _ _ _ h₁ h₂ => mpf (mp h₁) (mp h₂) Nat.mul rfl
-        mpf {e e₁ e₂: Arith} {n₁ n₂: Nat} (ih₁: e₁.eval = n₁) (ih₂: e₂.eval = n₂) (f: Nat → Nat → Nat) (h: e.eval = f e₁.eval e₂.eval) :=
-          calc e.eval
-              _ = f (Arith.eval e₁) (Arith.eval e₂) := h
-              _ = f n₁ n₂                           := congr (congrArg f ih₁) ih₂
-        mpr {e: Arith} {n: Nat} (h: e.eval = n): ArithEval e n := sorry
-          -- match e with
-          --   | Arith.num _ => sorry --ArithEval.num _
-          --   | Arith.plus e₁ e₂ =>
-          --     have ih₁: sorry := sorry --mpr _
-          --     have ih₂: sorry := sorry --mpr _
-          --     sorry
-          --   | _ => sorry
+    namespace Term
+      theorem Arith.eval_eval {e: Arith} {n: Nat}: ArithEval e n ↔ e.eval = n :=
+        ⟨mp, mpr⟩
+        where
+          mp {e: Arith} {n: Nat}: ArithEval e n → e.eval = n
+            | .num n => rfl
+            | .plus _ _ _ _ h₁ h₂ => mpf (mp h₁) (mp h₂) Nat.add rfl
+            | .minus _ _ _ _ h₁ h₂ => mpf (mp h₁) (mp h₂) Nat.sub rfl
+            | .mult _ _ _ _ h₁ h₂ => mpf (mp h₁) (mp h₂) Nat.mul rfl
+          mpf {e e₁ e₂: Arith} {n₁ n₂: Nat} (ih₁: e₁.eval = n₁) (ih₂: e₂.eval = n₂) (f: Nat → Nat → Nat) (h: e.eval = f e₁.eval e₂.eval) :=
+            calc e.eval
+                _ = f (Arith.eval e₁) (Arith.eval e₂) := h
+                _ = f n₁ n₂                           := congr (congrArg f ih₁) ih₂
+          mpr {e: Arith} {n: Nat} (h: e.eval = n): ArithEval e n := sorry
+            -- match e with
+            --   | Arith.num _ => sorry --ArithEval.num _
+            --   | Arith.plus e₁ e₂ =>
+            --     have ih₁: sorry := sorry --mpr _
+            --     have ih₂: sorry := sorry --mpr _
+            --     sorry
+            --   | _ => sorry
 
-    theorem arith_eval_eval (a: Arith) (n: Nat): ArithEval a n ↔ a.eval = n := by
-      apply Iff.intro
-      · intro h
-        induction h <;> first | rfl
-                              | unfold Arith.eval
-                                simp_all
-      · intro h₁
-        -- generalize n = q
-        induction a with
-          | num n =>
-            rw [← h₁]
-            apply ArithEval.num
-          | plus e₁ e₂ ih₁ ih₂ =>
-            -- unfold Arith.eval at h₁
-            sorry
-          | _ => sorry
+      theorem Logic.eval_eval (l: Logic) (b: Bool): LogicEval l b ↔ l.eval = b := sorry
+    end Term
 
-    theorem logic_eval_eval (l: Logic) (b: Bool): LogicEval l b ↔ l.eval = b := by
+    namespace Tactic
+      theorem Arith.eval_eval (a: Arith) (n: Nat): ArithEval a n ↔ a.eval = n := by
+        apply Iff.intro
+        · intro h
+          induction h <;> first | rfl
+                                | unfold Arith.eval
+                                  simp_all
+        · intro h₁
+          -- generalize n = q
+          induction a with
+            | num n =>
+              rw [← h₁]
+              apply ArithEval.num
+            | plus e₁ e₂ ih₁ ih₂ =>
+              -- unfold Arith.eval at h₁
+              sorry
+            | _ => sorry
+
+    theorem Logic.eval_eval (l: Logic) (b: Bool): LogicEval l b ↔ l.eval = b := by
       apply Iff.intro
       · intro h
         induction h with
@@ -511,20 +539,20 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           | false => rfl
           | eq e₁ e₂ n₁ n₂ h₁ h₂ =>
             unfold Logic.eval
-            rw [arith_eval_eval] at *
+            rw [Arith.eval_eval] at *
             simp_all
           | neq e₁ e₂ n₁ n₂ h₁ h₂ =>
             unfold Logic.eval
-            rw [arith_eval_eval] at *
+            rw [Arith.eval_eval] at *
             simp_all
           | le e₁ e₂ n₁ n₂ h₁ h₂ =>
             unfold Logic.eval
-            rw [arith_eval_eval] at *
+            rw [Arith.eval_eval] at *
             simp_all
             sorry
           | gt e₁ e₂ n₁ n₂ h₁ h₂ =>
             unfold Logic.eval
-            rw [arith_eval_eval] at *
+            rw [Arith.eval_eval] at *
             simp_all
             sorry
           | not e b h ih =>
@@ -550,6 +578,12 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           | not e ih => sorry
           | and e₁ e₂ ih₁ ih₂ => sorry
           | _ => sorry
+    end Tactic
+
+    namespace Blended
+      theorem Arith.eval_eval (a: Arith) (n: Nat): ArithEval a n ↔ a.eval = n := sorry
+      theorem Logic.eval_eval (l: Logic) (b: Bool): LogicEval l b ↔ l.eval = b := sorry
+    end Blended
   end AExp
 
   namespace Division
@@ -804,37 +838,6 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
     private def branch: Command := Command.if xLe1 y3 z4
 
-    /- Example -/
-
-    /- x := 2; if x ≤ 1 then y := 3 else z := 4 -/
-    example: CommandEval [x2, branch] State.empty (State.build [("X", 2), ("Z", 4)]) :=
-      let s₁: State := State.empty
-      let s₂: State := s₁.update "X" 2
-      let s₃: State := s₂.update "Z" 4
-
-      have h₁: CommandEval x2 s₁ s₂ := assignment "X" 2 s₁
-      have h₂: CommandEval branch s₂ s₃ :=
-        have h₁: (Logic.le "X" 1).eval s₂ = false := by
-          unfold Logic.eval
-          rfl
-        have h₂: CommandEval z4 s₂ s₃ := assignment "Z" 4 s₂
-        CommandEval.ifFalse s₂ s₃ h₁ h₂
-
-      by
-        repeat unfold instCoeListCommand.conv
-        exact CommandEval.seq s₁ s₂ s₃ h₁ h₂
-
-    /- x := 0; y := 1; z := 2 -/
-    example: CommandEval [x0, y1, z2] State.empty (State.build [("X", 0), ("Y", 1), ("Z", 2)]) :=
-      let s₁: State := State.empty
-      let s₂: State := s₁.update "X" 0
-      let s₃: State := s₂.update "Y" 1
-      let s₄: State := s₃.update "Z" 2
-
-      by
-        repeat unfold instCoeListCommand.conv
-        sorry
-
     def sum: Command :=
       Command.seq
         (.assign "Y" 0)
@@ -842,8 +845,51 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           (.seq (.assign "Y" ("X" + "Y"))
                 (.assign "X" ("X" - 1))))
 
-    example: CommandEval sum (State.build [("X", 2)]) (State.build [("X", 2), ("Y", 0), ("Y", 2), ("X", 1), ("Y", 3), ("X", 0)]) :=
-      sorry
+    /- Example -/
+
+    namespace Term
+      example: CommandEval [x2, branch] State.empty (State.build [("X", 2), ("Z", 4)]) :=
+        let s₁: State := State.empty
+        let s₂: State := s₁.update "X" 2
+        let s₃: State := s₂.update "Z" 4
+
+        have h₁: CommandEval x2 s₁ s₂ := assignment "X" 2 s₁
+        have h₂: CommandEval branch s₂ s₃ :=
+          have h₁: (Logic.le "X" 1).eval s₂ = false := by
+            unfold Logic.eval
+            rfl
+          have h₂: CommandEval z4 s₂ s₃ := assignment "Z" 4 s₂
+          CommandEval.ifFalse s₂ s₃ h₁ h₂
+
+        by
+          repeat unfold instCoeListCommand.conv
+          exact CommandEval.seq s₁ s₂ s₃ h₁ h₂
+
+      example: CommandEval [x0, y1, z2] State.empty (State.build [("X", 0), ("Y", 1), ("Z", 2)]) :=
+        let s₁: State := State.empty
+        let s₂: State := s₁.update "X" 0
+        let s₃: State := s₂.update "Y" 1
+        let s₄: State := s₃.update "Z" 2
+
+        by
+          repeat unfold instCoeListCommand.conv
+          sorry
+
+      example: CommandEval sum (State.build [("X", 2)]) (State.build [("X", 2), ("Y", 0), ("Y", 2), ("X", 1), ("Y", 3), ("X", 0)]) :=
+        sorry
+    end Term
+
+    namespace Tactic
+      example: CommandEval [x2, branch] State.empty (State.build [("X", 2), ("Z", 4)]) := by sorry
+      example: CommandEval [x0, y1, z2] State.empty (State.build [("X", 0), ("Y", 1), ("Z", 2)]) := by sorry
+      example: CommandEval sum (State.build [("X", 2)]) (State.build [("X", 2), ("Y", 0), ("Y", 2), ("X", 1), ("Y", 3), ("X", 0)]) := by sorry
+    end Tactic
+
+    namespace Blended
+      example: CommandEval [x2, branch] State.empty (State.build [("X", 2), ("Z", 4)]) := by sorry
+      example: CommandEval [x0, y1, z2] State.empty (State.build [("X", 0), ("Y", 1), ("Z", 2)]) := by sorry
+      example: CommandEval sum (State.build [("X", 2)]) (State.build [("X", 2), ("Y", 0), ("Y", 2), ("X", 1), ("Y", 3), ("X", 0)]) := by sorry
+    end Blended
   end
 
   /-
@@ -857,30 +903,44 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   ## Reasoning about Imp Programs
   -/
 
-  example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus2 s₁ s₂): s₂ "X" = n + 2 := by
-    cases h₂ with
-      | assign _ h =>
-        simp
-        repeat unfold Arith.eval at h
-        rw [h₁] at h
-        apply Eq.symm
-        exact h
+  namespace Term
+    example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus2 s₁ s₂): s₂ "X" = n + 2 := sorry
+    example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Z" = n₁ * n₂ := sorry
+    example (s₁ s₂: State): ¬CommandEval loopForever s₁ s₂ := sorry
+  end Term
 
-  example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Z" = n₁ * n₂ := by
-    cases h₃ with
-      | assign _ h =>
-        repeat unfold Arith.eval at h
-        repeat unfold Arith.eval at h
-        rw [h₁, h₂] at h
-        simp_all
+  namespace Tactic
+    example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus2 s₁ s₂): s₂ "X" = n + 2 := by
+      cases h₂ with
+        | assign _ h =>
+          simp
+          repeat unfold Arith.eval at h
+          rw [h₁] at h
+          apply Eq.symm
+          exact h
 
-  example (s₁ s₂: State): ¬CommandEval loopForever s₁ s₂ := by
-    unfold Not
-    intro h
-    unfold loopForever at h
-    cases h with
-      | whileTrue h₁ h₂ h₃ => sorry
-      | whileFalse h₁ => contradiction
+    example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Z" = n₁ * n₂ := by
+      cases h₃ with
+        | assign _ h =>
+          repeat unfold Arith.eval at h
+          repeat unfold Arith.eval at h
+          rw [h₁, h₂] at h
+          simp_all
+
+    example (s₁ s₂: State): ¬CommandEval loopForever s₁ s₂ := by
+      unfold Not
+      intro h
+      unfold loopForever at h
+      cases h with
+        | whileTrue h₁ h₂ h₃ => sorry
+        | whileFalse h₁ => contradiction
+  end Tactic
+
+  namespace Blended
+    example (s₁ s₂: State) (n: Nat) (h₁: s₁ "X" = n) (h₂: CommandEval plus2 s₁ s₂): s₂ "X" = n + 2 := sorry
+    example (s₁ s₂: State) (n₁ n₂: Nat) (h₁: s₁ "X" = n₁) (h₂: s₁ "Y" = n₂) (h₃: CommandEval xTimesYInZ s₁ s₂): s₂ "Z" = n₁ * n₂ := sorry
+    example (s₁ s₂: State): ¬CommandEval loopForever s₁ s₂ := sorry
+  end Blended
 
   def Command.noWhiles: Command → Bool
     | .skip | .assign _ _ | .seq _ _ | .if _ _ _ => true
@@ -892,11 +952,20 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     | seq {c₁ c₂: Command}: NoWhiles (.seq c₁ c₂)
     | if {c: Logic} {t f: Command}: NoWhiles (.if c t f)
 
-  theorem NoWhiles.noWhiles (c: Command): c.noWhiles = true ↔ NoWhiles c := by
-    sorry
+  namespace Term
+    theorem NoWhiles.noWhiles (c: Command): c.noWhiles = true ↔ NoWhiles c := sorry
+    theorem CommandEval.noWhiles_terminate (s₁ s₂: State) (c: Command) (h: NoWhiles c): CommandEval c s₁ s₂ := sorry
+  end Term
 
-  theorem CommandEval.noWhiles_terminate (s₁ s₂: State) (c: Command) (h: NoWhiles c): CommandEval c s₁ s₂ := by
-    sorry
+  namespace Tactic
+    theorem NoWhiles.noWhiles (c: Command): c.noWhiles = true ↔ NoWhiles c := by sorry
+    theorem CommandEval.noWhiles_terminate (s₁ s₂: State) (c: Command) (h: NoWhiles c): CommandEval c s₁ s₂ := by sorry
+  end Tactic
+
+  namespace Blended
+    theorem NoWhiles.noWhiles (c: Command): c.noWhiles = true ↔ NoWhiles c := sorry
+    theorem CommandEval.noWhiles_terminate (s₁ s₂: State) (c: Command) (h: NoWhiles c): CommandEval c s₁ s₂ := sorry
+  end Blended
 
   /-
   ## Additional Exercises
@@ -941,14 +1010,29 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
   example: (Arith.minus "X" (.mult 2 "Y")).compile = [StackInstr.load "X", .push 2, .load "Y", .mult, .minus] := rfl
 
-  theorem eval_append (state: State) (p₁ p₂: Program) (stack: Stack): (p₁ ++ p₂).eval state stack = p₂.eval state (p₁.eval state stack) := by
-    sorry
-
-  theorem Arith.compile.correct (state: State) (e: Arith): e.compile.eval state Stack.empty = [e.eval state] := by
-    sorry
-    where
-    helper (state: State) (stack: Stack) (e: Arith): e.compile.eval state stack = e.eval state :: stack := by
+  namespace Term
+    theorem eval_append (state: State) (p₁ p₂: Program) (stack: Stack): (p₁ ++ p₂).eval state stack = p₂.eval state (p₁.eval state stack) := sorry
+    theorem Arith.compile.correct (state: State) (e: Arith): e.compile.eval state Stack.empty = [e.eval state] :=
       sorry
+      where
+        helper (state: State) (stack: Stack) (e: Arith): e.compile.eval state stack = e.eval state :: stack := sorry
+  end Term
+
+  namespace Tactic
+    theorem eval_append (state: State) (p₁ p₂: Program) (stack: Stack): (p₁ ++ p₂).eval state stack = p₂.eval state (p₁.eval state stack) := by sorry
+    theorem Arith.compile.correct (state: State) (e: Arith): e.compile.eval state Stack.empty = [e.eval state] := by
+      sorry
+      where
+        helper (state: State) (stack: Stack) (e: Arith): e.compile.eval state stack = e.eval state :: stack := by sorry
+  end Tactic
+
+  namespace Blended
+    theorem eval_append (state: State) (p₁ p₂: Program) (stack: Stack): (p₁ ++ p₂).eval state stack = p₂.eval state (p₁.eval state stack) := sorry
+    theorem Arith.compile.correct (state: State) (e: Arith): e.compile.eval state Stack.empty = [e.eval state] :=
+      sorry
+      where
+        helper (state: State) (stack: Stack) (e: Arith): e.compile.eval state stack = e.eval state :: stack := sorry
+  end Blended
 
   @[reducible]
   def Logic.shortCircuitEval (state: State): Logic → Bool
@@ -958,11 +1042,21 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
       else e₂.eval state
     | l => l.eval state
 
-  theorem Logic.shortCircuitEval.eval (state: State) (b: Logic): b.shortCircuitEval state = b.eval state := by
-    induction b
-    <;> try rfl
-    case and e₁ e₂ h₁ h₂ =>
-      sorry
+  namespace Term
+    theorem Logic.shortCircuitEval.sound (state: State) (b: Logic): b.shortCircuitEval state = b.eval state := sorry
+  end Term
+
+  namespace Tactic
+    theorem Logic.shortCircuitEval.sound (state: State) (b: Logic): b.shortCircuitEval state = b.eval state := by
+      induction b
+      <;> try rfl
+      case and e₁ e₂ h₁ h₂ =>
+        sorry
+  end Tactic
+
+  namespace Blended
+    theorem Logic.shortCircuitEval.sound (state: State) (b: Logic): b.shortCircuitEval state = b.eval state := sorry
+  end Blended
 
   namespace BreakImp
     inductive Command: Type where
@@ -987,27 +1081,49 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
       | whileTrue {c: Logic} {b: Command} (s₁ s₂ s₃: State) (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ .continue s₂) (h₃: CommandEval (.while c b) s₂ .continue s₃): CommandEval (.while c b) s₁ .continue s₃
       | whileFalse {c: Logic} {b: Command} (s: State) (h₁: c.eval s = .false): CommandEval (.while c b) s .continue s
 
-    example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := by
-      sorry
+    namespace Term
+      example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): CommandEval (.while c b) s₁ r s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: CommandEval b s₁ .break s₂): CommandEval (.while c b) s₁ .continue s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: CommandEval c₁ s₁ .break s₂): CommandEval (.seq c₁ c₂) s₁ .break s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: CommandEval (.while c b) s₁ .continue s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, CommandEval b s₃ .break s₂ := sorry
+      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: CommandEval c s₁ r₁ s₂) (h₂: CommandEval c s₁ r₂ s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
+    end Term
 
-    example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): CommandEval (.while c b) s₁ r s₂ := by
-      sorry
+    namespace Tactic
+      example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := by
+        sorry
 
-    example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: CommandEval b s₁ .break s₂): CommandEval (.while c b) s₁ .continue s₂ := by
-      sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): CommandEval (.while c b) s₁ r s₂ := by
+        sorry
 
-    example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₂ := by
-      sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: CommandEval b s₁ .break s₂): CommandEval (.while c b) s₁ .continue s₂ := by
+        sorry
 
-    example (c₁ c₂: Command) (s₁ s₂: State) (h₁: CommandEval c₁ s₁ .break s₂): CommandEval (.seq c₁ c₂) s₁ .break s₂ := by
-      sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₂ := by
+        sorry
 
-    example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: CommandEval (.while c b) s₁ .continue s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, CommandEval b s₃ .break s₂ := by
-      sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: CommandEval c₁ s₁ .break s₂): CommandEval (.seq c₁ c₂) s₁ .break s₂ := by
+        sorry
 
-    theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: CommandEval c s₁ r₁ s₂) (h₂: CommandEval c s₁ r₂ s₃): s₂ = s₃ ∧ r₁ = r₂ := by
-      sorry
-  end BreakImp
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: CommandEval (.while c b) s₁ .continue s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, CommandEval b s₃ .break s₂ := by
+        sorry
+
+      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: CommandEval c s₁ r₁ s₂) (h₂: CommandEval c s₁ r₂ s₃): s₂ = s₃ ∧ r₁ = r₂ := by
+        sorry
+    end Tactic
+
+    namespace Blended
+      example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): CommandEval (.while c b) s₁ r s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: CommandEval b s₁ .break s₂): CommandEval (.while c b) s₁ .continue s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: CommandEval c₁ s₁ .break s₂): CommandEval (.seq c₁ c₂) s₁ .break s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: CommandEval (.while c b) s₁ .continue s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, CommandEval b s₃ .break s₂ := sorry
+      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: CommandEval c s₁ r₁ s₂) (h₂: CommandEval c s₁ r₂ s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
+    end Blended
+end BreakImp
 
   namespace ForImp
     -- TODO
