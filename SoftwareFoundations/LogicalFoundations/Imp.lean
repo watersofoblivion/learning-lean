@@ -247,13 +247,13 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           have h₂ := Arith.optZeroPlus.sound e₂
           calc (Logic.le e₁ e₂).optZeroPlus.eval
             _ = (LE.le e₁.optZeroPlus.eval e₂.optZeroPlus.eval: Bool) := rfl
-            _ = (LE.le e₁.eval e₂.eval: Bool)                         := sorry -- congr (congrArg LE.le h₁) h₂
+            _ = (LE.le e₁.eval e₂.eval: Bool)                         := by rw [h₁, h₂] -- TODO: Remove Tactic block.  Currently used for decidability
         | .gt e₁ e₂ =>
           have h₁ := Arith.optZeroPlus.sound e₁
           have h₂ := Arith.optZeroPlus.sound e₂
           calc (Logic.gt e₁ e₂).optZeroPlus.eval
             _ = (GT.gt e₁.optZeroPlus.eval e₂.optZeroPlus.eval: Bool) := rfl
-            _ = (GT.gt e₁.eval e₂.eval: Bool)                         := sorry -- congr (congrArg LE.le h₁) h₂
+            _ = (GT.gt e₁.eval e₂.eval: Bool)                         := by rw [h₁, h₂] -- TODO: Remove Tactic block.  Currently used for decidability
         | .not b =>
           have ih := sound b
           calc (Logic.not b).optZeroPlus.eval
@@ -361,30 +361,64 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
               match h₂: e₂.constFold with
                 | .num n₂ =>
                   calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.num n₂)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.num n₂).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval           := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                               := by rw [ih₁, ih₂]
-                | .plus _ _ =>
-                  calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.plus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.plus _ _).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-                | .minus _ _ =>
-                  calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.minus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.minus _ _).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval              := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                                  := by rw [ih₁, ih₂]
-                | .mult _ _ =>
-                  calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.mult _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.mult _ _).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-            | _ => sorry
-        | _ => sorry
+                    _ = (Arith.num (n₁ + n₂)).eval                := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.num n₂).eval := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval     := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                         := by rw [ih₁, ih₂]
+                | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+            | .plus _ _ | .minus _ _ | .mult _ _ =>
+              match h₂: e₂.constFold with
+                | .num _ | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+        | .minus e₁ e₂ =>
+          have ih₁ := sound e₁
+          have ih₂ := sound e₂
+          match h₁: e₁.constFold with
+            | .num n₁ =>
+              match h₂: e₂.constFold with
+                | .num n₂ =>
+                  calc (Arith.minus e₁ e₂).constFold.eval
+                    _ = (Arith.num (n₁ - n₂)).eval                := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval - (Arith.num n₂).eval := by rfl
+                    _ = e₁.constFold.eval - e₂.constFold.eval     := by rw [h₁, h₂]
+                    _ = e₁.eval - e₂.eval                         := by rw [ih₁, ih₂]
+                | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+            | .plus _ _ | .minus _ _ | .mult _ _ =>
+              match h₂: e₂.constFold with
+                | .num _ | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+        | .mult e₁ e₂ =>
+          have ih₁ := sound e₁
+          have ih₂ := sound e₂
+          match h₁: e₁.constFold with
+            | .num n₁ =>
+              match h₂: e₂.constFold with
+                | .num n₂ =>
+                  calc (Arith.mult e₁ e₂).constFold.eval
+                    _ = (Arith.num (n₁ * n₂)).eval                := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval * (Arith.num n₂).eval := by rfl
+                    _ = e₁.constFold.eval * e₂.constFold.eval     := by rw [h₁, h₂]
+                    _ = e₁.eval * e₂.eval                         := by rw [ih₁, ih₂]
+                | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+            | .plus _ _ | .minus _ _ | .mult _ _ =>
+              match h₂: e₂.constFold with
+                | .num _ | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
 
       theorem Logic.constFold.sound: (b: Logic) → b.constFold.eval = b.eval := sorry
     end Term
@@ -404,33 +438,105 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
             | .num n₁ =>
               match h₂: e₂.constFold with
                 | .num n₂ =>
-                  calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.num n₂)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.num n₂).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval           := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                               := by rw [ih₁, ih₂]
-                | .plus _ _ =>
-                  calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.plus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.plus _ _).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-                | .minus _ _ =>
-                  calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.minus _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.minus _ _).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval              := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                                  := by rw [ih₁, ih₂]
-                | .mult _ _ =>
-                  calc (Arith.plus e₁ e₂).constFold.eval
-                    _ = (Arith.plus (Arith.num n₁) (Arith.mult _ _)).eval := by unfold Arith.constFold; rw [h₁, h₂]
-                    _ = (Arith.num n₁).eval + (Arith.mult _ _).eval       := by rfl
-                    _ = e₁.constFold.eval + e₂.constFold.eval             := by rw [h₁, h₂]
-                    _ = e₁.eval + e₂.eval                                 := by rw [ih₁, ih₂]
-            | _ => sorry
-        | _ => sorry
+                  calc (Arith.plus _ _).constFold.eval
+                    _ = (Arith.num (n₁ + n₂)).eval                := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval + (Arith.num n₂).eval := by rfl
+                    _ = e₁.constFold.eval + e₂.constFold.eval     := by rw [h₁, h₂]
+                    _ = e₁.eval + e₂.eval                         := by rw [ih₁, ih₂]
+                | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+            | .plus _ _ | .minus _ _ | .mult _ _ =>
+              match e₂.constFold with
+                | .num _ | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+        | .minus e₁ e₂ =>
+          have ih₁ := sound e₁
+          have ih₂ := sound e₂
+          match h₁: e₁.constFold with
+            | .num n₁ =>
+              match h₂: e₂.constFold with
+                | .num n₂ =>
+                  calc (Arith.minus e₁ e₂).constFold.eval
+                    _ = (Arith.num (n₁ - n₂)).eval                := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval - (Arith.num n₂).eval := by rfl
+                    _ = e₁.constFold.eval - e₂.constFold.eval     := by rw [h₁, h₂]
+                    _ = e₁.eval - e₂.eval                         := by rw [ih₁, ih₂]
+                | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+            | .plus _ _ | .minus _ _ | .mult _ _ =>
+              match e₂.constFold with
+                | .num _ | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+        | .mult e₁ e₂ =>
+          have ih₁ := sound e₁
+          have ih₂ := sound e₂
+          match h₁: e₁.constFold with
+            | .num n₁ =>
+              match h₂: e₂.constFold with
+                | .num n₂ =>
+                  calc (Arith.mult e₁ e₂).constFold.eval
+                    _ = (Arith.num (n₁ * n₂)).eval                := by unfold Arith.constFold; rw [h₁, h₂]
+                    _ = (Arith.num n₁).eval * (Arith.num n₂).eval := by rfl
+                    _ = e₁.constFold.eval * e₂.constFold.eval     := by rw [h₁, h₂]
+                    _ = e₁.eval * e₂.eval                         := by rw [ih₁, ih₂]
+                | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
+            | .plus _ _ | .minus _ _ | .mult _ _ =>
+              match e₂.constFold with
+                | .num _ | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Arith.constFold Arith.eval
+                    simp_all
 
-      theorem Logic.constFold.sound: (b: Logic) → b.constFold.eval = b.eval := sorry
+      theorem Logic.constFold.sound: (b: Logic) → b.constFold.eval = b.eval
+        | .true | .false => rfl
+        | .eq e₁ e₂ =>
+          have ih₁ := Arith.constFold.sound e₁
+          have ih₂ := Arith.constFold.sound e₂
+          match h₁: e₁.constFold with
+            | .num n₁ =>
+              match h₂: e₂.constFold with
+                | .num n₂ =>
+                  if n₁ == n₂
+                  then
+                    calc (Logic.eq e₁ e₂).constFold.eval
+                      _ = (if n₁ == n₂ then Logic.true else Logic.false).eval := by unfold Logic.constFold; rw [h₁, h₂]
+                      _ = Logic.true.eval                                     := sorry --
+                      _ = BEq.beq (Arith.num n₁).eval (Arith.num n₂).eval     := sorry -- by rfl
+                      _ = BEq.beq e₁.constFold.eval e₂.constFold.eval         := by rw [h₁, h₂]
+                      _ = BEq.beq e₁.eval e₂.eval                             := by rw [ih₁, ih₂]
+                  else
+                    calc (Logic.eq e₁ e₂).constFold.eval
+                      _ = (if n₁ == n₂ then Logic.true else Logic.false).eval := by unfold Logic.constFold; rw [h₁, h₂]
+                      _ = Logic.false.eval                                    := sorry --by unfold Logic.constFold; rw [h₁, h₂]; simp
+                      _ = BEq.beq (Arith.num n₁).eval (Arith.num n₂).eval     := sorry -- by rfl
+                      _ = BEq.beq e₁.constFold.eval e₂.constFold.eval         := by rw [h₁, h₂]
+                      _ = BEq.beq e₁.eval e₂.eval                             := by rw [ih₁, ih₂]
+                | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Logic.constFold Logic.eval
+                    simp_all
+            | .plus _ _ | .minus _ _ | .mult _ _ =>
+              match h₂: e₂.constFold with
+                | .num _ | .plus _ _ | .minus _ _ | .mult _ _ =>
+                  by
+                    unfold Logic.constFold Logic.eval
+                    simp_all
+        | .neq e₁ e₂ => sorry
+        | .le e₁ e₂ => sorry
+        | .gt e₁ e₂ => sorry
+        | .not b => sorry
+        | .and b₁ b₂ => sorry
     end Blended
 
     /-
@@ -442,8 +548,6 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     /-
     ## The `linearith` (`lia`) Tactic
     -/
-
-    -- import Mathlib.tactics.linarith
 
     example (n₁ n₂ n₃ n₄: Nat) (h: n₁ + n₂ ≤ n₂ + n₃ ∧ n₃ + 3 = n₄ + 3): n₁ ≤ n₄ := by
       linarith
@@ -510,7 +614,18 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
             --     sorry
             --   | _ => sorry
 
-      theorem Logic.eval_eval (l: Logic) (b: Bool): LogicEval l b ↔ l.eval = b := sorry
+      theorem Logic.eval_eval {l: Logic} {b: Bool}: LogicEval l b ↔ l.eval = b :=
+        ⟨mp, mpr⟩
+        where
+          mp {l: Logic} {b: Bool}: LogicEval l b → l.eval = b
+            | .true | .false => rfl
+            | .eq _ _ _ _ _ _
+            | .neq _ _ _ _ _ _
+            | .le _ _ _ _ _ _
+            | .gt _ _ _ _ _ _
+            | .not _ _ _
+            | .and _ _ _ _ _ _ => sorry
+          mpr {l: Logic} {b: Bool} (h: l.eval = b): LogicEval l b := sorry
     end Term
 
     namespace Tactic
