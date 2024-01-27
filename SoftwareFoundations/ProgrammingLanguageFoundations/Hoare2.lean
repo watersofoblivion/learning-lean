@@ -7,86 +7,88 @@ import «SoftwareFoundations».«LogicalFoundations».«Maps»
 
 import «SoftwareFoundations».«ProgrammingLanguageFoundations».«Hoare»
 
-/-
-## Decoarated Programs
--/
+namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
+  /-
+  ## Decoarated Programs
+  -/
 
-/-
-### Example: Swapping
--/
+  /-
+  ### Example: Swapping
+  -/
 
-/-
-### Example: Simple Conditionals
--/
+  /-
+  ### Example: Simple Conditionals
+  -/
 
-/-
-### Example: Reduce to Zero
--/
+  /-
+  ### Example: Reduce to Zero
+  -/
 
-/-
-### Example: Division
--/
+  /-
+  ### Example: Division
+  -/
 
-/-
-### From Decorated Programs to Formal Proofs
--/
+  /-
+  ### From Decorated Programs to Formal Proofs
+  -/
 
-/-
-## Formal Decorated Programs
--/
+  /-
+  ## Formal Decorated Programs
+  -/
 
-/-
-### Syntax
--/
+  /-
+  ### Syntax
+  -/
 
-/-
-### Extracting Verification Conditions
--/
+  /-
+  ### Extracting Verification Conditions
+  -/
 
-/-
-### More Automation
--/
+  /-
+  ### More Automation
+  -/
 
-/-
-## Finding Loop Invariants
--/
+  /-
+  ## Finding Loop Invariants
+  -/
 
-/-
-### Example: Slow Subtraction
--/
+  /-
+  ### Example: Slow Subtraction
+  -/
 
-/-
-### Exercise: Slow Assignment
--/
+  /-
+  ### Exercise: Slow Assignment
+  -/
 
-/-
-### Example: Parity
--/
+  /-
+  ### Example: Parity
+  -/
 
-/-
-### Example: Finding Square Roots
--/
+  /-
+  ### Example: Finding Square Roots
+  -/
 
-/-
-### Example: Squaring
--/
+  /-
+  ### Example: Squaring
+  -/
 
-/-
-### Exercise: Factorial
--/
+  /-
+  ### Exercise: Factorial
+  -/
 
-/-
-### Exercise: Minimum
--/
+  /-
+  ### Exercise: Minimum
+  -/
 
-/-
-### Exercise: Two Loops
--/
+  /-
+  ### Exercise: Two Loops
+  -/
 
-/-
-### Exercise: Power Series
--/
+  /-
+  ### Exercise: Power Series
+  -/
 
-/-
-## Weakest Preconditions
--/
+  /-
+  ## Weakest Preconditions
+  -/
+end SoftwareFoundations.ProgrammingLanguageFoundations.Hoare

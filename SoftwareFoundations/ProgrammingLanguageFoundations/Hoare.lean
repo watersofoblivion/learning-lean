@@ -5,141 +5,142 @@
 import «SoftwareFoundations».«LogicalFoundations».«Imp»
 import «SoftwareFoundations».«LogicalFoundations».«Maps»
 
-/-
-## Assertions
--/
+namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
+  open SoftwareFoundations.LogicalFoundations.Imp
 
-def Assertion: Type := State → Prop
+  /-
+  ## Assertions
+  -/
 
-section
-  private def assertionOne: Assertion
-    | s => s "X" ≤ s "Y"
-  private def assertionTwo: Assertion
-    | s => s "X" = 3 ∨ s "X" ≤ s "Y"
-  private def assertionThree: Assertion
-    | s => s "Z" * s "Z" ≤ s "X" ∧ ¬((s "Z").succ * (s "Z").succ ≤ s "X")
-  private def assertionFour: Assertion
-    | s => s "Z" = max (s "X") (s "Y")
-end
+  def Assertion: Type := State → Prop
 
-@[reducible]
-def Assertion.implies (P Q: Assertion): Assertion := fun s => P s → Q s
-def Assertion.iff (P Q: Assertion): Assertion := fun s => implies P Q s ∧ implies Q P s
-def Assertion.and (P Q: Assertion): Assertion := fun s => P s ∧ Q s
-def Assertion.or (P Q: Assertion): Assertion := fun s => P s ∨ Q s
-def Assertion.not (P: Assertion): Assertion := fun s => ¬ P s
-def Assertion.eq (P Q: Assertion): Assertion := fun s => P s = Q s
-def Assertion.neq (P Q: Assertion): Assertion := fun s => P s ≠ Q s
-def Assertion.lt (P Q: Assertion): Assertion := fun s => P s < Q s
-def Assertion.le (P Q: Assertion): Assertion := fun s => P s ≤ Q s
-def Assertion.gt (P Q: Assertion): Assertion := fun s => P s > Q s
-def Assertion.ge (P Q: Assertion): Assertion := fun s => P s ≥ Q s
--- def Assertion.add (P Q: Assertion): Assertion := fun s => P s + Q s
+  section
+    private def assertionOne: Assertion
+      | s => s "X" ≤ s "Y"
+    private def assertionTwo: Assertion
+      | s => s "X" = 3 ∨ s "X" ≤ s "Y"
+    private def assertionThree: Assertion
+      | s => s "Z" * s "Z" ≤ s "X" ∧ ¬((s "Z").succ * (s "Z").succ ≤ s "X")
+    private def assertionFour: Assertion
+      | s => s "Z" = max (s "X") (s "Y")
+  end
 
-/-
-## Hoare Triples, Informally
--/
+  @[reducible]
+  def Assertion.implies (P Q: Assertion): Assertion := fun s => P s → Q s
+  def Assertion.iff (P Q: Assertion): Assertion := fun s => implies P Q s ∧ implies Q P s
+  def Assertion.and (P Q: Assertion): Assertion := fun s => P s ∧ Q s
+  def Assertion.or (P Q: Assertion): Assertion := fun s => P s ∨ Q s
+  def Assertion.not (P: Assertion): Assertion := fun s => ¬ P s
+  def Assertion.eq (P Q: Assertion): Assertion := fun s => P s = Q s
+  def Assertion.neq (P Q: Assertion): Assertion := fun s => P s ≠ Q s
+  def Assertion.lt (P Q: Assertion): Assertion := fun s => P s < Q s
+  def Assertion.le (P Q: Assertion): Assertion := fun s => P s ≤ Q s
+  def Assertion.gt (P Q: Assertion): Assertion := fun s => P s > Q s
+  def Assertion.ge (P Q: Assertion): Assertion := fun s => P s ≥ Q s
+  -- def Assertion.add (P Q: Assertion): Assertion := fun s => P s + Q s
 
-/-
-## Hoare Triples, Formally
--/
+  /-
+  ## Hoare Triples, Informally
+  -/
 
-@[reducible]
-def HoareTriple (P: Assertion) (c: Command) (Q: Assertion): Prop :=
-  ∀ s₁ s₂: State, P s₁ → CommandEval c s₁ s₂ → Q s₂
+  /-
+  ## Hoare Triples, Formally
+  -/
 
-theorem HoareTriple.post_true {P Q: Assertion} {c: Command}: (h: (s: State) → Q s) → HoareTriple P c Q
-  | h, s₁, s₂, hp, c => sorry
+  @[reducible]
+  def HoareTriple (P: Assertion) (c: Command) (Q: Assertion): Prop :=
+    ∀ s₁ s₂: State, P s₁ → CommandEval c s₁ s₂ → Q s₂
 
-theorem HoareTriple.pre_false {P Q: Assertion} {c: Command}: (h: (s: State) → ¬P s) → HoareTriple P c Q
-  | h, s₁, s₂, hp, c => sorry
+  theorem HoareTriple.post_true {P Q: Assertion} {c: Command}: (h: (s: State) → Q s) → HoareTriple P c Q
+    | h, s₁, s₂, hp, c => sorry
 
-/-
-## Proof Rules
--/
+  theorem HoareTriple.pre_false {P Q: Assertion} {c: Command}: (h: (s: State) → ¬P s) → HoareTriple P c Q
+    | h, s₁, s₂, hp, c => sorry
 
-/-
-### Skip
--/
+  /-
+  ## Proof Rules
+  -/
 
-def HoareTriple.skip {P: Assertion}: HoareTriple P .skip P
-  | _, _, hp, .skip _ => hp
+  /-
+  ### Skip
+  -/
 
-/-
-### Sequencing
--/
+  def HoareTriple.skip {P: Assertion}: HoareTriple P .skip P
+    | _, _, hp, .skip _ => hp
 
-def HoareTriple.seq {P Q R: Assertion} {c₁ c₂: Command} (h₁: HoareTriple Q c₂ R) (h₂: HoareTriple P c₁ Q): HoareTriple P (.seq c₁ c₂) R
-  | _, _, hp, .seq _ _ _ h₃ h₄ =>
-    have hq := h₂ _ _ hp h₃
-    h₁ _ _ hq h₄
+  /-
+  ### Sequencing
+  -/
 
-/-
-### Assignment
--/
+  def HoareTriple.seq {P Q R: Assertion} {c₁ c₂: Command} (h₁: HoareTriple Q c₂ R) (h₂: HoareTriple P c₁ Q): HoareTriple P (.seq c₁ c₂) R
+    | _, _, hp, .seq _ _ _ h₃ h₄ =>
+      have hq := h₂ _ _ hp h₃
+      h₁ _ _ hq h₄
 
-@[reducible]
-def Assertion.subst (id: String) (e: Arith) (P: Assertion): Assertion
-  | s => P (s.update id (e.eval s))
+  /-
+  ### Assignment
+  -/
 
-def HoareTriple.assign {Q: Assertion} {id: String} {e: Arith}: HoareTriple (Q.subst id e) (.assign id e) Q
-  | _,_, hqs, .assign _ h =>
-    -- TODO: Remove Tactic Block
-    by
-      unfold Assertion.subst at hqs
-      simp at hqs
-      rw [h] at hqs
-      exact hqs
+  @[reducible]
+  def Assertion.subst (id: String) (e: Arith) (P: Assertion): Assertion
+    | s => P (s.update id (e.eval s))
 
--- TODO: Complete assertions and implement example(s)
+  def HoareTriple.assign {Q: Assertion} {id: String} {e: Arith}: HoareTriple (Q.subst id e) (.assign id e) Q
+    | _,_, hqs, .assign _ h =>
+      -- TODO: Remove Tactic Block
+      by
+        unfold Assertion.subst at hqs
+        simp at hqs
+        rw [h] at hqs
+        exact hqs
 
-/-
-### Consequence
--/
+  -- TODO: Complete assertions and implement example(s)
 
-/-
-### Automation
--/
+  /-
+  ### Consequence
+  -/
 
-/-
-### Sequencing + Assignment
--/
+  /-
+  ### Automation
+  -/
 
-/-
-### Conditionals
--/
+  /-
+  ### Sequencing + Assignment
+  -/
 
-/-
-#### Example
--/
+  /-
+  ### Conditionals
+  -/
 
-/-
-#### Exercise: One-Sided Conditionals
--/
+  /-
+  #### Example
+  -/
 
-/-
-### While Loops
--/
+  /-
+  #### Exercise: One-Sided Conditionals
+  -/
 
-/-
-#### Exercise: Repeat
--/
+  /-
+  ### While Loops
+  -/
 
-/-
-## Summary
--/
+  /-
+  #### Exercise: Repeat
+  -/
 
-/-
-## Additional Examples
--/
+  /-
+  ## Summary
+  -/
 
-/-
-### Havoc
--/
+  /-
+  ## Additional Examples
+  -/
 
-/-
-### Assert and Assume
--/
+  /-
+  ### Havoc
+  -/
 
--- Temporary to make the parser happy
-def qwertyuiop := 42
+  /-
+  ### Assert and Assume
+  -/
+end SoftwareFoundations.ProgrammingLanguageFoundations.Hoare

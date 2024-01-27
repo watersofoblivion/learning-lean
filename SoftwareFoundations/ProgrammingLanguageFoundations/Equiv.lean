@@ -8,6 +8,8 @@ import «SoftwareFoundations».«LogicalFoundations».«Maps»
 import «SoftwareFoundations».«LogicalFoundations».«Imp»
 
 namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
+  open SoftwareFoundations.LogicalFoundations.Imp
+
   /-
   ## Behavioral Equivalence
   -/
@@ -16,11 +18,11 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   ### Definitions
   -/
 
-  @[reducible] def _root_.Arith.equiv (a₁ a₂: Arith): Prop := ∀ s: State, a₁.eval s = a₂.eval s
-  @[reducible] def _root_.Logic.equiv (l₁ l₂: Logic): Prop := ∀ s: State, l₁.eval s = l₂.eval s
+  @[reducible] def _root_.SoftwareFoundations.LogicalFoundations.Imp.Arith.equiv (a₁ a₂: Arith): Prop := ∀ s: State, a₁.eval s = a₂.eval s
+  @[reducible] def _root_.SoftwareFoundations.LogicalFoundations.Imp.Logic.equiv (l₁ l₂: Logic): Prop := ∀ s: State, l₁.eval s = l₂.eval s
 
-  @[reducible] def _root_.Command.equiv (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, CommandEval c₁ s₁ s₂ ↔ CommandEval c₂ s₁ s₂
-  @[reducible] def _root_.Command.refines (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, CommandEval c₁ s₁ s₂ → CommandEval c₂ s₁ s₂
+  @[reducible] def _root_.SoftwareFoundations.LogicalFoundations.Imp.Command.equiv (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, CommandEval c₁ s₁ s₂ ↔ CommandEval c₂ s₁ s₂
+  @[reducible] def _root_.SoftwareFoundations.LogicalFoundations.Imp.Command.refines (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, CommandEval c₁ s₁ s₂ → CommandEval c₂ s₁ s₂
 
   namespace Term
     example: (Arith.minus "X" "X").equiv (Arith.num 0) :=
@@ -73,7 +75,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   ### Simple Examples
   -/
 
-  private def _root_.Logic.trueFalse {s: State} (b: Logic) (h₁: b.eval s = true) (h₂: b.eval s = false): α :=
+  private def _root_.SoftwareFoundations.LogicalFoundations.Imp.Logic.trueFalse {s: State} (b: Logic) (h₁: b.eval s = true) (h₂: b.eval s = false): α :=
     False.elim (by simp_all)
 
   namespace Term
@@ -838,7 +840,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   -/
 
   @[reducible]
-  def _root_.Arith.constFold: _root_.Arith → _root_.Arith
+  def _root_.SoftwareFoundations.LogicalFoundations.Imp.Arith.constFold: Arith → Arith
     | .num n => .num n
     | .ident id => .ident id
     | .plus e₁ e₂ =>
@@ -858,7 +860,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   example: ("X" - (((0: Arith) * 6) + "Y")).constFold = "X" - (0 + "Y") := rfl
 
   @[reducible]
-  def _root_.Logic.constFold: _root_.Logic → _root_.Logic
+  def _root_.SoftwareFoundations.LogicalFoundations.Imp.Logic.constFold: Logic → Logic
     | .true => .true
     | .false => .false
     | .eq e₁ e₂ =>
@@ -896,7 +898,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   example: (Logic.and (.eq "X" "Y") (.eq 0 (2 - (1 + 1)))).constFold = .and (.eq "X" "Y") .true := rfl
 
   @[reducible]
-  def _root_.Command.constFold: Command → Command
+  def _root_.SoftwareFoundations.LogicalFoundations.Imp.Command.constFold: Command → Command
     | .skip => .skip
     | .assign id e => .assign id e.constFold
     | .seq c₁ c₂ => .seq c₁.constFold c₂.constFold
@@ -1030,7 +1032,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   -/
 
   @[reducible]
-  def _root_.Arith.opt0Plus: Arith → Arith
+  def _root_.SoftwareFoundations.LogicalFoundations.Imp.Arith.opt0Plus: Arith → Arith
     | .plus (.num 0) e₂ => e₂.opt0Plus
     | .plus e₁ e₂ => .plus e₁.opt0Plus e₂.opt0Plus
     | .minus e₁ e₂ => .minus e₁.opt0Plus e₂.opt0Plus
@@ -1038,7 +1040,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     | e => e
 
   @[reducible]
-  def _root_.Logic.opt0Plus: Logic → Logic
+  def _root_.SoftwareFoundations.LogicalFoundations.Imp.Logic.opt0Plus: Logic → Logic
     | .eq e₁ e₂ => .eq e₁.opt0Plus e₂.opt0Plus
     | .neq e₁ e₂ => .neq e₁.opt0Plus e₂.opt0Plus
     | .le e₁ e₂ => .le e₁.opt0Plus e₂.opt0Plus
@@ -1048,7 +1050,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     | b => b
 
   @[reducible]
-  def _root_.Command.opt0Plus: Command → Command
+  def _root_.SoftwareFoundations.LogicalFoundations.Imp.Command.opt0Plus: Command → Command
     | .assign id e => .assign id e.opt0Plus
     | .seq c₁ c₂ => .seq (opt0Plus c₁) (opt0Plus c₂)
     | .if c t f => .if c.opt0Plus (opt0Plus t) (opt0Plus f)
@@ -1293,7 +1295,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   -/
 
   @[reducible]
-  def _root_.Arith.subst (within: Arith) (var: String) (repl: Arith): Arith :=
+  def _root_.SoftwareFoundations.LogicalFoundations.Imp.Arith.subst (within: Arith) (var: String) (repl: Arith): Arith :=
     match within with
       | .num n => .num n
       | .ident id => if id == var then repl else .ident id
@@ -1436,7 +1438,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   -/
 
   -- How is this different from "refines" above?
-  @[reducible] def _root_.Command.approx  (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, CommandEval c₁ s₁ s₂ → CommandEval c₂ s₁ s₂
+  @[reducible] def _root_.SoftwareFoundations.LogicalFoundations.Imp.Command.approx  (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, CommandEval c₁ s₁ s₂ → CommandEval c₂ s₁ s₂
 
   private def approx_c₁: Command := .while (.neq "X" 1) (.assign "X" ("X" - 1))
   private def approx_c₂: Command := .assign "X" 1
@@ -1446,7 +1448,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
   private def approx_min: Command := sorry
 
-  private def _root_.Command.zProp (c: Command): Prop := sorry
+  private def _root_.SoftwareFoundations.LogicalFoundations.Imp.Command.zProp (c: Command): Prop := sorry
 
   namespace Term
     example (id₁ id₂: String) (e₁ e₂: Arith) (h₁: OccursCheck id₁ e₁) (h₂: OccursCheck id₂ e₂): (Command.seq (.assign id₁ e₁) (.assign id₂ e₂)).equiv (.seq (.assign id₂ e₂) (.assign id₁ e₁)) := sorry

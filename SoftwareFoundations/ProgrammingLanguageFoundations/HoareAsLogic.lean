@@ -2,22 +2,24 @@
 # Hoare Logic as a Logic
 -/
 
-/-
-## Hoare Logic and Model Theory
--/
+namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
+  /-
+  ## Hoare Logic and Model Theory
+  -/
 
-/-
-## Hoare Logic and Proof Theory
--/
+  /-
+  ## Hoare Logic and Proof Theory
+  -/
 
-/-
-## Derivability
--/
+  /-
+  ## Derivability
+  -/
 
-/-
-## Soundness and Completeness
--/
+  /-
+  ## Soundness and Completeness
+  -/
 
-/-
-## Postscript: Decidability
--/
+  /-
+  ## Postscript: Decidability
+  -/
+end SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
