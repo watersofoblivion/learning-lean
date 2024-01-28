@@ -184,7 +184,8 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         ⟨mp, mpr⟩
       where
         nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c.equiv .true): ¬(CommandEval (.while c b) s₁ s₂)
-          | .whileTrue _ _ _ _ _ h₃ => sorry
+          | .whileTrue s₁ s₂ s₃ h₁ h₂ h₃ =>
+            sorry
           | .whileFalse _ h₁ => c.trueFalse (h _) h₁
 
     theorem Command.loop_unrolling {c: Logic} {b: Command}: (Command.while c b).equiv (Command.if c (Command.seq b (Command.while c b)) .skip)
@@ -370,34 +371,50 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.while_true {c: Logic} {b: Command} (h: c.equiv .true): (Command.while c b).equiv (Command.while .true Command.skip) := by
       intro s₁ s₂
       apply Iff.intro
-      · sorry
-      · sorry
+      · intro
+        | .whileTrue _ _ _ h₁ _ h₃ =>
+          have := nonterm h h₃
+          contradiction
+        | .whileFalse _ _ => simp_all
+      · intro x
+        cases x with
+        | whileTrue _ _ _ h₁ h₂ h₃ =>
+          have := by
+            apply nonterm
+            · exact h
+            . sorry -- exact h₃
+            · sorry
+            · sorry
+            · sorry
+          contradiction
+        | whileFalse _ _ => simp_all
       where
         nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c.equiv .true): ¬(CommandEval (.while c b) s₁ s₂) := by
           intro
-          | .whileTrue _ _ _ _ _ _ => sorry
+          | .whileTrue s₃ s₄ s₅ h₁ h₂ h₃ =>
+            -- simp_all
+            rw [h] at h₁
+            sorry
           | .whileFalse _ _ => simp_all
 
     theorem Command.loop_unrolling {c: Logic} {b: Command}: (Command.while c b).equiv (Command.if c (Command.seq b (Command.while c b)) .skip) := by
       intro s₁ s₂
       apply Iff.intro
       · intro
-        | .whileTrue _ _ _ _ _ _ =>
+        | .whileTrue _ _ _ h₁ h₂ h₃ =>
           apply CommandEval.ifTrue
-          · assumption
-          · apply CommandEval.seq
-            repeat assumption
+          · exact h₁
+          · exact CommandEval.seq _ _ _ h₂ h₃
         | .whileFalse _ h₁ =>
           apply CommandEval.ifFalse
-          · assumption
+          · exact h₁
           · apply CommandEval.skip
       · intro
         | .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃) =>
-          apply CommandEval.whileTrue
+          exact CommandEval.whileTrue _ _ _ h₁ h₂ h₃
           repeat assumption
         | .ifFalse _ _ h₁ (.skip _) =>
-          apply CommandEval.whileFalse
-          assumption
+          exact CommandEval.whileFalse _ h₁
 
     theorem Command.seq_assoc {c₁ c₂ c₂: Command}: (Command.seq (Command.seq c₁ c₂) c₃).equiv (Command.seq c₁ (Command.seq c₂ c₃)) := by
       intro s₁ s₂
@@ -567,49 +584,110 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   end Blended
 
   section
+    -- Diverges: X starts > 1 and only increases.
     private def a: Command :=
       .while (.gt "X" 0)
         (.assign "X" ("X" + 1))
 
+    -- Terminates:
+    -- If X == 0, then X := 0, Y := 0
+    -- If X != 0, then X := X, Y := 0
+    -- In both cases, X retains its value and Y := 0
     private def b: Command :=
       .seq
         (.if (.eq "X" 0)
-          (.seq
+          (.seq                     -- true: X := 1, Y := 1
             (.assign "X" ("X" + 1))
             (.assign "Y" 1))
-          (.assign "Y" 0))
+          (.assign "Y" 0))          -- false: X != 0, Y := 0
         (.seq
-          (.assign "X" ("X" - "Y"))
-          (.assign "Y" 0))
+          (.assign "X" ("X" - "Y")) -- true: X := 0, false: X := X
+          (.assign "Y" 0))          -- true: Y := 0, false: Y := 0
 
+    -- Terminates, no-op
     private def c: Command :=
       .skip
 
+    -- Diverges: X is positive (Nat ≠ 0). X * positive is ≥ 0, + 1 > 0.
     private def d: Command :=
       .while (.neq "X" 0)
         (.assign "X" ("X" * "Y" + 1))
 
+    -- After termination, Y := 0 and, implicitly, X := X
     private def e: Command :=
       .assign "Y" 0
 
+    -- Diverges: Y := X + 1, so X != Y.  In the loop, assigns the same, so loop
+    -- never terminates.
     private def f: Command :=
       .seq
         (.assign "Y" ("X" + 1))
         (.while (.neq "X" "Y")
           (.assign "Y" ("X" + 1)))
 
+    -- Diverges: Canonical example
     private def g: Command :=
       .while .true .skip
 
+    -- No-op.  X always equals X, so is "while false"
     private def h: Command :=
       .while (.neq "X" "X")
         (.assign "X" ("X" + 1))
 
+    -- May diverge:
+    -- * If X = Y, terminates.
+    -- * If X != Y, X will never equal Y.
     private def i: Command :=
       .while (.neq "X" "Y")
         (.assign "X" ("Y" + 1))
 
-    private def equiv_classes: List (List Command) := []
+    private def equiv_classes: List (List Command) := [
+      -- Diverges
+      [a, d, f, g],
+      -- X is retained, Y := 0
+      [b, e],
+      -- No-op
+      [c, h],
+      -- May Diverge
+      [i]
+    ]
+
+    example: a.equiv d
+      | s₁, s₂ =>
+        have mp: CommandEval a s₁ s₂ → CommandEval d s₁ s₂ := sorry
+        have mpr: CommandEval d s₁ s₂ → CommandEval a s₁ s₂ := sorry
+        ⟨mp, mpr⟩
+    example: d.equiv f
+      | s₁, s₂ =>
+        have mp: CommandEval d s₁ s₂ → CommandEval f s₁ s₂ := sorry
+        have mpr: CommandEval f s₁ s₂ → CommandEval d s₁ s₂ := sorry
+        ⟨mp, mpr⟩
+    example: f.equiv g
+      | s₁, s₂ =>
+        have mp: CommandEval f s₁ s₂ → CommandEval g s₁ s₂ := sorry
+        have mpr: CommandEval g s₁ s₂ → CommandEval f s₁ s₂ := sorry
+        ⟨mp, mpr⟩
+
+    example: b.equiv e
+      | s₁, s₂ =>
+        have mp: CommandEval b s₁ s₂ → CommandEval e s₁ s₂ := sorry
+        have mpr: CommandEval e s₁ s₂ → CommandEval b s₁ s₂ := sorry
+        ⟨mp, mpr⟩
+
+    example: c.equiv h
+      | s₁, s₂ =>
+        have mp: CommandEval c s₁ s₂ → CommandEval h s₁ s₂ := sorry
+        have mpr: CommandEval h s₁ s₂ → CommandEval c s₁ s₂ := sorry
+        ⟨mp, mpr⟩
+
+    example: ¬(a.equiv b) := sorry
+    example: ¬(a.equiv c) := sorry
+    example: ¬(a.equiv i) := sorry
+    example: ¬(b.equiv c) := sorry
+    example: ¬(b.equiv i) := sorry
+    example: ¬(c.equiv i) := sorry
+
+    -- By transitivity (below) this proves the equivalence classes
   end
 
   /-
@@ -708,6 +786,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       (.if (.eq "X" 0)
         (.assign "Y" 0)
         (.assign "Y" 42))
+
   private def congr_prog₂: Command :=
     .seq
       (.assign "X" 0)
@@ -722,7 +801,12 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁.equiv e₂): (Command.assign id e₁).equiv (.assign id e₂)
       | s₁, s₂ =>
         have h {id: String} {e₁ e₂: Arith} (h: e₁.equiv e₂): CommandEval (.assign id e₁) s₁ s₂ → CommandEval (.assign id e₂) s₁ s₂
-          | .assign _ h => sorry
+          | .assign _ h₁ =>
+            have h₂: e₂.eval _ = _ :=
+              calc e₂.eval _
+                _ = e₁.eval _ := Arith.equiv.symm h _
+                _ = _         := h₁
+            .assign _ h₂
         have h₂ := Arith.equiv.symm h₁
         ⟨h h₁, h h₂⟩
 
@@ -730,9 +814,13 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have h {c₁ c₂ c₃ c₄: Command} (h₁: c₁.equiv c₂) (h₂: c₃.equiv c₄): CommandEval (.seq c₁ c₃) s₁ s₂ → CommandEval (.seq c₂ c₄) s₁ s₂
           | .seq _ _ _ h₃ h₄ =>
-            have ⟨h₅, _⟩ := h₁ _ _
-            have ⟨h₆, _⟩ := h₂ _ _
-            .seq _ _ _ (h₅ h₃) (h₆ h₄)
+            have h₅: CommandEval c₂ _ _ :=
+              have ⟨h, _⟩ := h₁ _ _
+              h h₃
+            have h₆: CommandEval c₄ _ _ :=
+              have ⟨h, _⟩ := h₂ _ _
+              h h₄
+            .seq _ _ _ h₅ h₆
         have h₃ := Command.equiv.symm h₁
         have h₄ := Command.equiv.symm h₂
         ⟨h h₁ h₂, h h₃ h₄⟩
@@ -741,11 +829,23 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | s₁, s₂ =>
         have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁.equiv c₂) (h₂: t₁.equiv t₂) (h₃: f₁.equiv f₂): CommandEval (.if c₁ t₁ f₁) s₁ s₂ → CommandEval (.if c₂ t₂ f₂) s₁ s₂
           | .ifTrue _ _ h₄ h₅ =>
-            -- have h₆ := h₁ _
-            -- have ⟨h₇, _⟩ := h₂ _ _
-            -- .ifTrue _ _ (h₆ h₄) (h₇ h₅)
-            sorry
-          | .ifFalse _ _ h₄ h₅ => sorry -- .ifFalse _ _ ((h₁ _).mp h₄) ((h₃ _ _).mp h₅)
+            have h₆: c₂.eval _ = true :=
+              calc c₂.eval _
+                _ = c₁.eval _ := Logic.equiv.symm h₁ _
+                _ = true      := h₄
+            have h₇ :=
+              have ⟨h, _⟩ := h₂ _ _
+              h h₅
+            .ifTrue _ _ h₆ h₇
+          | .ifFalse _ _ h₄ h₅ =>
+            have h₆: c₂.eval _ = false :=
+              calc c₂.eval _
+                _ = c₁.eval _ := Logic.equiv.symm h₁ _
+                _ = false     := h₄
+            have h₇ :=
+              have ⟨h, _⟩ := h₃ _ _
+              h h₅
+            .ifFalse _ _ h₆ h₇
         have h₄ := Logic.equiv.symm h₁
         have h₅ := Command.equiv.symm h₂
         have h₆ := Command.equiv.symm h₃
@@ -754,8 +854,26 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): (Command.while c₁ b₁).equiv (.while c₂ b₂)
       | s₁, s₂ =>
         have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): CommandEval (.while c₁ b₁) s₁ s₂ → CommandEval (.while c₂ b₂) s₁ s₂
-         | .whileTrue _ _ _ _ _ _ => sorry
-         | .whileFalse _ _ => sorry
+          | .whileTrue _ _ _ h₄ h₅ h₆ =>
+            have h₇: c₂.eval _ = true :=
+              calc c₂.eval _
+                 _ = c₁.eval _ := Logic.equiv.symm h₁ _
+                 _ = true      := h₄
+            have h₈: CommandEval b₂ _ _ :=
+              have ⟨h, _⟩ := h₂ _ _
+              h h₅
+            have h₉: CommandEval (.while c₂ b₂) _ _ :=
+              -- have h₁ := h₁ _
+              -- have ⟨h₁, _⟩ := h₂ _ _
+              -- h₆ h₁ h₂
+              sorry
+            .whileTrue _ _ _ h₇ h₈ h₉
+          | .whileFalse _ h₄ =>
+            have h₅: c₂.eval _ = false :=
+              calc c₂.eval _
+                _ = c₁.eval _ := Logic.equiv.symm h₁ _
+                _ = false     := h₄
+            .whileFalse _ h₅
         have h₃ := Logic.equiv.symm h₁
         have h₄ := Command.equiv.symm h₂
         ⟨h h₁ h₂, h h₃ h₄⟩
@@ -776,7 +894,17 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       intro s₁ s₂
       apply Iff.refl
 
-    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h: e₁.equiv e₂): (Command.assign id e₁).equiv (.assign id e₂) := by sorry
+    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁.equiv e₂): (Command.assign id e₁).equiv (.assign id e₂) := by
+      intro s₁ s₂
+      have h {id: String} {e₁ e₂: Arith} (h₁: e₁.equiv e₂): CommandEval (.assign id e₁) s₁ s₂ → CommandEval (.assign id e₂) s₁ s₂ := by
+        intro
+        | .assign _ h =>
+          rw [h₁] at h
+          exact CommandEval.assign _ h
+      apply Iff.intro
+      · exact h h₁
+      · apply h
+        · exact Arith.equiv.symm h₁
 
     theorem Command.seq.congr {c₁ c₂ c₃ c₄: Command} (h₁: c₁.equiv c₂) (h₂: c₃.equiv c₄): (Command.seq c₁ c₃).equiv (.seq c₂ c₄) := by
       intro s₁ s₂
@@ -785,20 +913,50 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         | .seq _ _ _ h₃ h₄ =>
           rw [h₁] at h₃
           rw [h₂] at h₄
-          apply CommandEval.seq
-          repeat assumption
+          exact CommandEval.seq _ _ _ h₃ h₄
       apply Iff.intro
+      · apply h h₁ h₂
       · apply h
-        · exact h₁
-        · exact h₂
-      · apply h
-        · apply Command.equiv.symm
-          · exact h₁
-        · apply Command.equiv.symm
-          · exact h₂
+        · exact Command.equiv.symm h₁
+        · exact Command.equiv.symm h₂
 
-    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁.equiv c₂) (h₂: t₁.equiv t₂) (h₃: f₁.equiv f₁): (Command.if c₁ t₁ f₁).equiv (.if c₂ t₂ f₂) := by sorry
-    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): (Command.while c₁ b₁).equiv (.while c₂ b₂) := by sorry
+    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁.equiv c₂) (h₂: t₁.equiv t₂) (h₃: f₁.equiv f₂): (Command.if c₁ t₁ f₁).equiv (.if c₂ t₂ f₂) := by
+      intro s₁ s₂
+      have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁.equiv c₂) (h₂: t₁.equiv t₂) (h₃: f₁.equiv f₂): CommandEval (.if c₁ t₁ f₁) s₁ s₂ → CommandEval (.if c₂ t₂ f₂) s₁ s₂ := by
+        intro
+        | .ifTrue _ _ h₄ h₅ =>
+          rw [h₁] at h₄
+          rw [h₂] at h₅
+          exact CommandEval.ifTrue _ _ h₄ h₅
+        | .ifFalse _ _ h₄ h₅ =>
+          rw [h₁] at h₄
+          rw [h₃] at h₅
+          exact CommandEval.ifFalse _ _ h₄ h₅
+      apply Iff.intro
+      · apply h h₁ h₂ h₃
+      · apply h
+        · exact Logic.equiv.symm h₁
+        · exact Command.equiv.symm h₂
+        · exact Command.equiv.symm h₃
+
+    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): (Command.while c₁ b₁).equiv (.while c₂ b₂) := by
+      intro s₁ s₂
+      have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): CommandEval (.while c₁ b₁) s₁ s₂ → CommandEval (.while c₂ b₂) s₁ s₂ := by
+        intro
+        | .whileTrue s₃ s₄ s₅ h₃ h₄ h₅ =>
+          rw [h₁] at h₃
+          rw [h₂] at h₄
+          have ih: CommandEval (.while c₂ b₂) s₄ s₅ := by
+            sorry
+          exact CommandEval.whileTrue _ _ _ h₃ h₄ ih
+        | .whileFalse _ h₃ =>
+          rw [h₁] at h₃
+          exact CommandEval.whileFalse _ h₃
+      apply Iff.intro
+      · exact h h₁ h₂
+      · apply h
+        · exact Logic.equiv.symm h₁
+        · exact Command.equiv.symm h₂
 
     example: congr_prog₁.equiv congr_prog₂ := by sorry
   end Tactic
@@ -807,7 +965,14 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.skip.congr: Command.skip.equiv .skip
       | _, _ => Iff.refl _
 
-    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h: e₁.equiv e₂): (Command.assign id e₁).equiv (.assign id e₂) := sorry
+    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁.equiv e₂): (Command.assign id e₁).equiv (.assign id e₂)
+      | s₁, s₂ =>
+        have h {id: String} {e₁ e₂: Arith} (h₁: e₁.equiv e₂): CommandEval (.assign id e₁) s₁ s₂ → CommandEval (.assign id e₂) s₁ s₂
+          | .assign _ h => by
+            rw [h₁] at h
+            exact CommandEval.assign _ h
+        have h₂ := Arith.equiv.symm h₁
+        ⟨h h₁, h h₂⟩
 
     theorem Command.seq.congr {c₁ c₂ c₃ c₄: Command} (h₁: c₁.equiv c₂) (h₂: c₃.equiv c₄): (Command.seq c₁ c₃).equiv (.seq c₂ c₄)
       | s₁, s₂ =>
@@ -815,14 +980,45 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .seq _ _ _ h₃ h₄ => by
             rw [h₁] at h₃
             rw [h₂] at h₄
-            apply CommandEval.seq
-            repeat assumption
+            exact CommandEval.seq _ _ _ h₃ h₄
         have h₃ := Command.equiv.symm h₁
         have h₄ := Command.equiv.symm h₂
         ⟨h h₁ h₂, h h₃ h₄⟩
 
-    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁.equiv c₂) (h₂: t₁.equiv t₂) (h₃: f₁.equiv f₁): (Command.if c₁ t₁ f₁).equiv (.if c₂ t₂ f₂) := sorry
-    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): (Command.while c₁ b₁).equiv (.while c₂ b₂) := sorry
+    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁.equiv c₂) (h₂: t₁.equiv t₂) (h₃: f₁.equiv f₂): (Command.if c₁ t₁ f₁).equiv (.if c₂ t₂ f₂)
+      | s₁, s₂ =>
+        have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁.equiv c₂) (h₂: t₁.equiv t₂) (h₃: f₁.equiv f₂): CommandEval (.if c₁ t₁ f₁) s₁ s₂ → CommandEval (.if c₂ t₂ f₂) s₁ s₂
+          | .ifTrue _ _ h₄ h₅ => by
+            rw [h₁] at h₄
+            rw [h₂] at h₅
+            exact CommandEval.ifTrue _ _ h₄ h₅
+          | .ifFalse _ _ h₄ h₅ => by
+            rw [h₁] at h₄
+            rw [h₃] at h₅
+            exact CommandEval.ifFalse _ _ h₄ h₅
+        have h₄ := Logic.equiv.symm h₁
+        have h₅ := Command.equiv.symm h₂
+        have h₆ := Command.equiv.symm h₃
+        ⟨h h₁ h₂ h₃, h h₄ h₅ h₆⟩
+
+    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): (Command.while c₁ b₁).equiv (.while c₂ b₂)
+      | s₁, s₂ =>
+        have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁.equiv c₂) (h₂: b₁.equiv b₂): CommandEval (.while c₁ b₁) s₁ s₂ → CommandEval (.while c₂ b₂) s₁ s₂
+          | .whileTrue s₃ s₄ s₅ h₃ h₄ h₅ => by
+            rw [h₁] at h₃
+            rw [h₂] at h₄
+            have h₅: CommandEval (.while c₂ b₂) s₄ s₅ :=
+              -- have h₁ := h₁ _
+              -- have ⟨h₁, _⟩ := h₂ _ _
+              -- h₆ h₁ h₂
+              sorry
+            exact CommandEval.whileTrue _ _ _ h₃ h₄ h₅
+          | .whileFalse _ h₃ => by
+            rw [h₁] at h₃
+            exact CommandEval.whileFalse _ h₃
+        have h₃ := Logic.equiv.symm h₁
+        have h₄ := Command.equiv.symm h₂
+        ⟨h h₁ h₂, h h₃ h₄⟩
 
     example: congr_prog₁.equiv congr_prog₂ := sorry
   end Blended
@@ -1226,12 +1422,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         match e₁ with
           | .num n =>
             match n with
-              | .zero =>
-                calc (Arith.plus (.num 0) e₂).eval s
-                  _ = (Arith.num 0).eval s + e₂.eval s                    := by rfl
-                  _ = (Arith.num 0).opt0Plus.eval s + e₂.opt0Plus.eval s  := by rw [ih₁, ih₂]
-                  _ = (Arith.plus (Arith.num 0) e₂).opt0Plus.eval s       := by simp
-                  _ = e₂.opt0Plus.eval s                                  := by rfl
+              | .zero => by simp_all
               | .succ _ =>
                 calc (Arith.plus (Arith.num (.succ _)) e₂).eval s
                   _ = (Arith.num (.succ _)).eval s + e₂.eval s                   := by rfl
