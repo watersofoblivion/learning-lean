@@ -1310,6 +1310,31 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
       | continue: Result
       | break: Result
 
+    declare_syntax_cat break_cmd
+
+    syntax:50 "skip" : break_cmd
+    syntax:50 ident ":=" arith : break_cmd
+    syntax:50 "<[" term "]>" ":=" arith : break_cmd
+    syntax:40 break_cmd ";" break_cmd : break_cmd
+    syntax:50 "ite" "(" logic ")" "{" break_cmd "}" "else" "{" break_cmd "}" : break_cmd
+    syntax:50 "while" "(" logic ")" "{" break_cmd "}" : break_cmd
+    syntax:50 "break" : break_cmd
+    syntax "(" break_cmd ")" : break_cmd
+    syntax "<[" term "]>" : break_cmd
+
+    syntax "[Break|" break_cmd "]" : term
+
+    macro_rules
+      | `([Break| skip])                                => `(Command.skip)
+      | `([Break| $id:ident := $e:arith])               => `(Command.assign $(Lean.quote (toString id.getId)) [Arith| $e])
+      | `([Break| <[ $t:term ]> := $e:arith])           => `(Command.assign $(Lean.quote t) [Arith| $e])
+      | `([Break| $x; $y])                              => `(Command.seq [Break| $x] [Break| $y])
+      | `([Break| ite ( $c:logic ) { $t } else { $f }]) => `(Command.if [Logic| $c] [Break| $t] [Break| $f])
+      | `([Break| while ( $c:logic ) { $b }])           => `(Command.while [Logic| $c] [Break| $b])
+      | `([Break| break ])                              => `(Command.break)
+      | `([Break| ( $c )])                              => `([Break| $c])
+      | `([Break| <[ $t:term ]> ])                      => pure t
+
     inductive CommandEval: Command → State → Result → State → Prop where
       | skip (s: State): CommandEval .skip s .continue s
       | break (s: State): CommandEval .break s .break s
@@ -1320,49 +1345,46 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
       | whileTrue {c: Logic} {b: Command} (s₁ s₂ s₃: State) (h₁: c.eval s₁ = .true) (h₂: CommandEval b s₁ .continue s₂) (h₃: CommandEval (.while c b) s₂ .continue s₃): CommandEval (.while c b) s₁ .continue s₃
       | whileFalse {c: Logic} {b: Command} (s: State) (h₁: c.eval s = .false): CommandEval (.while c b) s .continue s
 
-    -- TODO: Break Syntax
+    notation s₁ "=[" c "]=[" r "]=>" s₂ => CommandEval c s₁ r s₂
 
     namespace Term
-      example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): CommandEval (.while c b) s₁ r s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: CommandEval b s₁ .break s₂): CommandEval (.while c b) s₁ .continue s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: CommandEval c₁ s₁ .break s₂): CommandEval (.seq c₁ c₂) s₁ .break s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: CommandEval (.while c b) s₁ .continue s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, CommandEval b s₃ .break s₂ := sorry
-      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: CommandEval c s₁ r₁ s₂) (h₂: CommandEval c s₁ r₂ s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
+      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; <[c]>]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.break]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := sorry
+
+      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: s₁ =[c]=[r₁]=> s₂) (h₂: s₁ =[c]=[r₂]=> s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
     end Term
 
     namespace Tactic
-      example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := by
+      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; <[c]>]]=[r]=> s₂ := by
+        sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[r]=> s₂ := by
+        sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂ := by
+        sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.continue]=> s₂ := by
+        sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.break]=> s₂ := by
+        sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := by
         sorry
 
-      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): CommandEval (.while c b) s₁ r s₂ := by
-        sorry
-
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: CommandEval b s₁ .break s₂): CommandEval (.while c b) s₁ .continue s₂ := by
-        sorry
-
-      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₂ := by
-        sorry
-
-      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: CommandEval c₁ s₁ .break s₂): CommandEval (.seq c₁ c₂) s₁ .break s₂ := by
-        sorry
-
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: CommandEval (.while c b) s₁ .continue s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, CommandEval b s₃ .break s₂ := by
-        sorry
-
-      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: CommandEval c s₁ r₁ s₂) (h₂: CommandEval c s₁ r₂ s₃): s₂ = s₃ ∧ r₁ = r₂ := by
+      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: s₁ =[c]=[r₁]=> s₂) (h₂: s₁ =[c]=[r₂]=> s₃): s₂ = s₃ ∧ r₁ = r₂ := by
         sorry
     end Tactic
 
     namespace Blended
-      example (c: Command) (s₁ s₂: State) (r: Result): CommandEval (.seq .break c) s₁ r s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): CommandEval (.while c b) s₁ r s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: CommandEval b s₁ .break s₂): CommandEval (.while c b) s₁ .continue s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c₁ s₁ .continue s₂) (h₂: CommandEval c₂ s₂ .continue s₃): CommandEval (.seq c₁ c₂) s₁ .continue s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: CommandEval c₁ s₁ .break s₂): CommandEval (.seq c₁ c₂) s₁ .break s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: CommandEval (.while c b) s₁ .continue s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, CommandEval b s₃ .break s₂ := sorry
-      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: CommandEval c s₁ r₁ s₂) (h₂: CommandEval c s₁ r₂ s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
+      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; <[c]>]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.break]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := sorry
+
+      theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: s₁ =[c]=[r₁]=> s₂) (h₂: s₁ =[c]=[r₂]=> s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
     end Blended
 end BreakImp
 

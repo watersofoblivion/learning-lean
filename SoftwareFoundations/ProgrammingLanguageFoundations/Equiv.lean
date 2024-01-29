@@ -1586,6 +1586,32 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | while (b: Logic) (c: Command): Command
       | havoc (id: String): Command
 
+    declare_syntax_cat havoc_cmd
+
+    syntax:50 "skip" : havoc_cmd
+    syntax:50 ident ":=" arith : havoc_cmd
+    syntax:50 "<[" term "]>" ":=" arith : havoc_cmd
+    syntax:40 havoc_cmd ";" havoc_cmd : havoc_cmd
+    syntax:50 "ite" "(" logic ")" "{" havoc_cmd "}" "else" "{" havoc_cmd "}" : havoc_cmd
+    syntax:50 "while" "(" logic ")" "{" havoc_cmd "}" : havoc_cmd
+    syntax:50 "havoc" ident : havoc_cmd
+    syntax "(" havoc_cmd ")" : havoc_cmd
+    syntax "<[" term "]>" : havoc_cmd
+
+    syntax "[Havoc|" havoc_cmd "]" : term
+
+    macro_rules
+      | `([Havoc| skip])                                => `(Command.skip)
+      | `([Havoc| $id:ident := $e:arith])               => `(Command.assign $(Lean.quote (toString id.getId)) [Arith| $e])
+      | `([Havoc| <[ $t:term ]> := $e:arith])           => `(Command.assign $(Lean.quote t) [Arith| $e])
+      | `([Havoc| $x; $y])                              => `(Command.seq [Havoc| $x] [Havoc| $y])
+      | `([Havoc| ite ( $c:logic ) { $t } else { $f }]) => `(Command.if [Logic| $c] [Havoc| $t] [Havoc| $f])
+      | `([Havoc| while ( $c:logic ) { $b }])           => `(Command.while [Logic| $c] [Havoc| $b])
+      | `([Havoc| havoc $id:ident ])                    => `(Command.havoc $(Lean.quote (toString id.getId)))
+      | `([Havoc| ( $c )])                              => `([Havoc| $c])
+      | `([Havoc| <[ $t:term ]> ])                      => pure t
+
+
     inductive CommandEval: Command → State → State → Prop where
       | skip {s: State}: CommandEval .skip s s
       | assign {s: State} {e: Arith} {n: Nat} {id: String} (h: e.eval s = n): CommandEval (.assign id e) s (s.update id n)
@@ -1597,25 +1623,33 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       -- TODO: Define this properly
       | havoc {s₁ s₂: State} {id: String}: CommandEval (.havoc id) s₁ s₂
 
-    def Command.equiv (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, CommandEval c₁ s₁ s₂ ↔ CommandEval c₂ s₁ s₂
+    notation s₁ "=[" c "]=>" s₂ => CommandEval c s₁ s₂
+
+    def Command.equiv (c₁ c₂: Command): Prop := ∀ s₁ s₂: State, (s₁ =[c₁]=> s₂) ↔ s₁ =[c₂]=> s₂
 
     infix:50 "≈" => Command.equiv
 
-    private def xy: Command := .seq (.havoc "X") (.havoc "Y")
-    private def yx: Command := .seq (.havoc "Y") (.havoc "X")
-    private def copy: Command := .seq (.havoc "X") (.assign "Y" [Arith| X])
-    private def whileHavoc: Command :=
-      .while [Logic| !(X = 0)]
-        (.seq (.havoc "X") (.assign "X" [Arith| X + 1]))
-    private def whileSkip: Command := .while [Logic| !(X = 0)] .skip
-    private def havocHavoc: Command :=
-      .while [Logic| X ≠ 0]
-        (.seq (.havoc "X") (.havoc "Y"))
-    private def noHavoc: Command := .seq (.assign "X" [Arith| 0]) (.assign "Z" [Arith| 1])
+    private def xy := [Havoc| havoc X; havoc Y]
+    private def yx := [Havoc| havoc Y; havoc X]
+    private def copy := [Havoc| havoc X; Y := X]
+    private def whileHavoc := [Havoc|
+      while (!(X = 0)) {
+        havoc X;
+        X := X + 1
+      }
+    ]
+    private def whileSkip := [Havoc| while (!(X = 0)) { skip }]
+    private def havocHavoc := [Havoc|
+      while (X ≠ 0) {
+        havoc X;
+        havoc Y
+      }
+    ]
+    private def noHavoc := [Havoc| X := 0; Z := 1]
 
     namespace Term
-      example: CommandEval (.havoc "X") [State|] [State| X = 0] := sorry
-      example: CommandEval (.seq .skip (.havoc "Z")) [State|] [State| Z = 42] := sorry
+      example: [State|] =[[Havoc| havoc X]]=> [State| X = 0] := sorry
+      example: [State|] =[[Havoc| skip; havoc Z]]=> [State| Z = 42] := sorry
 
       example: xy ≈ yx ∨ ¬(xy ≈ yx) := sorry
       example: xy ≈ copy ∨ ¬(xy ≈ copy) := sorry
@@ -1623,17 +1657,17 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       example: whileHavoc ≈ whileSkip :=
         sorry
         where
-          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := sorry
-          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := sorry
+          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(s₁ =[whileHavoc]=> s₂) := sorry
+          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(s₁ =[whileSkip]=> s₂) := sorry
 
       example: ¬(havocHavoc ≈ noHavoc) := sorry
 
-      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith| 1]) := sorry
+      example: [Havoc| while (X ≠ 1) { havoc X }] ≈ [Havoc| X := 1] := sorry
     end Term
 
     namespace Tactic
-      example: CommandEval (.havoc "X") [State|] [State| X = 0] := by sorry
-      example: CommandEval (.seq .skip (.havoc "Z")) [State|] [State| Z = 42] := by sorry
+      example: [State|] =[[Havoc| havoc X]]=> [State| X = 0] := by sorry
+      example: [State|] =[[Havoc| skip; havoc Z]]=> [State| Z = 42] := by sorry
 
       example: xy ≈ yx ∨ ¬(xy ≈ yx) := by sorry
       example: xy ≈ copy ∨ ¬(xy ≈ copy) := by sorry
@@ -1641,17 +1675,17 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       example: whileHavoc ≈ whileSkip := by
         sorry
         where
-          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := by sorry
-          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := by sorry
+          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(s₁ =[whileHavoc]=> s₂) := by sorry
+          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(s₁ =[whileSkip]=> s₂) := by sorry
 
       example: ¬(havocHavoc ≈ noHavoc) := by sorry
 
-      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith| 1]) := sorry
+      example: [Havoc| while (X ≠ 1) { havoc X }] ≈ [Havoc| X := 1] := sorry
     end Tactic
 
     namespace Blended
-      example: CommandEval (.havoc "X") [State|] [State| X = 0] := sorry
-      example: CommandEval (.seq .skip (.havoc "Z")) [State|] [State| Z = 42] := sorry
+      example: [State|] =[[Havoc| havoc X]]=> [State| X = 0] := sorry
+      example: [State|] =[[Havoc| skip; havoc Z]]=> [State| Z = 42] := sorry
 
       example: xy ≈ yx ∨ ¬(xy ≈ yx) := sorry
       example: xy ≈ copy ∨ ¬(xy ≈ copy) := sorry
@@ -1659,12 +1693,12 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       example: whileHavoc ≈ whileSkip :=
         sorry
         where
-          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileHavoc s₁ s₂) := sorry
-          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(CommandEval whileSkip s₁ s₂) := sorry
+          havoc_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(s₁ =[whileHavoc]=> s₂) := sorry
+          skip_may_diverge (s₁ s₂: State) (h: s₁ "X" ≠ 0): ¬(s₁ =[whileSkip]=> s₂) := sorry
 
       example: ¬(havocHavoc ≈ noHavoc) := sorry
 
-      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith| 1]) := sorry
+      example: [Havoc| while (X ≠ 1) { havoc X }] ≈ [Havoc| X := 1] := sorry
     end Blended
   end Havoc
 

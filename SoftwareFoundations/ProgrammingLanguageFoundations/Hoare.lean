@@ -14,7 +14,6 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
 
   def Assertion: Type := State → Prop
   def NatAssertion: Type := State → Nat
-  def ArithAssertion: Type := State → Arith
 
   section
     private def assertionOne: Assertion
@@ -27,64 +26,60 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
       | s => s "Z" = max (s "X") (s "Y")
   end
 
-  instance: Coe Nat NatAssertion where
-    coe n := fun _ => n
-  instance: Coe String NatAssertion where
-    coe id := fun s => s id
-  instance: OfNat NatAssertion n where
-    ofNat := (n: NatAssertion)
-  instance: Coe Arith NatAssertion where
-    coe e := fun s => e.eval s
-  instance: Coe Prop Assertion where
-    coe P := fun _ => P
+  declare_syntax_cat nat_assert
 
-  @[reducible]
-  def Assertion.implies (P Q: Assertion): Assertion := fun s => P s → Q s
-  def Assertion.iff (P Q: Assertion): Assertion := fun s => implies P Q s ∧ implies Q P s
-  def Assertion.and (P Q: Assertion): Assertion := fun s => P s ∧ Q s
-  def Assertion.or (P Q: Assertion): Assertion := fun s => P s ∨ Q s
-  def Assertion.not (P: Assertion): Assertion := fun s => ¬ P s
-  def Assertion.eq (P Q: NatAssertion): Assertion := fun s => P s = Q s
-  def Assertion.neq (P Q: NatAssertion): Assertion := fun s => P s ≠ Q s
-  def Assertion.lt (P Q: NatAssertion): Assertion := fun s => P s < Q s
-  def Assertion.le (P Q: NatAssertion): Assertion := fun s => P s ≤ Q s
-  def Assertion.gt (P Q: NatAssertion): Assertion := fun s => P s > Q s
-  def Assertion.ge (P Q: NatAssertion): Assertion := fun s => P s ≥ Q s
-  def Assertion.add (P Q: NatAssertion): NatAssertion := fun s => P s + Q s
-  def Assertion.sub (P Q: NatAssertion): NatAssertion := fun s => P s - Q s
-  def Assertion.mul (P Q: NatAssertion): NatAssertion := fun s => P s * Q s
+  syntax arith : nat_assert
+  syntax "app" arith* : nat_assert
+
+  syntax "[NatAssert|" nat_assert "]" : term
+
+  macro_rules
+    | `([NatAssert| $e:arith])  => `(((fun s => [Arith| $e].eval s): NatAssertion))
+
+  declare_syntax_cat assert
+
+  -- syntax prop : assert
+  syntax nat_assert : assert
+  syntax:min assert "→" assert : assert
+  syntax:min assert "↔" assert : assert
+  syntax:35 assert:36 "∧" assert:30 : assert
+  syntax:30 assert:31 "∨" assert:30 : assert
+  syntax:max "¬" assert:40 : assert
+  syntax:50 nat_assert "=" nat_assert : assert
+  syntax:50 nat_assert "≠" nat_assert : assert
+  syntax:50 nat_assert "<" nat_assert : assert
+  syntax:50 nat_assert "≤" nat_assert : assert
+  syntax:50 nat_assert ">" nat_assert : assert
+  syntax:50 nat_assert "≥" nat_assert : assert
+
+  syntax "[Assert|" assert "]" : term
+
+  macro_rules
+    -- | `([Assert| $P])   => `(((fun s => [Assert| $P] s): Assertion))
+    | `([Assert| $P → $Q])   => `(((fun s => [Assert| $P] s → [Assert| $Q] s): Assertion))
+    | `([Assert| $P ↔ $Q])   => `(((fun s => [Assert| $P] s ↔ [Assert| $Q] s): Assertion))
+    | `([Assert| $P ∧ $Q])   => `(((fun s => [Assert| $P] s ∧ [Assert| $Q] s): Assertion))
+    | `([Assert| $P ∨ $Q])   => `(((fun s => [Assert| $P] s ∨ [Assert| $Q] s): Assertion))
+    | `([Assert| ¬ $P])      => `(((fun s => ¬ [Assert| $P]): Assertion))
+    | `([Assert| $P:nat_assert = $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s = [NatAssert| $Q] s): Assertion))
+    | `([Assert| $P:nat_assert ≠ $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s ≠ [NatAssert| $Q] s): Assertion))
+    | `([Assert| $P:nat_assert ≤ $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s ≤ [NatAssert| $Q] s): Assertion))
+    | `([Assert| $P:nat_assert < $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s < [NatAssert| $Q] s): Assertion))
+    | `([Assert| $P:nat_assert ≥ $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s ≥ [NatAssert| $Q] s): Assertion))
+    | `([Assert| $P:nat_assert > $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s > [NatAssert| $Q] s): Assertion))
 
   def ap (f: Nat → α) (e: NatAssertion) := fun s => f (e s)
   def ap₂ (f: Nat → Nat → a) (e₁ e₂: NatAssertion) := fun s => f (e₁ s) (e₂ s)
 
-  infix:65 "→" => Assertion.implies
-  infix:65 "↔" => Assertion.iff
-  infixr:35 "∧" => Assertion.and
-  infixr:30 "∨" => Assertion.or
-  notation:max "¬" P:40 => Assertion.not P
-  infix:50 "===" => Assertion.eq
-  infix:65 "≠" => Assertion.neq
-  infix:50 "<" => Assertion.lt
-  infix:50 "≤" => Assertion.le
-  infix:50 ">" => Assertion.gt
-  infix:50 "≥" => Assertion.ge
-
-  instance: Add NatAssertion where
-    add P Q := Assertion.add P Q
-  instance: Sub NatAssertion where
-    sub P Q := Assertion.sub P Q
-  instance: Mul NatAssertion where
-    mul P Q := Assertion.mul P Q
-
   section
-    private def ex₁: Assertion := "X" === 3
-    private def ex₂: Assertion := True
-    private def ex₃: Assertion := False
+    private def ex₁ := [Assert| X = 3]
+    private def ex₂ := [Assert| True]
+    private def ex₃ := [Assert| False]
 
-    private def ex₄: Assertion := "X" ≤ "Y"
-    private def ex₅: Assertion := ("X" === 3) ∨ (("X": NatAssertion) < "Y")
-    private def ex₆: Assertion := "X" === (ap₂ max "X" "Y")
-    private def ex₇: Assertion := ("Z" * "Z" ≤ "X") ∨ ¬((ap Nat.succ "Z") * (ap Nat.succ "Z") ≤ "X")
+    private def ex₄ := [Assert| X ≤ Y]
+    private def ex₅ := [Assert| X = 3 ∨ X < Y]
+    private def ex₆ := [Assert| X = (ap₂ max "X" "Y")]
+    private def ex₇ := [Assert| (Z * Z ≤ X) ∨ ¬((ap Nat.succ "Z") * (ap Nat.succ "Z") ≤ X)]
   end
 
   /-
@@ -99,7 +94,14 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
   def HoareTriple (P: Assertion) (c: Command) (Q: Assertion): Prop :=
     ∀ s₁ s₂: State, P s₁ → CommandEval c s₁ s₂ → Q s₂
 
-  notation " ⦃ " P " , " c " , " Q " ⦄ " => HoareTriple P c Q
+  declare_syntax_cat hoare
+
+  syntax "⦃" assert "⦄" cmd "⦃" assert "⦄" : hoare
+
+  syntax "[Hoare|" hoare "]" : term
+
+  macro_rules
+    | `([Hoare| ⦃ $pre:assert ⦄ $c:cmd ⦃ $post:assert ⦄ ]) => `(HoareTriple [Assert| $pre] [Imp| $c] [Assert| $post])
 
   theorem HoareTriple.post_true {P Q: Assertion} {c: Command}: (h: (s: State) → Q s) → ⦃P, c, Q⦄
     | h, s₁, s₂, hp, c =>
@@ -198,6 +200,8 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
   /-
   ### Consequence
   -/
+
+
 
   /-
   ### Automation
