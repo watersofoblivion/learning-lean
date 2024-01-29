@@ -28,17 +28,48 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
 
   declare_syntax_cat nat_assert
 
-  syntax arith : nat_assert
-  syntax "app" arith* : nat_assert
+  syntax num : nat_assert
+  syntax ident : nat_assert
+  syntax:60 nat_assert:60 "+" nat_assert:61 : nat_assert
+  syntax:60 nat_assert:60 "-" nat_assert:61 : nat_assert
+  syntax:70 nat_assert:70 "*" nat_assert:71 : nat_assert
+  syntax:30 "app₁" "‹" term "›" nat_assert : nat_assert
+  syntax:30 "app₂" "‹" term "›" nat_assert nat_assert : nat_assert
+  syntax "(" nat_assert ")" : nat_assert
 
   syntax "[NatAssert|" nat_assert "]" : term
 
   macro_rules
-    | `([NatAssert| $e:arith])  => `(((fun s => [Arith| $e].eval s): NatAssertion))
+    | `([NatAssert| $n:num])                                     => `(((fun _ => $n): NatAssertion))
+    | `([NatAssert| $id:ident])                                  => `(((fun s => s $(Lean.quote (toString id.getId))): NatAssertion))
+    | `([NatAssert| $x + $y])                                    => `(((fun s => ([NatAssert| $x] s) + ([NatAssert| $y] s)): NatAssertion))
+    | `([NatAssert| $x - $y])                                    => `(((fun s => ([NatAssert| $x] s) - ([NatAssert| $y] s)): NatAssertion))
+    | `([NatAssert| $x * $y])                                    => `(((fun s => ([NatAssert| $x] s) * ([NatAssert| $y] s)): NatAssertion))
+    | `([NatAssert| app₂ ‹$f:term› $x:nat_assert $y:nat_assert]) => `(((fun s => $(Lean.quote f) ([NatAssert| $x] s) ([NatAssert| $y] s)): NatAssertion))
+    | `([NatAssert| app₁ ‹$f:term› $x:nat_assert])               => `(((fun s => $(Lean.quote f) ([NatAssert| $x] s)): NatAssertion))
+    | `([NatAssert| ( $a:nat_assert )])                          => `([NatAssert| $a])
+
+  section
+    example: [NatAssert| 42] [State|] = 42 := rfl
+    example: [NatAssert| 1 + 2] [State|] = 3 := rfl
+    example: [NatAssert| 2 - 1] [State|] = 1 := rfl
+    example: [NatAssert| 2 * 4] [State|] = 8 := rfl
+
+    example: [NatAssert| (2 + 58) * (4 - 4)] [State|] = 0 := rfl
+
+    example: [NatAssert| X] [State| X = 42] = 42 := rfl
+    example: [NatAssert| X + Y] [State| X = 1, Y = 2] = 3 := rfl
+
+    example: [NatAssert| (app₁ ‹Nat.succ› 1)] [State|] = 2 := rfl
+    example: [NatAssert| app₁ ‹Nat.succ› 1] [State|] = 2 := rfl
+    example: [NatAssert| (app₁ ‹Nat.succ› X)] [State| X = 1] = 2 := rfl
+    example: [NatAssert| app₁ ‹Nat.succ› X] [State| X = 1] = 2 := rfl
+    example: [NatAssert| (app₂ ‹max› 1 2)] [State|] = 2 := rfl
+    example: [NatAssert| app₂ ‹max› X Y] [State| X = 1, Y = 2] = 2 := rfl
+  end
 
   declare_syntax_cat assert
 
-  -- syntax prop : assert
   syntax nat_assert : assert
   syntax:min assert "→" assert : assert
   syntax:min assert "↔" assert : assert
@@ -51,35 +82,45 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
   syntax:50 nat_assert "≤" nat_assert : assert
   syntax:50 nat_assert ">" nat_assert : assert
   syntax:50 nat_assert "≥" nat_assert : assert
+  syntax "(" assert ")" : assert
+  syntax "‹prop:" term "›" : assert
+  syntax "‹" term "›" : assert
 
   syntax "[Assert|" assert "]" : term
 
   macro_rules
-    -- | `([Assert| $P])   => `(((fun s => [Assert| $P] s): Assertion))
-    | `([Assert| $P → $Q])   => `(((fun s => [Assert| $P] s → [Assert| $Q] s): Assertion))
-    | `([Assert| $P ↔ $Q])   => `(((fun s => [Assert| $P] s ↔ [Assert| $Q] s): Assertion))
-    | `([Assert| $P ∧ $Q])   => `(((fun s => [Assert| $P] s ∧ [Assert| $Q] s): Assertion))
-    | `([Assert| $P ∨ $Q])   => `(((fun s => [Assert| $P] s ∨ [Assert| $Q] s): Assertion))
-    | `([Assert| ¬ $P])      => `(((fun s => ¬ [Assert| $P]): Assertion))
+    | `([Assert| ‹prop: $P:term › ])             => `(((fun _ => $(Lean.quote P)): Assertion))
+    | `([Assert| ‹$P:term› ])                    => `($(Lean.quote P))
+    | `([Assert| $P → $Q])                       => `(((fun s => [Assert| $P] s → [Assert| $Q] s): Assertion))
+    | `([Assert| $P ↔ $Q])                       => `(((fun s => [Assert| $P] s ↔ [Assert| $Q] s): Assertion))
+    | `([Assert| $P ∧ $Q])                       => `(((fun s => [Assert| $P] s ∧ [Assert| $Q] s): Assertion))
+    | `([Assert| $P ∨ $Q])                       => `(((fun s => [Assert| $P] s ∨ [Assert| $Q] s): Assertion))
+    | `([Assert| ¬ $P])                          => `(((fun s => ¬ [Assert| $P] s): Assertion))
     | `([Assert| $P:nat_assert = $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s = [NatAssert| $Q] s): Assertion))
     | `([Assert| $P:nat_assert ≠ $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s ≠ [NatAssert| $Q] s): Assertion))
     | `([Assert| $P:nat_assert ≤ $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s ≤ [NatAssert| $Q] s): Assertion))
     | `([Assert| $P:nat_assert < $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s < [NatAssert| $Q] s): Assertion))
     | `([Assert| $P:nat_assert ≥ $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s ≥ [NatAssert| $Q] s): Assertion))
     | `([Assert| $P:nat_assert > $Q:nat_assert]) => `(((fun s => [NatAssert| $P] s > [NatAssert| $Q] s): Assertion))
-
-  def ap (f: Nat → α) (e: NatAssertion) := fun s => f (e s)
-  def ap₂ (f: Nat → Nat → a) (e₁ e₂: NatAssertion) := fun s => f (e₁ s) (e₂ s)
+    | `([Assert| ( $a:assert )])                 => `([Assert| $a])
 
   section
     private def ex₁ := [Assert| X = 3]
-    private def ex₂ := [Assert| True]
-    private def ex₃ := [Assert| False]
+    private def ex₂ := [Assert| ‹prop: True ›]
+    private def ex₃ := [Assert| ‹prop: False ›]
 
     private def ex₄ := [Assert| X ≤ Y]
     private def ex₅ := [Assert| X = 3 ∨ X < Y]
-    private def ex₆ := [Assert| X = (ap₂ max "X" "Y")]
-    private def ex₇ := [Assert| (Z * Z ≤ X) ∨ ¬((ap Nat.succ "Z") * (ap Nat.succ "Z") ≤ X)]
+    private def ex₆ := [Assert| X = 3 ∧ X < Y]
+    private def ex₇ := [Assert| X = (app₂ ‹max› X Y)]
+    private def ex₈ := [Assert| Z * Z ≤ X + 99]
+    private def ex₉ := [Assert| Z * Z ≤ X ∨ ¬((app₁ ‹Nat.succ› Z) * (app₁ ‹Nat.succ› Z) ≤ X)]
+
+    private def ex₁₀ := [Assert| ¬ X + 42 ≥ 99 - Q]
+    private def ex₁₁ := [Assert| X + 42 ≥ 99 - Q → J = 4 ∧ P ≤ 5]
+    private def ex₁₂ := [Assert| X + 42 ≥ 99 - Q ↔ J = 4 ∧ P ≤ 5]
+
+    private def ex₁₃ (P: Assertion) := [Assert| ‹P› ]
   end
 
   /-
@@ -103,11 +144,11 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
   macro_rules
     | `([Hoare| ⦃ $pre:assert ⦄ $c:cmd ⦃ $post:assert ⦄ ]) => `(HoareTriple [Assert| $pre] [Imp| $c] [Assert| $post])
 
-  theorem HoareTriple.post_true {P Q: Assertion} {c: Command}: (h: (s: State) → Q s) → ⦃P, c, Q⦄
+  theorem HoareTriple.post_true {P Q: Assertion} {c: Command}: (h: (s: State) → Q s) → [Hoare| ⦃ ‹P› ⦄ ‹c› ⦃ ‹Q› ⦄]
     | h, s₁, s₂, hp, c =>
-      sorry
+      [Hoare| ⦃ ‹prop:h s₁› ⦄ ‹c› ⦃ ‹hp› ⦄]
 
-  theorem HoareTriple.pre_false {P Q: Assertion} {c: Command}: (h: (s: State) → ¬P s) → ⦃P, c, Q⦄
+  theorem HoareTriple.pre_false {P Q: Assertion} {c: Command}: (h: (s: State) → ¬P s) → [Hoare| ⦃ ‹P› ⦄ ‹c› ⦃ ‹Q› ⦄]
     | h, s₁, s₂, hp, c => sorry
 
   /-
@@ -118,14 +159,14 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
   ### Skip
   -/
 
-  def HoareTriple.skip {P: Assertion}: ⦃P, .skip, P⦄
+  def HoareTriple.skip {P: Assertion}: [Hoare| ⦃ ‹P› ⦄ skip ⦃ ‹P› ⦄]
     | _, _, hp, .skip _ => hp
 
   /-
   ### Sequencing
   -/
 
-  def HoareTriple.seq {P Q R: Assertion} {c₁ c₂: Command} (h₁: ⦃Q, c₂, R⦄) (h₂: ⦃P, c₁, Q⦄): ⦃P, (.seq c₁ c₂), R⦄
+  def HoareTriple.seq {P Q R: Assertion} {c₁ c₂: Command} (h₁: [Hoare| ⦃ ‹Q› ⦄ ‹c₂› ⦃ ‹R› ⦄]) (h₂: [Hoare| ⦃ ‹P› ⦄ ‹c₁› ⦃ ‹Q› ⦄]): [Hoare| ⦃ ‹P› ⦄ ‹c₁›; ‹c₂› ⦃ ‹R› ⦄]
     | _, _, hp, .seq _ _ _ h₃ h₄ =>
       have hq := h₂ _ _ hp h₃
       h₁ _ _ hq h₄
@@ -140,7 +181,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
 
   notation P "[" id "↦" e "]" => Assertion.subst id e P
 
-  def HoareTriple.assign {Q: Assertion} {id: String} {e: Arith}: ⦃Q [id ↦ e], (.assign id e), Q⦄
+  def HoareTriple.assign {Q: Assertion} {id: String} {e: Arith}: [Hoare| ⦃Q [id ↦ e]⦄ ‹id› := ‹e›) ⦃Q⦄]
     | _,_, hqs, .assign _ h =>
       have h :=
         calc Assertion.subst id e Q _
@@ -150,18 +191,18 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
       by rw [h] at hqs; exact hqs
 
   namespace Term
-    example: ⦃(Assertion.lt "X" 5) ["X" ↦ "X" + 1], .assign "X" ("X" + 1), Assertion.lt "X" 5⦄ :=
+    example: [Hoare| ⦃(X < 5) [X ↦ X + 1]⦄ X := X + 1 ⦃X < 5⦄] :=
       HoareTriple.assign
 
-    example: ∃ P, ⦃P, .assign "X" (2 * "X"), "X" ≤ 10⦄ :=
-      ⟨"X" ≤ 5, sorry⟩
+    example: ∃ P, [Hoare| ⦃ ‹P› ⦄ X := 2 * X ⦃X ≤ 10⦄] :=
+      ⟨[Assert| X ≤ 5], sorry⟩
 
-    example: ∃ P, ⦃P, .assign "X" 3, ("X" ≤ 0 ∧ "X" ≤ 5)⦄ :=
-      ⟨True, sorry⟩
+    example: ∃ P, [Hoare| ⦃ ‹P› ⦄ X := 3 ⦃(X ≤ 0 ∧ X ≤ 5)⦄] :=
+      ⟨[Assert| ‹prop:True› ], sorry⟩
 
-    example: ∃ E: Arith, ¬ ⦃True, .assign "X" e, "X" === e⦄ := sorry
-    example (n: Nat) (e: Arith) (P: Assertion): ⦃fun s => P s ∧ s "X" = n, .assign "X" e, fun s => P (s.update "X" n) ∧ s "X" = e.eval (s.update "X" n)⦄ := sorry
-    example (e: Arith) (P: Assertion): ⦃fun s => P s, .assign "X" e, fun s => ∃ n: Nat, P (s.update "X" n) ∧ s "X" = e.eval (s.update "X" n)⦄ := sorry
+    example: ∃ E: Arith, ¬ [Hoare| ⦃ ‹prop: True› ⦄ X := ‹e› ⦃X = e⦄] := sorry
+    example (n: Nat) (e: Arith) (P: Assertion): [Hoare| ⦃ ‹fun s => P s ∧ s "X" = n› ⦄ X := ‹e› ⦃ ‹fun s => P (s.update "X" n) ∧ s "X" = e.eval (s.update "X" n)› ⦄] := sorry
+    example (e: Arith) (P: Assertion): [Hoare| ⦃ ‹fun s => P s› ⦄ X := ‹e› ⦃ ‹fun s => ∃ n: Nat, P (s.update "X" n) ∧ s "X" = e.eval (s.update "X" n)› ⦄] := sorry
   end Term
 
   namespace Tactic

@@ -778,8 +778,8 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   syntax "[State|" state,* "]" : term
 
   macro_rules
-    | `([State| ]) => `(State.empty)
-    | `([State| $id:ident = $n:num ]) => `(State.empty.update $(Lean.quote (toString id.getId)) $n)
+    | `([State| ])                                  => `(State.empty)
+    | `([State| $id:ident = $n:num ])               => `(State.empty.update $(Lean.quote (toString id.getId)) $n)
     | `([State| $ss:state,* , $id:ident = $n:num ]) => `([State|$ss,*].update $(Lean.quote (toString id.getId)) $n)
 
   #check [State| x = 1, y = 2]
@@ -791,23 +791,23 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   syntax:60 arith:60 "+" arith:61 : arith
   syntax:60 arith:60 "-" arith:61 : arith
   syntax:70 arith:70 "*" arith:71 : arith
-  syntax "<[num:" term "]>" : arith
-  syntax "<[id:" term "]>" : arith
-  syntax "<[" term "]>" : arith
+  syntax "‹num:" term "›" : arith
+  syntax "‹id:" term "›" : arith
+  syntax "‹" term "›" : arith
   syntax "(" arith ")" : arith
 
   syntax "[Arith|" arith "]" : term
 
   macro_rules
-    | `([Arith| $n:num])       => `(Arith.num $n)
-    | `([Arith| $id:ident])    => `(Arith.ident $(Lean.quote (toString id.getId)))
-    | `([Arith| <[num: $t]>])  => `(Arith.num $(Lean.quote t))
-    | `([Arith| <[id: $t]>])   => `(Arith.ident $(Lean.quote t))
-    | `([Arith| <[ $t ]>])     => `($(Lean.quote t))
-    | `([Arith| $x + $y])      => `(Arith.plus [Arith| $x] [Arith| $y])
-    | `([Arith| $x - $y])      => `(Arith.minus [Arith| $x] [Arith| $y])
-    | `([Arith| $x * $y])      => `(Arith.mult [Arith| $x] [Arith| $y])
-    | `([Arith| ( $e )])       => `([Arith| $e])
+    | `([Arith| $n:num])    => `(Arith.num $n)
+    | `([Arith| $id:ident]) => `(Arith.ident $(Lean.quote (toString id.getId)))
+    | `([Arith| ‹num: $t›]) => `(Arith.num $(Lean.quote t))
+    | `([Arith| ‹id: $t›])  => `(Arith.ident $(Lean.quote t))
+    | `([Arith| ‹$t›])      => `($(Lean.quote t))
+    | `([Arith| $x + $y])   => `(Arith.plus [Arith| $x] [Arith| $y])
+    | `([Arith| $x - $y])   => `(Arith.minus [Arith| $x] [Arith| $y])
+    | `([Arith| $x * $y])   => `(Arith.mult [Arith| $x] [Arith| $y])
+    | `([Arith| ( $e )])    => `([Arith| $e])
 
   #check [Arith| 42]
   #check [Arith| X]
@@ -817,10 +817,10 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   #check [Arith| (X + 42) * (19 - Z)]
 
   private def testNum := 42
-  #check [Arith| <[num: testNum]>]
+  #check [Arith| ‹num: testNum›]
 
   private def testId := "test-id"
-  #check [Arith| <[id: testId]> ]
+  #check [Arith| ‹id: testId› ]
 
   declare_syntax_cat logic
 
@@ -832,22 +832,22 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   syntax:50 arith ">" arith : logic
   syntax:max "!" logic : logic
   syntax:30 logic "&&" logic : logic
-  syntax "<[" term "]>" : logic
+  syntax "‹" term "›" : logic
   syntax "(" logic ")" : logic
 
   syntax "[Logic|" logic "]" : term
 
   macro_rules
-    | `([Logic| tru])                  => `(Logic.true)
-    | `([Logic| fls])                  => `(Logic.false)
-    | `([Logic| $x:arith = $y:arith])  => `(Logic.eq [Arith| $x] [Arith| $y])
-    | `([Logic| $x:arith ≠ $y:arith])  => `(Logic.neq [Arith| $x] [Arith| $y])
-    | `([Logic| $x:arith ≤ $y:arith])  => `(Logic.le [Arith| $x] [Arith| $y])
-    | `([Logic| $x:arith > $y:arith])  => `(Logic.gt [Arith| $x] [Arith| $y])
-    | `([Logic| ! $x])                 => `(Logic.not [Logic| $x])
-    | `([Logic| $x && $y])             => `(Logic.and [Logic| $x] [Logic| $y])
-    | `([Logic| ( $b )])               => `([Logic| $b])
-    | `([Logic| <[ $t:term ]>])        => `($(Lean.quote t))
+    | `([Logic| tru])                 => `(Logic.true)
+    | `([Logic| fls])                 => `(Logic.false)
+    | `([Logic| $x:arith = $y:arith]) => `(Logic.eq [Arith| $x] [Arith| $y])
+    | `([Logic| $x:arith ≠ $y:arith]) => `(Logic.neq [Arith| $x] [Arith| $y])
+    | `([Logic| $x:arith ≤ $y:arith]) => `(Logic.le [Arith| $x] [Arith| $y])
+    | `([Logic| $x:arith > $y:arith]) => `(Logic.gt [Arith| $x] [Arith| $y])
+    | `([Logic| ! $x])                => `(Logic.not [Logic| $x])
+    | `([Logic| $x && $y])            => `(Logic.and [Logic| $x] [Logic| $y])
+    | `([Logic| ( $b )])              => `([Logic| $b])
+    | `([Logic| ‹$t:term›])           => `($(Lean.quote t))
 
   #check [Logic| tru]
   #check [Logic| fls]
@@ -900,27 +900,27 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
   syntax:50 "skip" : cmd
   syntax:50 ident ":=" arith : cmd
-  syntax:50 "<[" term "]>" ":=" arith : cmd
+  syntax:50 "‹" term "›" ":=" arith : cmd
   syntax:40 cmd ";" cmd : cmd
   syntax:50 "ite" "(" logic ")" "{" cmd "}" "else" "{" cmd "}" : cmd
   syntax:50 "while" "(" logic ")" "{" cmd "}" : cmd
   syntax "(" cmd ")" : cmd
-  syntax "<[" term "]>" : cmd
+  syntax "‹" term "›" : cmd
 
   syntax "[Imp|" cmd "]" : term
 
   macro_rules
     | `([Imp| skip])                                => `(Command.skip)
     | `([Imp| $id:ident := $e:arith])               => `(Command.assign $(Lean.quote (toString id.getId)) [Arith| $e])
-    | `([Imp| <[ $t:term ]> := $e:arith])           => `(Command.assign $(Lean.quote t) [Arith| $e])
+    | `([Imp| ‹$t:term› := $e:arith])               => `(Command.assign $(Lean.quote t) [Arith| $e])
     | `([Imp| $x; $y])                              => `(Command.seq [Imp| $x] [Imp| $y])
     | `([Imp| ite ( $c:logic ) { $t } else { $f }]) => `(Command.if [Logic| $c] [Imp| $t] [Imp| $f])
     | `([Imp| while ( $c:logic ) { $b }])           => `(Command.while [Logic| $c] [Imp| $b])
     | `([Imp| ( $c )])                              => `([Imp| $c])
-    | `([Imp| <[ $t:term ]> ])                      => pure t
+    | `([Imp| ‹$t:term› ])                          => pure t
 
   #check [Imp| ite (x ≠ 0) { y := 3; z := 99 } else { z := 42 } ]
-  #check [Imp| <[testId]> := 42]
+  #check [Imp| ‹testId› := 42]
 
   def factorial := [Imp|
     z := x;
@@ -931,7 +931,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     }
   ]
 
-  #check [Imp| <[ factorial]> ]
+  #check [Imp| ‹factorial› ]
 
   /-
   ### Desugaring Notations
@@ -973,14 +973,14 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
     private def subtractSlowly := [Imp|
       while (X ≠ 0) {
-        <[ subtractSlowlyBody ]>
+        ‹subtractSlowlyBody›
       }
     ]
 
     private def subtract3From5Slowly := [Imp|
       X := 3;
       Z := 5;
-      <[ subtractSlowly ]>
+      ‹subtractSlowly›
     ]
 
     /- #### An Infinite Loop -/
@@ -1020,8 +1020,8 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
   notation:60 s₁ "=[" c "]=>" s₂ => CommandEval c s₁ s₂
 
-  def assignment (id: String) (n: Nat) (s: State): s =[[Imp| <[id]> := <[num:n]>]]=> (s.update id n) :=
-      have h: [Arith| <[num:n]>].eval s = n := by
+  def assignment (id: String) (n: Nat) (s: State): s =[[Imp| ‹id› := ‹num:n›]]=> (s.update id n) :=
+      have h: [Arith| ‹num:n›].eval s = n := by
         unfold Arith.eval
         rfl
       CommandEval.assign s h
@@ -1038,7 +1038,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
     private def xLe1: Logic := [Logic| X ≤ 1]
 
-    private def branch := [Imp| ite ( <[xLe1]> ) { <[ y3 ]> } else { <[ z4 ]> }]
+    private def branch := [Imp| ite ( ‹xLe1› ) { ‹y3› } else { ‹z4› }]
 
     def sum := [Imp|
       Y := 0;
@@ -1051,7 +1051,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     /- Example -/
 
     namespace Term
-      example: [State|] =[[Imp| <[ x2 ]>; <[ branch ]>]]=> [State| X = 2, Z = 4] :=
+      example: [State|] =[[Imp| ‹x2›; ‹branch›]]=> [State| X = 2, Z = 4] :=
         let s₁: State := State.empty
         let s₂: State := s₁.update "X" 2
         let s₃: State := s₂.update "Z" 4
@@ -1068,7 +1068,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           repeat unfold instCoeListCommand.conv
           exact CommandEval.seq s₁ s₂ s₃ h₁ h₂
 
-      example: [State|] =[[Imp| <[ x0 ]>; <[ y1 ]>; <[ z2 ]>]]=> [State| X = 0, Y = 1, Z = 2] :=
+      example: [State|] =[[Imp| ‹x0›; ‹y1›; ‹z2›]]=> [State| X = 0, Y = 1, Z = 2] :=
         let s₁: State := State.empty
         let s₂: State := s₁.update "X" 0
         let s₃: State := s₂.update "Y" 1
@@ -1083,14 +1083,14 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     end Term
 
     namespace Tactic
-      example: [State|] =[[Imp| <[x2]>; <[branch]>]]=> [State| X = 2, Z = 4] := by sorry
-      example: [State|] =[[Imp| <[ x0 ]>; <[ y1 ]>; <[ z2 ]>]]=> [State| X = 0, Y = 1, Z = 2] := by sorry
+      example: [State|] =[[Imp| ‹x2›; ‹branch›]]=> [State| X = 2, Z = 4] := by sorry
+      example: [State|] =[[Imp| ‹x0›; ‹y1›; ‹z2›]]=> [State| X = 0, Y = 1, Z = 2] := by sorry
       example: [State| X = 2] =[sum]=> [State| X = 2, Y = 0, Y = 2, X = 1, Y = 3, X = 0] := by sorry
     end Tactic
 
     namespace Blended
-      example: [State|] =[[Imp| <[x2]>; <[branch]>]]=> [State| X = 2, Z = 4] := sorry
-      example: [State|] =[[Imp| <[ x0 ]>; <[ y1 ]>; <[ z2 ]>]]=> [State| X = 0, Y = 1, Z = 2] := sorry
+      example: [State|] =[[Imp| ‹x2›; ‹branch›]]=> [State| X = 2, Z = 4] := sorry
+      example: [State|] =[[Imp| ‹x0›; ‹y1›; ‹z2›]]=> [State| X = 0, Y = 1, Z = 2] := sorry
       example: [State| X = 2] =[sum]=> [State| X = 2, Y = 0, Y = 2, X = 1, Y = 3, X = 0] := sorry
     end Blended
   end
@@ -1314,26 +1314,26 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
     syntax:50 "skip" : break_cmd
     syntax:50 ident ":=" arith : break_cmd
-    syntax:50 "<[" term "]>" ":=" arith : break_cmd
+    syntax:50 "‹" term "›" ":=" arith : break_cmd
     syntax:40 break_cmd ";" break_cmd : break_cmd
     syntax:50 "ite" "(" logic ")" "{" break_cmd "}" "else" "{" break_cmd "}" : break_cmd
     syntax:50 "while" "(" logic ")" "{" break_cmd "}" : break_cmd
     syntax:50 "break" : break_cmd
     syntax "(" break_cmd ")" : break_cmd
-    syntax "<[" term "]>" : break_cmd
+    syntax "‹" term "›" : break_cmd
 
     syntax "[Break|" break_cmd "]" : term
 
     macro_rules
       | `([Break| skip])                                => `(Command.skip)
       | `([Break| $id:ident := $e:arith])               => `(Command.assign $(Lean.quote (toString id.getId)) [Arith| $e])
-      | `([Break| <[ $t:term ]> := $e:arith])           => `(Command.assign $(Lean.quote t) [Arith| $e])
+      | `([Break| ‹$t:term› := $e:arith])           => `(Command.assign $(Lean.quote t) [Arith| $e])
       | `([Break| $x; $y])                              => `(Command.seq [Break| $x] [Break| $y])
       | `([Break| ite ( $c:logic ) { $t } else { $f }]) => `(Command.if [Logic| $c] [Break| $t] [Break| $f])
       | `([Break| while ( $c:logic ) { $b }])           => `(Command.while [Logic| $c] [Break| $b])
       | `([Break| break ])                              => `(Command.break)
       | `([Break| ( $c )])                              => `([Break| $c])
-      | `([Break| <[ $t:term ]> ])                      => pure t
+      | `([Break| ‹$t:term› ])                      => pure t
 
     inductive CommandEval: Command → State → Result → State → Prop where
       | skip (s: State): CommandEval .skip s .continue s
@@ -1348,28 +1348,28 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     notation s₁ "=[" c "]=[" r "]=>" s₂ => CommandEval c s₁ r s₂
 
     namespace Term
-      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; <[c]>]]=[r]=> s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[r]=> s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.continue]=> s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.break]=> s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := sorry
+      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; ‹c›]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (‹c›) { ‹b› }]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (‹c›) { ‹b› }]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| ‹c₁›; ‹c₂›]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| ‹c₁›; ‹c₂›]]=[.break]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (‹c›) { ‹b› }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := sorry
 
       theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: s₁ =[c]=[r₁]=> s₂) (h₂: s₁ =[c]=[r₂]=> s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
     end Term
 
     namespace Tactic
-      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; <[c]>]]=[r]=> s₂ := by
+      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; ‹c›]]=[r]=> s₂ := by
         sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[r]=> s₂ := by
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (‹c›) { ‹b› }]]=[r]=> s₂ := by
         sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂ := by
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (‹c›) { ‹b› }]]=[.continue]=> s₂ := by
         sorry
-      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.continue]=> s₂ := by
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| ‹c₁›; ‹c₂›]]=[.continue]=> s₂ := by
         sorry
-      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.break]=> s₂ := by
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| ‹c₁›; ‹c₂›]]=[.break]=> s₂ := by
         sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := by
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (‹c›) { ‹b› }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := by
         sorry
 
       theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: s₁ =[c]=[r₁]=> s₂) (h₂: s₁ =[c]=[r₂]=> s₃): s₂ = s₃ ∧ r₁ = r₂ := by
@@ -1377,12 +1377,12 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     end Tactic
 
     namespace Blended
-      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; <[c]>]]=[r]=> s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[r]=> s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.continue]=> s₂ := sorry
-      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| <[c₁]>; <[c₂]>]]=[.break]=> s₂ := sorry
-      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (<[c]>) { <[b]> }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := sorry
+      example (c: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| break; ‹c›]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (r: Result): s₁ =[[Break| while (‹c›) { ‹b› }]]=[r]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: c.eval s₁ = true) (h₂: s₁ =[b]=[.break]=> s₂): s₁ =[[Break| while (‹c›) { ‹b› }]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c₁]=[.continue]=> s₂) (h₂: s₂ =[c₂]=[.continue]=> s₃): s₁ =[[Break| ‹c₁›; ‹c₂›]]=[.continue]=> s₂ := sorry
+      example (c₁ c₂: Command) (s₁ s₂: State) (h₁: s₁ =[c₁]=[.break]=> s₂): s₁ =[[Break| ‹c₁›; ‹c₂›]]=[.break]=> s₂ := sorry
+      example (c: Logic) (b: Command) (s₁ s₂: State) (h₁: s₁ =[[Break| while (‹c›) { ‹b› }]]=[.continue]=> s₂) (h₂: c.eval s₂ = true): ∃ s₃: State, s₃ =[b]=[.break]=> s₂ := sorry
 
       theorem CommandEval.deterministic (c: Command) (s₁ s₂ s₃: State) (r₁ r₂: Result) (h₁: s₁ =[c]=[r₁]=> s₂) (h₂: s₁ =[c]=[r₂]=> s₃): s₂ = s₃ ∧ r₁ = r₂ := sorry
     end Blended
