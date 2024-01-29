@@ -81,7 +81,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     False.elim (by simp_all)
 
   namespace Term
-    theorem Command.skip_left {c: Command}: [Imp| skip; <[ c ]>] ≈ c
+    theorem Command.skip_left {c: Command}: [Imp| skip; <[c]>] ≈ c
       | _, _ =>
         have mp
           | .seq _ _ _ (.skip _) h₂ => h₂
@@ -95,7 +95,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁          => .seq _ _ _ (.skip _) (.whileFalse _ h₁)
         ⟨mp, mpr⟩
 
-    theorem Command.skip_right {c: Command}: [Imp| <[ c ]>; skip] ≈ c
+    theorem Command.skip_right {c: Command}: [Imp| <[c]>; skip] ≈ c
       | _, _ =>
         have mp
           | .seq _ _ _ h₁ (.skip _) => h₁
@@ -185,7 +185,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁ => Logic.true.trueFalse rfl h₁
         ⟨mp, mpr⟩
       where
-        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[c]>) { <[ b ]> }]]=> s₂)
+        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[c]>) { <[b]> }]]=> s₂)
           | .whileTrue s₁ s₂ s₃ h₁ h₂ h₃ =>
             sorry
           | .whileFalse _ h₁ => c.trueFalse (h _) h₁
@@ -228,7 +228,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
   namespace Tactic
     @[scoped simp]
-    theorem Command.skip_left {c: Command}: [Imp| skip; <[ c ]>] ≈ c := by
+    theorem Command.skip_left {c: Command}: [Imp| skip; <[c]>] ≈ c := by
       intro s₁ s₂
       apply Iff.intro
       · intro
@@ -251,7 +251,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             repeat assumption
 
     @[scoped simp]
-    theorem Command.skip_right {c: Command}: [Imp| <[ c ]>; skip] ≈ c := by
+    theorem Command.skip_right {c: Command}: [Imp| <[c]>; skip] ≈ c := by
       intro s₁ s₂
       apply Iff.intro
       · intro
@@ -391,7 +391,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           contradiction
         | whileFalse _ _ => simp_all
       where
-        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[ c ]>) { <[ b ]> }]]=> s₂) := by
+        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[c]>) { <[b]> }]]=> s₂) := by
           intro
           | .whileTrue s₃ s₄ s₅ h₁ h₂ h₃ =>
             -- simp_all
@@ -451,7 +451,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
   namespace Blended
     @[scoped simp]
-    theorem Command.skip_left {c: Command}: [Imp| skip; <[ c ]>] ≈ c
+    theorem Command.skip_left {c: Command}: [Imp| skip; <[c]>] ≈ c
       | _, _ =>
         have mp
           | .seq _ _ _ (.skip _) h₂ => h₂
@@ -466,7 +466,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         ⟨mp, mpr⟩
 
     @[scoped simp]
-    theorem Command.skip_right {c: Command}: [Imp| <[ c ]>; skip] ≈ c
+    theorem Command.skip_right {c: Command}: [Imp| <[c]>; skip] ≈ c
       | _, _ =>
         have mp
           | .seq _ _ _ h₁ (.skip _) => h₁
@@ -557,7 +557,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁ => Logic.true.trueFalse rfl h₁
         ⟨mp, mpr⟩
       where
-        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[ c ]>) { <[ b ]> }]]=> s₂)
+        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[c]>) { <[b]> }]]=> s₂)
           | .whileTrue _ _ _ _ _ h₃ => sorry
           | .whileFalse _ h₁ => c.trueFalse (h _) h₁
 
@@ -1072,7 +1072,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         | .num n₁, .num n₂ => .num (n₁ * n₂)
         | e₁, e₂ => .mult e₁ e₂
 
-  example: [Arith| (1 + 2) * X].constFold = [Arith|3 * X] := rfl
+  example: [Arith| (1 + 2) * X].constFold = [Arith| 3 * X] := rfl
   example: [Arith| X - ((0 * 6) + Y)].constFold = [Arith| X - (0 + Y)] := rfl
 
   @[reducible]
@@ -1536,7 +1536,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       | .minus e₁ e₂ => .minus (subst e₁ var repl) (subst e₂ var repl)
       | .mult e₁ e₂ => .mult (subst e₁ var repl) (subst e₂ var repl)
 
-  example: [Arith| Y + X].subst "X" [Arith|42 + 53] = [Arith| Y + (42 + 53)] := rfl
+  example: [Arith| Y + X].subst "X" [Arith| 42 + 53] = [Arith| Y + (42 + 53)] := rfl
 
   def Arith.subst.equiv: Prop := ∀ id₁ id₂ e₁ e₂, [Imp| <[id₁]> := <[e₁]>; <[id₂]> := <[e₂]>] ≈ [Imp| <[id₁]> := <[e₁]>; <[id₂]> := <[e₂.subst id₁ e₁]>]
 
@@ -1628,7 +1628,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
       example: ¬(havocHavoc ≈ noHavoc) := sorry
 
-      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith|1]) := sorry
+      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith| 1]) := sorry
     end Term
 
     namespace Tactic
@@ -1646,7 +1646,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
       example: ¬(havocHavoc ≈ noHavoc) := by sorry
 
-      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith|1]) := sorry
+      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith| 1]) := sorry
     end Tactic
 
     namespace Blended
@@ -1664,7 +1664,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
       example: ¬(havocHavoc ≈ noHavoc) := sorry
 
-      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith|1]) := sorry
+      example: (Command.while [Logic| X ≠ 1] (.havoc "X")) ≈ (.assign "X" [Arith| 1]) := sorry
     end Blended
   end Havoc
 

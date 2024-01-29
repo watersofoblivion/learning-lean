@@ -804,10 +804,10 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     | `([Arith| <[num: $t]>])  => `(Arith.num $(Lean.quote t))
     | `([Arith| <[id: $t]>])   => `(Arith.ident $(Lean.quote t))
     | `([Arith| <[ $t ]>])     => `($(Lean.quote t))
-    | `([Arith| $x + $y])      => `(Arith.plus [Arith|$x] [Arith|$y])
-    | `([Arith| $x - $y])      => `(Arith.minus [Arith|$x] [Arith|$y])
-    | `([Arith| $x * $y])      => `(Arith.mult [Arith|$x] [Arith|$y])
-    | `([Arith| ( $e )])       => `([Arith|$e])
+    | `([Arith| $x + $y])      => `(Arith.plus [Arith| $x] [Arith| $y])
+    | `([Arith| $x - $y])      => `(Arith.minus [Arith| $x] [Arith| $y])
+    | `([Arith| $x * $y])      => `(Arith.mult [Arith| $x] [Arith| $y])
+    | `([Arith| ( $e )])       => `([Arith| $e])
 
   #check [Arith| 42]
   #check [Arith| X]
@@ -840,13 +840,13 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   macro_rules
     | `([Logic| tru])                  => `(Logic.true)
     | `([Logic| fls])                  => `(Logic.false)
-    | `([Logic| $x:arith = $y:arith])  => `(Logic.eq [Arith|$x] [Arith|$y])
-    | `([Logic| $x:arith ≠ $y:arith])  => `(Logic.neq [Arith|$x] [Arith|$y])
-    | `([Logic| $x:arith ≤ $y:arith])  => `(Logic.le [Arith|$x] [Arith|$y])
-    | `([Logic| $x:arith > $y:arith])  => `(Logic.gt [Arith|$x] [Arith|$y])
-    | `([Logic| ! $x])                 => `(Logic.not [Logic|$x])
-    | `([Logic| $x && $y])             => `(Logic.and [Logic|$x] [Logic|$y])
-    | `([Logic| ( $b )])               => `([Logic|$b])
+    | `([Logic| $x:arith = $y:arith])  => `(Logic.eq [Arith| $x] [Arith| $y])
+    | `([Logic| $x:arith ≠ $y:arith])  => `(Logic.neq [Arith| $x] [Arith| $y])
+    | `([Logic| $x:arith ≤ $y:arith])  => `(Logic.le [Arith| $x] [Arith| $y])
+    | `([Logic| $x:arith > $y:arith])  => `(Logic.gt [Arith| $x] [Arith| $y])
+    | `([Logic| ! $x])                 => `(Logic.not [Logic| $x])
+    | `([Logic| $x && $y])             => `(Logic.and [Logic| $x] [Logic| $y])
+    | `([Logic| ( $b )])               => `([Logic| $b])
     | `([Logic| <[ $t:term ]>])        => `($(Lean.quote t))
 
   #check [Logic| tru]
@@ -881,9 +881,9 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     | not e => !(e.eval state)
     | and e₁ e₂ => (e₁.eval state) && (e₂.eval state)
 
-  example: [Arith|3 + X * 2].eval [State| X = 5] = 13 := rfl
-  example: [Arith|z + X * Y].eval [State| X = 5, Y = 4] = 20 := rfl
-  example: [Logic|tru && !(X ≤ 4)].eval [State| X = 5] = true := rfl
+  example: [Arith| 3 + X * 2].eval [State| X = 5] = 13 := rfl
+  example: [Arith| z + X * Y].eval [State| X = 5, Y = 4] = 20 := rfl
+  example: [Logic| tru && !(X ≤ 4)].eval [State| X = 5] = true := rfl
 
   /-
   ## Commands
@@ -911,12 +911,12 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
 
   macro_rules
     | `([Imp| skip])                                => `(Command.skip)
-    | `([Imp| $id:ident := $e:arith])               => `(Command.assign $(Lean.quote (toString id.getId)) [Arith|$e])
-    | `([Imp| <[ $t:term ]> := $e:arith])           => `(Command.assign $(Lean.quote t) [Arith|$e])
-    | `([Imp| $x; $y])                              => `(Command.seq [Imp|$x] [Imp|$y])
-    | `([Imp| ite ( $c:logic ) { $t } else { $f }]) => `(Command.if [Logic|$c] [Imp|$t] [Imp|$f])
-    | `([Imp| while ( $c:logic ) { $b }])           => `(Command.while [Logic|$c] [Imp|$b])
-    | `([Imp| ( $c )])                              => `([Imp|$c])
+    | `([Imp| $id:ident := $e:arith])               => `(Command.assign $(Lean.quote (toString id.getId)) [Arith| $e])
+    | `([Imp| <[ $t:term ]> := $e:arith])           => `(Command.assign $(Lean.quote t) [Arith| $e])
+    | `([Imp| $x; $y])                              => `(Command.seq [Imp| $x] [Imp| $y])
+    | `([Imp| ite ( $c:logic ) { $t } else { $f }]) => `(Command.if [Logic| $c] [Imp| $t] [Imp| $f])
+    | `([Imp| while ( $c:logic ) { $b }])           => `(Command.while [Logic| $c] [Imp| $b])
+    | `([Imp| ( $c )])                              => `([Imp| $c])
     | `([Imp| <[ $t:term ]> ])                      => pure t
 
   #check [Imp| ite (x ≠ 0) { y := 3; z := 99 } else { z := 42 } ]
@@ -1021,7 +1021,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   notation:60 s₁ "=[" c "]=>" s₂ => CommandEval c s₁ s₂
 
   def assignment (id: String) (n: Nat) (s: State): s =[[Imp| <[id]> := <[num:n]>]]=> (s.update id n) :=
-      have h: [Arith|<[num:n]>].eval s = n := by
+      have h: [Arith| <[num:n]>].eval s = n := by
         unfold Arith.eval
         rfl
       CommandEval.assign s h
