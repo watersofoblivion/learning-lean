@@ -124,7 +124,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h           => .ifTrue _ _ rfl (.whileFalse _ h)
         ⟨mp, mpr⟩
 
-    theorem Command.if_true {b: Logic} {c₁ c₂: Command} (h: b ≈ .true): [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₁
+    theorem Command.if_true {b: Logic} {c₁ c₂: Command} (h: b ≈ .true): [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₁
       | _, _ =>
         have truu: b.eval _ = Logic.true.eval _ := h _
         have mp
@@ -140,7 +140,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁          => .ifTrue _ _ truu (.whileFalse _ h₁)
         ⟨mp, mpr⟩
 
-    theorem Command.if_false {b: Logic} {c₁ c₂: Command} (h: b ≈ .false): [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₂
+    theorem Command.if_false {b: Logic} {c₁ c₂: Command} (h: b ≈ .false): [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₂
       | _, _ =>
         have falz: b.eval _ = Logic.false.eval _ := h _
         have mp
@@ -156,13 +156,13 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁          => .ifFalse _ _ falz (.whileFalse _ h₁)
         ⟨mp, mpr⟩
 
-    theorem Command.if_swap {b: Logic} {c₁ c₂: Command}: [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ [Imp| ite ( ! <[expr:b]> ) { <[ c₂ ]> } else { <[ c₁ ]> }]
+    theorem Command.if_swap {b: Logic} {c₁ c₂: Command}: [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ [Imp| ite ( ! <[b]> ) { <[ c₂ ]> } else { <[ c₁ ]> }]
       | _, _ =>
         have mp := sorry
         have mpr := sorry
         ⟨mp, mpr⟩
 
-    theorem Command.while_false {c: Logic} {b: Command} (h: c ≈ .false): [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| skip]
+    theorem Command.while_false {c: Logic} {b: Command} (h: c ≈ .false): [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| skip]
       | _, _ =>
         have falz: c.eval _ = Logic.false.eval _ := h _
         have mp
@@ -172,7 +172,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .skip _ => .whileFalse _ falz
         ⟨mp, mpr⟩
 
-    theorem Command.while_true {c: Logic} {b: Command} (h: c ≈ .true): [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| while (tru) { skip }]
+    theorem Command.while_true {c: Logic} {b: Command} (h: c ≈ .true): [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| while (tru) { skip }]
       | _, _ =>
         have truu: c.eval _ = Logic.true.eval _ := h _
         have hh: Logic.true.equiv .true
@@ -185,12 +185,12 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁ => Logic.true.trueFalse rfl h₁
         ⟨mp, mpr⟩
       where
-        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[expr:c]>) { <[ b ]> }]]=> s₂)
+        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[c]>) { <[ b ]> }]]=> s₂)
           | .whileTrue s₁ s₂ s₃ h₁ h₂ h₃ =>
             sorry
           | .whileFalse _ h₁ => c.trueFalse (h _) h₁
 
-    theorem Command.loop_unrolling {c: Logic} {b: Command}: [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| ite (<[expr:c]>) { <[b]>; while (<[expr:c]>) { <[b]> }} else { skip }]
+    theorem Command.loop_unrolling {c: Logic} {b: Command}: [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| ite (<[c]>) { <[b]>; while (<[c]>) { <[b]> }} else { skip }]
       | _, _ =>
         have mp
           | .whileTrue _ _ _ h₁ h₂ h₃ => .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃)
@@ -208,7 +208,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .seq _ _ _ h₁ (.seq _ _ _ h₂ h₃) => .seq _ _ _ (.seq _ _ _ h₁ h₂) h₃
         ⟨mp, mpr⟩
 
-    theorem Command.identity_assignment {id: String}: [Imp| <[var:id]> := <[id:id]>] ≈ [Imp| skip]
+    theorem Command.identity_assignment {id: String}: [Imp| <[id]> := <[id:id]>] ≈ [Imp| skip]
       | _, _ =>
         -- Should use Maps.TotalMap.updateSame
         have mp
@@ -217,7 +217,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .skip _ => sorry
         ⟨mp, mpr⟩
 
-    theorem Command.assign_arith_equiv {id: String} {e: Arith} (h: [Arith| <[id:id]>] ≈ e): [Imp| skip] ≈ [Imp| <[var:id]> := <[arith:e]> ]
+    theorem Command.assign_arith_equiv {id: String} {e: Arith} (h: [Arith| <[id:id]>] ≈ e): [Imp| skip] ≈ [Imp| <[id]> := <[e]> ]
       | _, _ =>
         have mp
           | .skip _ => sorry
@@ -298,7 +298,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             repeat assumption
 
     @[scoped simp]
-    theorem Command.if_true {b: Logic} {c₁ c₂: Command} (h: b ≈ .true): [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₁ := by
+    theorem Command.if_true {b: Logic} {c₁ c₂: Command} (h: b ≈ .true): [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₁ := by
       intro s₁ s₂
       apply Iff.intro
       · intro
@@ -324,7 +324,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             repeat assumption
 
     @[scoped simp]
-    theorem Command.if_false {b: Logic} {c₁ c₂: Command} (h: b ≈ .false): [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₂ := by
+    theorem Command.if_false {b: Logic} {c₁ c₂: Command} (h: b ≈ .false): [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₂ := by
       intro s₁ s₂
       apply Iff.intro
       · intro
@@ -349,14 +349,14 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             . apply CommandEval.whileFalse
               repeat assumption
 
-    theorem Command.if_swap {b: Logic} {c₁ c₂: Command}: [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ [Imp| ite (!<[expr:b]>) { <[ c₂ ]> } else { <[ c₁ ]> }] := by
+    theorem Command.if_swap {b: Logic} {c₁ c₂: Command}: [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ [Imp| ite (!<[b]>) { <[ c₂ ]> } else { <[ c₁ ]> }] := by
       intro s₁ s₂
       apply Iff.intro
       · sorry
       · sorry
 
     @[scoped simp]
-    theorem Command.while_false {c: Logic} {b: Command} (h: c ≈ .false): [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| skip] := by
+    theorem Command.while_false {c: Logic} {b: Command} (h: c ≈ .false): [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| skip] := by
       intro s₁ s₂
       apply Iff.intro
       · intro
@@ -370,7 +370,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             · rw [h s₁]
 
     @[scoped simp]
-    theorem Command.while_true {c: Logic} {b: Command} (h: c ≈ .true): [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| while (tru) { skip }] := by
+    theorem Command.while_true {c: Logic} {b: Command} (h: c ≈ .true): [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| while (tru) { skip }] := by
       intro s₁ s₂
       apply Iff.intro
       · intro
@@ -391,7 +391,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           contradiction
         | whileFalse _ _ => simp_all
       where
-        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[expr: c ]>) { <[ b ]> }]]=> s₂) := by
+        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[ c ]>) { <[ b ]> }]]=> s₂) := by
           intro
           | .whileTrue s₃ s₄ s₅ h₁ h₂ h₃ =>
             -- simp_all
@@ -399,7 +399,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             sorry
           | .whileFalse _ _ => simp_all
 
-    theorem Command.loop_unrolling {c: Logic} {b: Command}: [Imp| while (<[expr: c]>) { <[b]> }] ≈ [Imp| ite (<[expr:c]>) { <[b]>; while (<[expr:c]>) { <[b]> }} else { skip }] := by
+    theorem Command.loop_unrolling {c: Logic} {b: Command}: [Imp| while (<[ c]>) { <[b]> }] ≈ [Imp| ite (<[c]>) { <[b]>; while (<[c]>) { <[b]> }} else { skip }] := by
       intro s₁ s₂
       apply Iff.intro
       · intro
@@ -435,13 +435,13 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
                  repeat assumption)
 
     @[scoped simp]
-    theorem Command.identity_assignment {id: String}: [Imp| <[var:id]> := <[id:id]>] ≈ [Imp| skip] := by
+    theorem Command.identity_assignment {id: String}: [Imp| <[id]> := <[id:id]>] ≈ [Imp| skip] := by
       intro s₁ s₂
       apply Iff.intro
       · sorry
       · sorry
 
-    theorem Command.assign_arith_equiv {id: String} {e: Arith} (h: [Arith| <[id:id]>] ≈ e): [Imp| skip] ≈ [Imp| <[var:id]> := <[arith:e]> ] := by
+    theorem Command.assign_arith_equiv {id: String} {e: Arith} (h: [Arith| <[id:id]>] ≈ e): [Imp| skip] ≈ [Imp| <[id]> := <[e]> ] := by
       unfold Command.equiv
       intro s₁ s₂
       apply Iff.intro
@@ -497,7 +497,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         ⟨mp, mpr⟩
 
     @[scoped simp]
-    theorem Command.if_true {b: Logic} {c₁ c₂: Command} (h: b ≈ .true): [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₁
+    theorem Command.if_true {b: Logic} {c₁ c₂: Command} (h: b ≈ .true): [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₁
       | _, _ =>
         have truu: b.eval _ = Logic.true.eval _ := h _
         have mp
@@ -514,7 +514,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         ⟨mp, mpr⟩
 
     @[scoped simp]
-    theorem Command.if_false {b: Logic} {c₁ c₂: Command} (h: b ≈ .false): [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₂
+    theorem Command.if_false {b: Logic} {c₁ c₂: Command} (h: b ≈ .false): [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ c₂
       | _, _ =>
         have falz: b.eval _ = Logic.false.eval _ := h _
         have mp
@@ -530,10 +530,10 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁          => .ifFalse _ _ falz (.whileFalse _ h₁)
         ⟨mp, mpr⟩
 
-    theorem Command.if_swap {b: Logic} {c₁ c₂: Command}: [Imp| ite (<[expr:b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ [Imp| ite (!<[expr:b]>) { <[ c₂ ]> } else { <[ c₁ ]> }] := sorry
+    theorem Command.if_swap {b: Logic} {c₁ c₂: Command}: [Imp| ite (<[b]>) { <[ c₁ ]> } else { <[ c₂ ]> }] ≈ [Imp| ite (!<[b]>) { <[ c₂ ]> } else { <[ c₁ ]> }] := sorry
 
     @[scoped simp]
-    theorem Command.while_false {c: Logic} {b: Command} (h: c ≈ .false): [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| skip]
+    theorem Command.while_false {c: Logic} {b: Command} (h: c ≈ .false): [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| skip]
       | _, _ =>
         have falz: c.eval _ = Logic.false.eval _ := h _
         have mp
@@ -544,7 +544,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         ⟨mp, mpr⟩
 
     @[scoped simp]
-    theorem Command.while_true {c: Logic} {b: Command} (h: c ≈ .true): [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| while (tru) { skip }]
+    theorem Command.while_true {c: Logic} {b: Command} (h: c ≈ .true): [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| while (tru) { skip }]
       | _, _ =>
         have truu: c.eval _ = Logic.true.eval _ := h _
         have hh: Logic.true.equiv .true
@@ -557,11 +557,11 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .whileFalse _ h₁ => Logic.true.trueFalse rfl h₁
         ⟨mp, mpr⟩
       where
-        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[expr: c ]>) { <[ b ]> }]]=> s₂)
+        nonterm {c: Logic} {b: Command} {s₁ s₂: State} (h: c ≈ .true): ¬(s₁ =[[Imp| while (<[ c ]>) { <[ b ]> }]]=> s₂)
           | .whileTrue _ _ _ _ _ h₃ => sorry
           | .whileFalse _ h₁ => c.trueFalse (h _) h₁
 
-    theorem Command.loop_unrolling {c: Logic} {b: Command}: [Imp| while (<[expr:c]>) { <[b]> }] ≈ [Imp| ite (<[expr:c]>) { <[b]>; while (<[expr:c]>) { <[b]> }} else { skip }]
+    theorem Command.loop_unrolling {c: Logic} {b: Command}: [Imp| while (<[c]>) { <[b]> }] ≈ [Imp| ite (<[c]>) { <[b]>; while (<[c]>) { <[b]> }} else { skip }]
       | _, _ =>
         have mp
           | .whileTrue _ _ _ h₁ h₂ h₃ => .ifTrue _ _ h₁ (.seq _ _ _ h₂ h₃)
@@ -580,9 +580,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         ⟨mp, mpr⟩
 
     @[scoped simp]
-    theorem Command.identity_assignment {id: String}: [Imp| <[var:id]> := <[id:id]>] ≈ [Imp| skip] := by sorry
+    theorem Command.identity_assignment {id: String}: [Imp| <[id]> := <[id:id]>] ≈ [Imp| skip] := by sorry
 
-    theorem Command.assign_arith_equiv {id: String} {e: Arith} (h: [Arith| <[id:id]>] ≈ e): [Imp| skip] ≈ [Imp| <[var:id]> := <[arith:e]> ] := by sorry
+    theorem Command.assign_arith_equiv {id: String} {e: Arith} (h: [Arith| <[id:id]>] ≈ e): [Imp| skip] ≈ [Imp| <[id]> := <[e]> ] := by sorry
   end Blended
 
   section
@@ -818,9 +818,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.skip.congr: [Imp| skip] ≈ [Imp| skip]
       | _, _ => Iff.refl _
 
-    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): [Imp| <[var:id]> := <[arith:e₁]> ].equiv [Imp| <[var:id]> := <[arith:e₂]>]
+    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): [Imp| <[id]> := <[e₁]> ].equiv [Imp| <[id]> := <[e₂]>]
       | s₁, s₂ =>
-        have h {id: String} {e₁ e₂: Arith} (h: e₁ ≈ e₂): (s₁ =[[Imp| <[var:id]> := <[arith:e₁]>]]=> s₂) → s₁ =[[Imp| <[var:id]> := <[arith:e₂]>]]=> s₂
+        have h {id: String} {e₁ e₂: Arith} (h: e₁ ≈ e₂): (s₁ =[[Imp| <[id]> := <[e₁]>]]=> s₂) → s₁ =[[Imp| <[id]> := <[e₂]>]]=> s₂
           | .assign _ h₁ =>
             have h₂: e₂.eval _ = _ :=
               calc e₂.eval _
@@ -845,9 +845,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         have h₄ := Command.equiv.symm h₂
         ⟨h h₁ h₂, h h₃ h₄⟩
 
-    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): [Imp| ite (<[expr:c₁]>) { <[t₁]> } else { <[f₁]> }] ≈ [Imp| ite (<[expr:c₂]>) { <[t₂]> } else { <[f₂]> }]
+    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): [Imp| ite (<[c₁]>) { <[t₁]> } else { <[f₁]> }] ≈ [Imp| ite (<[c₂]>) { <[t₂]> } else { <[f₂]> }]
       | s₁, s₂ =>
-        have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): (s₁ =[[Imp| ite (<[expr:c₁]>) { <[t₁]> } else { <[f₁]> }]]=> s₂) → s₁ =[[Imp| ite (<[expr:c₂]>) { <[t₂]> } else { <[f₂]> }]]=> s₂
+        have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): (s₁ =[[Imp| ite (<[c₁]>) { <[t₁]> } else { <[f₁]> }]]=> s₂) → s₁ =[[Imp| ite (<[c₂]>) { <[t₂]> } else { <[f₂]> }]]=> s₂
           | .ifTrue _ _ h₄ h₅ =>
             have h₆: c₂.eval _ = true :=
               calc c₂.eval _
@@ -871,9 +871,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         have h₆ := Command.equiv.symm h₃
         ⟨h h₁ h₂ h₃, h h₄ h₅ h₆⟩
 
-    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): [Imp| while (<[expr:c₁]>) { <[b₁]> }] ≈ [Imp| while (<[expr:c₂]>) { <[b₂]> }]
+    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): [Imp| while (<[c₁]>) { <[b₁]> }] ≈ [Imp| while (<[c₂]>) { <[b₂]> }]
       | s₁, s₂ =>
-        have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): (s₁ =[[Imp| while (<[expr:c₁]>) { <[b₁]> }]]=> s₂) → s₁ =[[Imp| while (<[expr:c₂]>) { <[b₂]> }]]=> s₂
+        have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): (s₁ =[[Imp| while (<[c₁]>) { <[b₁]> }]]=> s₂) → s₁ =[[Imp| while (<[c₂]>) { <[b₂]> }]]=> s₂
           | .whileTrue _ _ _ h₄ h₅ h₆ =>
             have h₇: c₂.eval _ = true :=
               calc c₂.eval _
@@ -882,7 +882,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             have h₈: _ =[b₂]=> _ :=
               have ⟨h, _⟩ := h₂ _ _
               h h₅
-            have h₉: _ =[[Imp| while (<[expr:c₂]>) { <[b₂]> }]]=> _ :=
+            have h₉: _ =[[Imp| while (<[c₂]>) { <[b₂]> }]]=> _ :=
               -- have h₁ := h₁ _
               -- have ⟨h₁, _⟩ := h₂ _ _
               -- h₆ h₁ h₂
@@ -914,9 +914,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
       intro s₁ s₂
       apply Iff.refl
 
-    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): [Imp| <[var:id]> := <[arith:e₁]> ].equiv [Imp| <[var:id]> := <[arith:e₂]>] := by
+    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): [Imp| <[id]> := <[e₁]> ].equiv [Imp| <[id]> := <[e₂]>] := by
       intro s₁ s₂
-      have h {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): (s₁ =[[Imp| <[var:id]> := <[arith:e₁]>]]=> s₂) → s₁ =[[Imp| <[var:id]> := <[arith:e₂]>]]=> s₂ := by
+      have h {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): (s₁ =[[Imp| <[id]> := <[e₁]>]]=> s₂) → s₁ =[[Imp| <[id]> := <[e₂]>]]=> s₂ := by
         intro
         | .assign _ h =>
           rw [h₁] at h
@@ -940,9 +940,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         · exact Command.equiv.symm h₁
         · exact Command.equiv.symm h₂
 
-    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): [Imp| ite (<[expr:c₁]>) { <[t₁]> } else { <[f₁]> }] ≈ [Imp| ite (<[expr:c₂]>) { <[t₂]> } else { <[f₂]> }] := by
+    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): [Imp| ite (<[c₁]>) { <[t₁]> } else { <[f₁]> }] ≈ [Imp| ite (<[c₂]>) { <[t₂]> } else { <[f₂]> }] := by
       intro s₁ s₂
-      have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): (s₁ =[[Imp| ite (<[expr:c₁]>) { <[t₁]> } else { <[f₁]> }]]=> s₂) → s₁ =[[Imp| ite (<[expr:c₂]>) { <[t₂]> } else { <[f₂]> }]]=> s₂ := by
+      have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): (s₁ =[[Imp| ite (<[c₁]>) { <[t₁]> } else { <[f₁]> }]]=> s₂) → s₁ =[[Imp| ite (<[c₂]>) { <[t₂]> } else { <[f₂]> }]]=> s₂ := by
         intro
         | .ifTrue _ _ h₄ h₅ =>
           rw [h₁] at h₄
@@ -959,14 +959,14 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         · exact Command.equiv.symm h₂
         · exact Command.equiv.symm h₃
 
-    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): [Imp| while (<[expr:c₁]>) { <[b₁]> }] ≈ [Imp| while (<[expr:c₂]>) { <[b₂]> }] := by
+    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): [Imp| while (<[c₁]>) { <[b₁]> }] ≈ [Imp| while (<[c₂]>) { <[b₂]> }] := by
       intro s₁ s₂
-      have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): (s₁ =[[Imp| while (<[expr:c₁]>) { <[b₁]> }]]=> s₂) → s₁ =[[Imp| while (<[expr:c₂]>) { <[b₂]> }]]=> s₂ := by
+      have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): (s₁ =[[Imp| while (<[c₁]>) { <[b₁]> }]]=> s₂) → s₁ =[[Imp| while (<[c₂]>) { <[b₂]> }]]=> s₂ := by
         intro
         | .whileTrue s₃ s₄ s₅ h₃ h₄ h₅ =>
           rw [h₁] at h₃
           rw [h₂] at h₄
-          have ih: s₄ =[[Imp| while (<[expr:c₂]>) { <[ b₂ ]>}]]=> s₅ := by
+          have ih: s₄ =[[Imp| while (<[c₂]>) { <[ b₂ ]>}]]=> s₅ := by
             sorry
           exact CommandEval.whileTrue _ _ _ h₃ h₄ ih
         | .whileFalse _ h₃ =>
@@ -985,9 +985,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
     theorem Command.skip.congr: [Imp| skip] ≈ [Imp| skip]
       | _, _ => Iff.refl _
 
-    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): [Imp| <[var:id]> := <[arith:e₁]> ].equiv [Imp| <[var:id]> := <[arith:e₂]>]
+    theorem Command.assign.congr {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): [Imp| <[id]> := <[e₁]> ].equiv [Imp| <[id]> := <[e₂]>]
       | s₁, s₂ =>
-        have h {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): (s₁ =[[Imp| <[var:id]> := <[arith:e₁]>]]=> s₂) → s₁ =[[Imp| <[var:id]> := <[arith:e₂]>]]=> s₂
+        have h {id: String} {e₁ e₂: Arith} (h₁: e₁ ≈ e₂): (s₁ =[[Imp| <[id]> := <[e₁]>]]=> s₂) → s₁ =[[Imp| <[id]> := <[e₂]>]]=> s₂
           | .assign _ h => by
             rw [h₁] at h
             exact CommandEval.assign _ h
@@ -1005,9 +1005,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         have h₄ := Command.equiv.symm h₂
         ⟨h h₁ h₂, h h₃ h₄⟩
 
-    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): [Imp| ite (<[expr:c₁]>) { <[t₁]> } else { <[f₁]> }] ≈ [Imp| ite (<[expr:c₂]>) { <[t₂]> } else { <[f₂]> }]
+    theorem Command.if.congr {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): [Imp| ite (<[c₁]>) { <[t₁]> } else { <[f₁]> }] ≈ [Imp| ite (<[c₂]>) { <[t₂]> } else { <[f₂]> }]
       | s₁, s₂ =>
-        have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): (s₁ =[[Imp| ite (<[expr:c₁]>) { <[t₁]> } else { <[f₁]> }]]=> s₂) → s₁ =[[Imp| ite (<[expr:c₂]>) { <[t₂]> } else { <[f₂]> }]]=> s₂
+        have h {c₁ c₂: Logic} {t₁ t₂ f₁ f₂: Command} (h₁: c₁ ≈ c₂) (h₂: t₁ ≈ t₂) (h₃: f₁ ≈ f₂): (s₁ =[[Imp| ite (<[c₁]>) { <[t₁]> } else { <[f₁]> }]]=> s₂) → s₁ =[[Imp| ite (<[c₂]>) { <[t₂]> } else { <[f₂]> }]]=> s₂
           | .ifTrue _ _ h₄ h₅ => by
             rw [h₁] at h₄
             rw [h₂] at h₅
@@ -1021,9 +1021,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         have h₆ := Command.equiv.symm h₃
         ⟨h h₁ h₂ h₃, h h₄ h₅ h₆⟩
 
-    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): [Imp| while (<[expr:c₁]>) { <[b₁]> }] ≈ [Imp| while (<[expr:c₂]>) { <[b₂]> }]
+    theorem Command.while.congr {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): [Imp| while (<[c₁]>) { <[b₁]> }] ≈ [Imp| while (<[c₂]>) { <[b₂]> }]
       | s₁, s₂ =>
-        have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): (s₁ =[[Imp| while (<[expr:c₁]>) { <[b₁]> }]]=> s₂) → s₁ =[[Imp| while (<[expr:c₂]>) { <[b₂]> }]]=> s₂
+        have h {c₁ c₂: Logic} {b₁ b₂: Command} (h₁: c₁ ≈ c₂) (h₂: b₁ ≈ b₂): (s₁ =[[Imp| while (<[c₁]>) { <[b₁]> }]]=> s₂) → s₁ =[[Imp| while (<[c₂]>) { <[b₂]> }]]=> s₂
           | .whileTrue s₃ s₄ s₅ h₃ h₄ h₅ => by
             rw [h₁] at h₃
             rw [h₂] at h₄
@@ -1194,21 +1194,21 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
         have h :=
-          calc [Arith| <[expr:e₁]> - <[expr:e₂]>].eval s
+          calc [Arith| <[e₁]> - <[e₂]>].eval s
             _ = e₁.eval s - e₂.eval s                                         := rfl
             _ = e₁.constFold.eval s - e₂.constFold.eval s                     := congr (congrArg Nat.sub ih₁) ih₂
-            _ = [Arith| <[expr:e₁.constFold]> - <[expr:e₂.constFold]>].eval s := rfl
-            -- _ = [Arith| <[expr:e₁]> - <[expr:e₂]>].eval s                     := sorry
+            _ = [Arith| <[e₁.constFold]> - <[e₂.constFold]>].eval s := rfl
+            -- _ = [Arith| <[e₁]> - <[e₂]>].eval s                     := sorry
         sorry
       | .mult e₁ e₂, s =>
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
         have h :=
-          calc [Arith| <[expr:e₁]> * <[expr:e₂]>].eval s
+          calc [Arith| <[e₁]> * <[e₂]>].eval s
             _ = e₁.eval s * e₂.eval s                                         := rfl
             _ = e₁.constFold.eval s * e₂.constFold.eval s                     := congr (congrArg Nat.mul ih₁) ih₂
-            _ = [Arith| <[expr:e₁.constFold]> * <[expr:e₂.constFold]>].eval s := rfl
-            -- _ = [Arith| <[expr:e₁]> * <[expr:e₂]>].eval s                     := sorry
+            _ = [Arith| <[e₁.constFold]> * <[e₂.constFold]>].eval s := rfl
+            -- _ = [Arith| <[e₁]> * <[e₂]>].eval s                     := sorry
         sorry
 
     theorem Logic.constFold.sound: Logic.transform_sound Logic.constFold := sorry
@@ -1289,97 +1289,97 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
           | .num n =>
             match n with
               | .zero =>
-                calc [Arith| 0 + <[expr:e₂]>].eval s
+                calc [Arith| 0 + <[e₂]>].eval s
                   _ = [Arith| 0].eval s + e₂.eval s                                       := rfl
                   _ = [Arith| 0].opt0Plus.eval s + e₂.opt0Plus.eval s                     := congr (congrArg Nat.add ih₁) ih₂
-                  _ = [Arith| <[expr:[Arith| 0].opt0Plus]> + <[expr:e₂.opt0Plus]>].eval s := rfl
-                  _ = [Arith| 0 + <[expr:e₂]>].opt0Plus.eval s                            := by simp -- congrArg (Arith.eval s) rfl -- TODO: Remove Tactic Block
+                  _ = [Arith| <[[Arith| 0].opt0Plus]> + <[e₂.opt0Plus]>].eval s := rfl
+                  _ = [Arith| 0 + <[e₂]>].opt0Plus.eval s                            := by simp -- congrArg (Arith.eval s) rfl -- TODO: Remove Tactic Block
                   _ = e₂.opt0Plus.eval s                                                  := rfl
               | .succ _ =>
-                calc [Arith| <[num:Nat.succ _]> + <[expr:e₂]>].eval s
+                calc [Arith| <[num:Nat.succ _]> + <[e₂]>].eval s
                   _ = (Arith.num (.succ _)).eval s + e₂.eval s                   := rfl
                   _ = (Arith.num (.succ _)).opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
                   _ = (Arith.plus (.num (.succ _)) e₂).opt0Plus.eval s           := rfl
           | .ident _ =>
-            calc [Arith| <[id:_]> + <[expr:e₂]>].eval s
+            calc [Arith| <[id:_]> + <[e₂]>].eval s
               _ = [Arith| <[id:_]>].eval s + e₂.eval s                   := rfl
               _ = [Arith| <[id:_]>].opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
-              _ = [Arith| <[id:_]> + <[expr:e₂]>].opt0Plus.eval s        := rfl
+              _ = [Arith| <[id:_]> + <[e₂]>].opt0Plus.eval s        := rfl
           | .plus _ _ =>
-            calc [Arith| (<[expr:_]> + <[expr:_]>) + <[expr:e₂]>].eval s
-              _ = [Arith| <[expr:_]> + <[expr:_]>].eval s + e₂.eval s                   := rfl
-              _ = [Arith| <[expr:_]> + <[expr:_]>].opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
-              _ = [Arith| (<[expr:_]> + <[expr:_]>) + <[expr:e₂]>].opt0Plus.eval s      := rfl
+            calc [Arith| (<[_]> + <[_]>) + <[e₂]>].eval s
+              _ = [Arith| <[_]> + <[_]>].eval s + e₂.eval s                   := rfl
+              _ = [Arith| <[_]> + <[_]>].opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+              _ = [Arith| (<[_]> + <[_]>) + <[e₂]>].opt0Plus.eval s      := rfl
           | .minus _ _ =>
-            calc [Arith| (<[expr:_]> - <[expr:_]>) + <[expr:e₂]>].eval s
-              _ = [Arith| <[expr:_]> - <[expr:_]>].eval s + e₂.eval s                   := rfl
-              _ = [Arith| <[expr:_]> - <[expr:_]>].opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
-              _ = [Arith| (<[expr:_]> - <[expr:_]>) + <[expr:e₂]>].opt0Plus.eval s      := rfl
+            calc [Arith| (<[_]> - <[_]>) + <[e₂]>].eval s
+              _ = [Arith| <[_]> - <[_]>].eval s + e₂.eval s                   := rfl
+              _ = [Arith| <[_]> - <[_]>].opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+              _ = [Arith| (<[_]> - <[_]>) + <[e₂]>].opt0Plus.eval s      := rfl
           | .mult _ _ =>
-            calc [Arith| (<[expr:_]> * <[expr:_]>) + <[expr:e₂]>].eval s
-              _ = [Arith| <[expr:_]> * <[expr:_]>].eval s + e₂.eval s                   := rfl
-              _ = [Arith| <[expr:_]> * <[expr:_]>].opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
-              _ = [Arith| (<[expr:_]> * <[expr:_]>) + <[expr:e₂]>].opt0Plus.eval s      := rfl
+            calc [Arith| (<[_]> * <[_]>) + <[e₂]>].eval s
+              _ = [Arith| <[_]> * <[_]>].eval s + e₂.eval s                   := rfl
+              _ = [Arith| <[_]> * <[_]>].opt0Plus.eval s + e₂.opt0Plus.eval s := congr (congrArg Nat.add ih₁) ih₂
+              _ = [Arith| (<[_]> * <[_]>) + <[e₂]>].opt0Plus.eval s      := rfl
       | .minus e₁ e₂, s =>
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
-        calc [Arith| <[expr:e₁]> - <[expr:e₂]>].eval s
+        calc [Arith| <[e₁]> - <[e₂]>].eval s
           _ = e₁.eval s - e₂.eval s                              := rfl
           _ = e₁.opt0Plus.eval s - e₂.opt0Plus.eval s            := congr (congrArg Nat.sub ih₁) ih₂
-          _ = [Arith| <[expr:e₁]> - <[expr:e₂]>].opt0Plus.eval s := rfl
+          _ = [Arith| <[e₁]> - <[e₂]>].opt0Plus.eval s := rfl
       | .mult e₁ e₂, s =>
         have ih₁ := sound e₁ s
         have ih₂ := sound e₂ s
-        calc [Arith| <[expr:e₁]> * <[expr:e₂]>].eval s
+        calc [Arith| <[e₁]> * <[e₂]>].eval s
           _ = e₁.eval s * e₂.eval s                              := rfl
           _ = e₁.opt0Plus.eval s * e₂.opt0Plus.eval s            := congr (congrArg Nat.mul ih₁) ih₂
-          _ = [Arith| <[expr:e₁]> * <[expr:e₂]>].opt0Plus.eval s := rfl
+          _ = [Arith| <[e₁]> * <[e₂]>].opt0Plus.eval s := rfl
 
     theorem Logic.opt0Plus.sound: Logic.transform_sound Logic.opt0Plus
       | .true, _ | .false, _ => rfl
       | .eq e₁ e₂, s =>
         have ih₁ := Arith.opt0Plus.sound e₁ s
         have ih₂ := Arith.opt0Plus.sound e₂ s
-        calc [Logic| <[expr:e₁]> = <[expr:e₂]>].eval s
+        calc [Logic| <[e₁]> = <[e₂]>].eval s
           _ = BEq.beq (e₁.eval s) (e₂.eval s)                   := rfl
           _ = BEq.beq (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s) := congr (congrArg BEq.beq ih₁) ih₂
-          _ = [Logic| <[expr:e₁]> = <[expr:e₂]>].opt0Plus.eval s                  := rfl
+          _ = [Logic| <[e₁]> = <[e₂]>].opt0Plus.eval s                  := rfl
       | .neq e₁ e₂, s =>
         have ih₁ := Arith.opt0Plus.sound e₁ s
         have ih₂ := Arith.opt0Plus.sound e₂ s
-        calc [Logic| <[expr:e₁]> ≠ <[expr:e₂]>].eval s
+        calc [Logic| <[e₁]> ≠ <[e₂]>].eval s
           _ = not (BEq.beq (e₁.eval s) (e₂.eval s))                   := rfl
           _ = not (BEq.beq (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s)) := sorry-- congr (congr (congrArg (not ∘ BEq.beq)) ih₁) ih₂
-          _ = [Logic| <[expr:e₁]> ≠ <[expr:e₂]>].opt0Plus.eval s                       := rfl
+          _ = [Logic| <[e₁]> ≠ <[e₂]>].opt0Plus.eval s                       := rfl
       | .le e₁ e₂, s =>
         have ih₁ := Arith.opt0Plus.sound e₁ s
         have ih₂ := Arith.opt0Plus.sound e₂ s
         sorry
-        -- calc [Logic| <[expr:e₁]> ≤ <[expr:e₂]>].eval s
+        -- calc [Logic| <[e₁]> ≤ <[e₂]>].eval s
         --   _ = (LE.le (e₁.eval s) (e₂.eval s): Bool)                   := rfl
         --   _ = (LE.le (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s): Bool) := congr (congrArg LE.le ih₁) ih₂
-        --   _ = [Logic| <[expr:e₁]> ≤ <[expr:e₂]>].opt0Plus.eval s                        := rfl
+        --   _ = [Logic| <[e₁]> ≤ <[e₂]>].opt0Plus.eval s                        := rfl
       | .gt e₁ e₂, s =>
         have ih₁ := Arith.opt0Plus.sound e₁ s
         have ih₂ := Arith.opt0Plus.sound e₂ s
         sorry
-        -- calc [Logic| <[expr:e₁]> > <[expr:e₂]>].eval s
+        -- calc [Logic| <[e₁]> > <[e₂]>].eval s
         --   _ = (GT.gt (e₁.eval s) (e₂.eval s): Bool)                   := rfl
         --   _ = (GT.gt (e₁.opt0Plus.eval s) (e₂.opt0Plus.eval s): Bool) := congr (congrArg GT.gt ih₁) ih₂
-        --   _ = [Logic| <[expr:e₁]> > <[expr:e₂]>].opt0Plus.eval s                        := rfl
+        --   _ = [Logic| <[e₁]> > <[e₂]>].opt0Plus.eval s                        := rfl
       | .not b, s =>
         have ih := sound b s
-        calc [Logic| ! <[expr:b]>].eval s
+        calc [Logic| ! <[b]>].eval s
           _ = not (b.eval s)                := rfl
           _ = not (b.opt0Plus.eval s)       := congrArg not ih
-          _ = [Logic| ! <[expr:b]> ].opt0Plus.eval s := rfl
+          _ = [Logic| ! <[b]> ].opt0Plus.eval s := rfl
       | .and b₁ b₂, s =>
         have ih₁ := sound b₁ s
         have ih₂ := sound b₂ s
-        calc [Logic| <[expr:b₁]> && <[expr:b₂]> ].eval s
+        calc [Logic| <[b₁]> && <[b₂]> ].eval s
           _ = and (b₁.eval s) (b₂.eval s)                   := rfl
           _ = and (b₁.opt0Plus.eval s) (b₂.opt0Plus.eval s) := congr (congrArg and ih₁) ih₂
-          _ = [Logic| <[expr:b₁]> && <[expr:b₂]> ].opt0Plus.eval s             := rfl
+          _ = [Logic| <[b₁]> && <[b₂]> ].opt0Plus.eval s             := rfl
 
     theorem Command.opt0Plus.sound: Command.transform_sound Command.opt0Plus
       | .skip, _, _ => ⟨id, id⟩
@@ -1449,7 +1449,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
             match n with
               | .zero => by simp_all
               | .succ _ =>
-                calc [Arith| <[num:Nat.succ _]> + <[expr:e₂]>].eval s
+                calc [Arith| <[num:Nat.succ _]> + <[e₂]>].eval s
                   _ = (Arith.num (.succ _)).eval s + e₂.eval s                   := by rfl
                   _ = (Arith.num (.succ _)).opt0Plus.eval s + e₂.opt0Plus.eval s := by rw [ih₁, ih₂]
                   _ = (Arith.plus (.num (.succ _)) e₂).opt0Plus.eval s           := by rfl
@@ -1538,7 +1538,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
 
   example: [Arith| Y + X].subst "X" [Arith|42 + 53] = [Arith| Y + (42 + 53)] := rfl
 
-  def Arith.subst.equiv: Prop := ∀ id₁ id₂ e₁ e₂, [Imp| <[var:id₁]> := <[arith:e₁]>; <[var:id₂]> := <[arith:e₂]>] ≈ [Imp| <[var:id₁]> := <[arith:e₁]>; <[var:id₂]> := <[arith:e₂.subst id₁ e₁]>]
+  def Arith.subst.equiv: Prop := ∀ id₁ id₂ e₁ e₂, [Imp| <[id₁]> := <[e₁]>; <[id₂]> := <[e₂]>] ≈ [Imp| <[id₁]> := <[e₁]>; <[id₂]> := <[e₂.subst id₁ e₁]>]
 
   namespace Term
     theorem Arith.subst.equiv.inequiv: ¬Arith.subst.equiv := sorry
@@ -1686,7 +1686,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   private def _root_.SoftwareFoundations.LogicalFoundations.Imp.Command.zProp (c: Command): Prop := sorry
 
   namespace Term
-    example (id₁ id₂: String) (e₁ e₂: Arith) (h₁: OccursCheck id₁ e₁) (h₂: OccursCheck id₂ e₂): [Imp| <[var:id₁]> := <[arith:e₁]>; <[var:id₂]> := <[arith:e₂]>] ≈ [Imp| <[var:id₂]> := <[arith:e₂]>; <[var:id₁]> := <[arith:e₁]>] := sorry
+    example (id₁ id₂: String) (e₁ e₂: Arith) (h₁: OccursCheck id₁ e₁) (h₂: OccursCheck id₂ e₂): [Imp| <[id₁]> := <[e₁]>; <[id₂]> := <[e₂]>] ≈ [Imp| <[id₂]> := <[e₂]>; <[id₁]> := <[e₁]>] := sorry
 
     -- TODO: For loops in Imp
 
@@ -1696,7 +1696,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   end Term
 
   namespace Tactic
-    example (id₁ id₂: String) (e₁ e₂: Arith) (h₁: OccursCheck id₁ e₁) (h₂: OccursCheck id₂ e₂): [Imp| <[var:id₁]> := <[arith:e₁]>; <[var:id₂]> := <[arith:e₂]>] ≈ [Imp| <[var:id₂]> := <[arith:e₂]>; <[var:id₁]> := <[arith:e₁]>] := by sorry
+    example (id₁ id₂: String) (e₁ e₂: Arith) (h₁: OccursCheck id₁ e₁) (h₂: OccursCheck id₂ e₂): [Imp| <[id₁]> := <[e₁]>; <[id₂]> := <[e₂]>] ≈ [Imp| <[id₂]> := <[e₂]>; <[id₁]> := <[e₁]>] := by sorry
 
     -- TODO: For loops in Imp
 
@@ -1706,7 +1706,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Equiv
   end Tactic
 
   namespace Blended
-    example (id₁ id₂: String) (e₁ e₂: Arith) (h₁: OccursCheck id₁ e₁) (h₂: OccursCheck id₂ e₂): [Imp| <[var:id₁]> := <[arith:e₁]>; <[var:id₂]> := <[arith:e₂]>] ≈ [Imp| <[var:id₂]> := <[arith:e₂]>; <[var:id₁]> := <[arith:e₁]>] := sorry
+    example (id₁ id₂: String) (e₁ e₂: Arith) (h₁: OccursCheck id₁ e₁) (h₂: OccursCheck id₂ e₂): [Imp| <[id₁]> := <[e₁]>; <[id₂]> := <[e₂]>] ≈ [Imp| <[id₂]> := <[e₂]>; <[id₁]> := <[e₁]>] := sorry
 
     -- TODO: For loops in Imp
 
