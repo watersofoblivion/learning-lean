@@ -57,60 +57,62 @@ namespace SoftwareFoundations.LogicalFoundations.ImpCEvalFun
       | .none => .none
       | .some state => .some (state "X", state "Y", state "Z")
 
-  example: (Command.seq (.assign "X" 2) (.if (.le "X" 1) (.assign "Y" 3) (.assign "Z" 4))).eval_test State.empty = .some (2, 0, 4) := rfl
+  example: [Imp| X := 2; ite (X ≤  1) { Y := 3 } else { Z := 4 }].eval_test [State|] = .some (2, 0, 4) := rfl
 
   -- TODO: Pup
 
-  def pEven: Command :=
-    (.while (.gt "X" 1)
-      (.assign "X" (.minus "X" 2)))
+  def pEven: Command := [Imp|
+    while (X > 1) {
+      X := X - 2
+    }
+  ]
 
-  example: pEven.eval_test (State.build [("X", 0)]) = .some (0, 0, 0) := rfl
-  example: pEven.eval_test (State.build [("X", 1)]) = .some (1, 0, 0) := rfl
-  example: pEven.eval_test (State.build [("X", 2)]) = .some (0, 0, 0) := rfl
-  example: pEven.eval_test (State.build [("X", 3)]) = .some (1, 0, 0) := rfl
-  example: pEven.eval_test (State.build [("X", 42)]) = .some (0, 0, 0) := rfl
-  example: pEven.eval_test (State.build [("X", 43)]) = .some (1, 0, 0) := rfl
-  example: pEven.eval_test (State.build [("X", 200)]) = .none := rfl
+  example: pEven.eval_test [State| X = 0] = .some (0, 0, 0) := rfl
+  example: pEven.eval_test [State| X = 1] = .some (1, 0, 0) := rfl
+  example: pEven.eval_test [State| X = 2] = .some (0, 0, 0) := rfl
+  example: pEven.eval_test [State| X = 3] = .some (1, 0, 0) := rfl
+  example: pEven.eval_test [State| X = 42] = .some (0, 0, 0) := rfl
+  example: pEven.eval_test [State| X = 43] = .some (1, 0, 0) := rfl
+  example: pEven.eval_test [State| X = 200] = .none := rfl
 
   /-
   ## Relational vs. Step-Indexed Evaluation
   -/
 
   namespace Term
-    theorem Command.eval.equiv_rel (c: Command) (s₁ s₂: State): (∃ i: Nat, c.eval s₁ i = .some s₂) → CommandEval c s₁ s₂ := sorry
+    theorem Command.eval.equiv_rel (c: Command) (s₁ s₂: State): (∃ i: Nat, c.eval s₁ i = .some s₂) → s₁ =[c]=> s₂ := sorry
 
-    theorem Command.eval.step (c: Command) (s₁ s₂: State) (h: CommandEval c s₁ s₂): ∃ i: Nat, c.eval s₁ i = .some s₂ := by
+    theorem Command.eval.step (c: Command) (s₁ s₂: State) (h: s₁ =[c]=> s₂): ∃ i: Nat, c.eval s₁ i = .some s₂ := by
       sorry
       where
         more (i₁ i₂: Nat) (s₁ s₂: State) (c: Command) (h₁: i₁ ≤ i₂) (h₂: c.eval s₁ i₁ = s₂): c.eval s₁ i₂ = s₂ := sorry
 
-    theorem Command.eval.equiv_step (c: Command) (s₁ s₂: State): CommandEval c s₁ s₂ ↔ ∃ i: Nat, c.eval s₁ i = .some s₂ := sorry
+    theorem Command.eval.equiv_step (c: Command) (s₁ s₂: State): (s₁ =[c]=> s₂) ↔ ∃ i: Nat, c.eval s₁ i = .some s₂ := sorry
   end Term
 
   namespace Tactic
-    theorem Command.eval.equiv_rel (c: Command) (s₁ s₂: State): (∃ i: Nat, c.eval s₁ i = .some s₂) → CommandEval c s₁ s₂ := by
+    theorem Command.eval.equiv_rel (c: Command) (s₁ s₂: State): (∃ i: Nat, c.eval s₁ i = .some s₂) → s₁ =[c]=> s₂ := by
       sorry
 
-    theorem Command.eval.step (c: Command) (s₁ s₂: State) (h: CommandEval c s₁ s₂): ∃ i: Nat, c.eval s₁ i = .some s₂ := by
+    theorem Command.eval.step (c: Command) (s₁ s₂: State) (h: s₁ =[c]=> s₂): ∃ i: Nat, c.eval s₁ i = .some s₂ := by
       sorry
       where
         more (i₁ i₂: Nat) (s₁ s₂: State) (c: Command) (h₁: i₁ ≤ i₂) (h₂: c.eval s₁ i₁ = s₂): c.eval s₁ i₂ = s₂ := by
           sorry
 
-    theorem Command.eval.equiv_step (c: Command) (s₁ s₂: State): CommandEval c s₁ s₂ ↔ ∃ i: Nat, c.eval s₁ i = .some s₂ := by
+    theorem Command.eval.equiv_step (c: Command) (s₁ s₂: State): (s₁ =[c]=> s₂) ↔ ∃ i: Nat, c.eval s₁ i = .some s₂ := by
       sorry
   end Tactic
 
   namespace Blended
-    theorem Command.eval.equiv_rel (c: Command) (s₁ s₂: State): (∃ i: Nat, c.eval s₁ i = .some s₂) → CommandEval c s₁ s₂ := sorry
+    theorem Command.eval.equiv_rel (c: Command) (s₁ s₂: State): (∃ i: Nat, c.eval s₁ i = .some s₂) → s₁ =[c]=> s₂ := sorry
 
-    theorem Command.eval.step (c: Command) (s₁ s₂: State) (h: CommandEval c s₁ s₂): ∃ i: Nat, c.eval s₁ i = .some s₂ := by
+    theorem Command.eval.step (c: Command) (s₁ s₂: State) (h: s₁ =[c]=> s₂): ∃ i: Nat, c.eval s₁ i = .some s₂ := by
       sorry
       where
         more (i₁ i₂: Nat) (s₁ s₂: State) (c: Command) (h₁: i₁ ≤ i₂) (h₂: c.eval s₁ i₁ = s₂): c.eval s₁ i₂ = s₂ := sorry
 
-    theorem Command.eval.equiv_step (c: Command) (s₁ s₂: State): CommandEval c s₁ s₂ ↔ ∃ i: Nat, c.eval s₁ i = .some s₂ := sorry
+    theorem Command.eval.equiv_step (c: Command) (s₁ s₂: State): (s₁ =[c]=> s₂) ↔ ∃ i: Nat, c.eval s₁ i = .some s₂ := sorry
   end Blended
 
   /-
@@ -118,15 +120,15 @@ namespace SoftwareFoundations.LogicalFoundations.ImpCEvalFun
   -/
 
   namespace Term
-    theorem CommandEval.deterministic.better (c: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c s₁ s₂) (h₂: CommandEval c s₁ s₃): s₂ = s₃ := sorry
+    theorem CommandEval.deterministic.better (c: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c]=> s₂) (h₂: s₁ =[c]=> s₃): s₂ = s₃ := sorry
   end Term
 
   namespace Tactic
-    theorem CommandEval.deterministic.better (c: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c s₁ s₂) (h₂: CommandEval c s₁ s₃): s₂ = s₃ := by
+    theorem CommandEval.deterministic.better (c: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c]=> s₂) (h₂: s₁ =[c]=> s₃): s₂ = s₃ := by
       sorry
   end Tactic
 
   namespace Blended
-    theorem CommandEval.deterministic.better (c: Command) (s₁ s₂ s₃: State) (h₁: CommandEval c s₁ s₂) (h₂: CommandEval c s₁ s₃): s₂ = s₃ := sorry
+    theorem CommandEval.deterministic.better (c: Command) (s₁ s₂ s₃: State) (h₁: s₁ =[c]=> s₂) (h₂: s₁ =[c]=> s₃): s₂ = s₃ := sorry
   end Blended
 end SoftwareFoundations.LogicalFoundations.ImpCEvalFun
