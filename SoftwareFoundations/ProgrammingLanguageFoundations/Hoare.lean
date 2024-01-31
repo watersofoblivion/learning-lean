@@ -293,6 +293,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
         sorry
   end Term
 
+/-
   namespace Tactic
     example: ⦃(Assertion.lt "X" 5) ["X" ↦ "X" + 1], .assign "X" ("X" + 1), Assertion.lt "X" 5⦄ := by
       apply HoareTriple.assign
@@ -325,16 +326,18 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
     example (n: Nat) (e: Arith) (P: Assertion): ⦃fun s => P s ∧ s "X" = n, .assign "X" e, fun s => P (s.update "X" n) ∧ s "X" = e.eval (s.update "X" n)⦄ := sorry
     example (e: Arith) (P: Assertion): ⦃fun s => P s, .assign "X" e, fun s => ∃ n: Nat, P (s.update "X" n) ∧ s "X" = e.eval (s.update "X" n)⦄ := sorry
   end Blended
-
+-/
   /-
   ### Consequence
   -/
 
+/-
   theorem HoareTriple.consequence {P₁ P₂ Q₁ Q₂: Assertion} {c: Command} (h₁: [Hoare| ⦃ ‹P₂› ⦄ ‹c› ⦃ ‹Q₂› ⦄]) (h₂: [Assert| ‹P₁› → ‹P₂›]) (h₃: [Assert| ‹Q₂› → ‹Q₁›]): [Hoare| ⦃ ‹P₁› ⦄ ‹c› ⦃ ‹Q₁› ⦄] :=
     sorry
     where
       pre {P₁ P₂ Q: Assertion} {c: Command} (h₁: [Hoare| ⦃ ‹P₂› ⦄ ‹c› ⦃ ‹Q› ⦄]) (h₂: [Assert| ‹P₁› → ‹P₂›]): [Hoare| ⦃ ‹P₁› ⦄ ‹c› ⦃ ‹Q› ⦄] := sorry
       post {P Q₁ Q₂: Assertion} {c: Command} (h₁: [Hoare| ⦃ ‹P› ⦄ ‹c› ⦃ ‹Q₂› ⦄]) (h₂: [Assert| ‹Q₂› → ‹Q₁›]): [Hoare| ⦃ ‹P› ⦄ ‹c› ⦃ ‹Q₁› ⦄] := sorry
+-/
 
   /-
   ### Automation
@@ -347,6 +350,8 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Hoare
   /-
   ### Conditionals
   -/
+
+
 
   /-
   #### Example
