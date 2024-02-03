@@ -833,6 +833,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
   syntax:max "!" logic : logic
   syntax:30 logic "&&" logic : logic
   syntax "‹" term "›" : logic
+  syntax "‹‹" term "››" : logic
   syntax "(" logic ")" : logic
 
   syntax "[Logic|" logic "]" : term
@@ -848,6 +849,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
     | `([Logic| $x && $y])            => `(Logic.and [Logic| $x] [Logic| $y])
     | `([Logic| ( $b )])              => `([Logic| $b])
     | `([Logic| ‹$t:term›])           => `($(Lean.quote t))
+    | `([Logic| ‹‹$t:term››])         => `((if $(Lean.quote t) then Logic.true else Logic.false))
 
   #check [Logic| tru]
   #check [Logic| fls]
