@@ -194,7 +194,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.SmallStep
         | const n =>
           apply Or.inl
           · apply Value.const
-        | plus t₁ t₂ ih₁ ih₂ =>
+        | «plus» t₁ t₂ ih₁ ih₂ =>
           cases ih₁ with
             | inr ex =>
               apply Or.inr
@@ -215,10 +215,10 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.SmallStep
                         · exact hw
                 | inl hv₂ =>
                   cases t₁ with
-                    | plus _ _ => contradiction
+                    | «plus» _ _ => contradiction
                     | const n₁ =>
                       cases t₂ with
-                        | plus _ _ => contradiction
+                        | «plus» _ _ => contradiction
                         | const n₂ =>
                           apply Or.inr
                           · apply Exists.intro
@@ -235,6 +235,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.SmallStep
           | .inr ⟨t₃, hw⟩, _                   => .inr ⟨.plus t₃ t₂, .plusL hw⟩
   end Blended
 
+  @[reducible]
   def Relation.normal (R: Relation α) (t₁: α): Prop := ¬ ∃ t₂: α, R t₁ t₂
 
   namespace Term
@@ -692,21 +693,23 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.SmallStep
   ### Normal Forms, Again
   -/
 
+  @[reducible]
   def Eval₁.normal: Term → Prop := Relation.normal Eval₁
 
+  @[reducible]
   def Term.normalOf (t₁ t₂: Term): Prop := Eval₁ t₂ t₁ ∧ Eval₁.normal t₁
 
   namespace Term
     theorem Eval₁.normal.unique: Relation.deterministic Term.normalOf
       | t₁, t₂, t₃, ⟨he₁, hn₁⟩, ⟨he₂, hn₂⟩ =>
-        have h₃: t₂ = t₁ :=
-          calc t₂
-            _ ⇒ t₁ := he₁
-            _ = t₁ := sorry
-        have h₄: t₃ = t₁ :=
-          calc t₃
-            _ ⇒ t₁ := he₂
-            _ = t₁ := sorry
+        have h₃: t₂ = t₁ := sorry
+          -- calc t₂
+          --   _ ⇒ t₁ := he₁
+          --   _ = t₁ := sorry
+        have h₄: t₃ = t₁ := sorry
+          -- calc t₃
+          --   _ ⇒ t₁ := he₂
+          --   _ = t₁ := sorry
         calc t₂
           _ = t₁ := h₃
           _ = t₃ := Eq.symm h₄
