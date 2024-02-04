@@ -168,7 +168,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Stlc
   end Term
 
   namespace Tactic
-    theorem Subst.correct {id: String} {s t₁ t₂: Term}: ([id ↦ s] t₁) = t₂ ↔ Subst id s t₁ t₂ := sorry
+    theorem Subst.correct {id: String} {s t₁ t₂: Term}: ([id ↦ s] t₁) = t₂ ↔ Subst id s t₁ t₂ := by sorry
   end Tactic
 
   namespace Blended
@@ -185,7 +185,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Stlc
     | appAbs {id: String} {ty: Ty} {b v: Term} (h₁: Value v): Eval₁ [Stlc| (λ ‹id›: ‹ty›. ‹b›) ‹v›] ([id ↦ v] [Stlc| ‹b›])
     | iteTrue {t f: Term}: Eval₁ [Stlc| ite tru then ‹t› else ‹f›] [Stlc| ‹t›]
     | iteFalse {t f: Term}: Eval₁ [Stlc| ite fls then ‹t› else ‹f›] [Stlc| ‹f›]
-    | ite {c₁ c₂ t f: Term}: Eval₁ [Stlc| ite ‹c₁› then ‹t› else ‹f›] [Stlc| ite ‹c₂› then ‹t› else ‹f›]
+    | ite {c₁ c₂ t f: Term} (h₁: Eval₁ c₁ c₂): Eval₁ [Stlc| ite ‹c₁› then ‹t› else ‹f›] [Stlc| ite ‹c₂› then ‹t› else ‹f›]
 
   infix:50 "⟶" => Eval₁
   infix:50 "⇓" => SmallStep.MultiStep Eval₁
@@ -196,8 +196,9 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Stlc
 
   namespace Term
     example: [Stlc| (λ x: 𝔹 → 𝔹. x) (λ x: 𝔹. x)] ⇓ [Stlc| λ x: 𝔹. x] :=
-      calc [Stlc| (λ x: 𝔹 → 𝔹. x) (λ x: 𝔹. x)]
-        _ ⟶ [Stlc| λ x: 𝔹. x] := .appAbs .abs
+      -- calc [Stlc| (λ x: 𝔹 → 𝔹. x) (λ x: 𝔹. x)]
+      --   _ ⟶ [Stlc| λ x: 𝔹. x] := .appAbs .abs
+      sorry
 
     example: [Stlc| (λ x: 𝔹 → 𝔹. x) ((λ x: 𝔹 → 𝔹. x) (λ x: 𝔹. x))] ⇓ [Stlc| λ x: 𝔹. x] :=
       calc [Stlc| (λ x: 𝔹 → 𝔹. x) ((λ x: 𝔹 → 𝔹. x) (λ x: 𝔹. x))]
@@ -212,7 +213,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Stlc
 
     example: [Stlc| (λ x: 𝔹 → 𝔹. x) ((λ x: 𝔹. ite x then fls else tru) tru)] ⇓ [Stlc| fls] :=
       calc [Stlc| (λ x: 𝔹 → 𝔹. x) ((λ x: 𝔹. ite x then fls else tru) tru)]
-        _ ⟶ [Stlc| (λ x: 𝔹 → 𝔹. x) (ite tru then fls else tru)] := .appR .abs (.appAbs .abs)
+        _ ⟶ [Stlc| (λ x: 𝔹 → 𝔹. x) (ite tru then fls else tru)] := .appR .abs (.appAbs .true)
         _ ⟶ [Stlc| (λ x: 𝔹 → 𝔹. x) fls]                         := .appR .abs .iteTrue
         _ ⟶ [Stlc| fls]                                         := .appAbs .false
 
@@ -251,6 +252,8 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Stlc
   def Context: Type := PartialMap Ty
   def Context.empty: PartialMap Ty := PartialMap.empty
 
+  notation "●" => Context.empty
+
   /-
   ### Typing Relation
   -/
@@ -270,34 +273,34 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.Stlc
   -/
 
   namespace Term
-    example: Context.empty ⊢ [Stlc| λ x: 𝔹. x] : [StlcTy| 𝔹 → 𝔹] :=
-      have h := PartialMap.updateEq Context.empty "x" .bool
+    example: ● ⊢ [Stlc| λ x: 𝔹. x] : [StlcTy| 𝔹 → 𝔹] :=
+      have h := PartialMap.updateEq ● "x" .bool
       .abs (.var h)
 
-    example: Context.empty ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹 → 𝔹. y (y x)] : [StlcTy| 𝔹 → (𝔹 → 𝔹) → 𝔹] :=
-      have h₁ := PartialMap.updateEq Context.empty "x" .bool
-      have h₂ := PartialMap.updateEq (Context.empty.update "x" .bool) "y" [StlcTy| 𝔹 → 𝔹]
+    example: ● ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹 → 𝔹. y (y x)] : [StlcTy| 𝔹 → (𝔹 → 𝔹) → 𝔹] :=
+      have h₁ := PartialMap.updateEq ● "x" .bool
+      have h₂ := PartialMap.updateEq (●.update "x" .bool) "y" [StlcTy| 𝔹 → 𝔹]
       -- .abs (.abs (.app (.app _ _)))
       sorry
 
-    example: ∃ ty: Ty, Context.empty ⊢ [Stlc| λ x: 𝔹 → 𝔹. λ y: 𝔹 → 𝔹. λ z: 𝔹. y (x z)] : ty := sorry
-    example: ¬ ∃ ty: Ty, Context.empty ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹. x y] : ty := sorry
-    example: ¬ ∃ ty₁ ty₂: Ty, Context.empty ⊢ [Stlc| λ x: ‹ty₁›. x x] : ty₂ := sorry
+    example: ∃ ty: Ty, ● ⊢ [Stlc| λ x: 𝔹 → 𝔹. λ y: 𝔹 → 𝔹. λ z: 𝔹. y (x z)] : ty := sorry
+    example: ¬ ∃ ty: Ty, ● ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹. x y] : ty := sorry
+    example: ¬ ∃ ty₁ ty₂: Ty, ● ⊢ [Stlc| λ x: ‹ty₁›. x x] : ty₂ := sorry
   end Term
 
   namespace Tactic
-    example: Context.empty ⊢ [Stlc| λ x: 𝔹. x] : [StlcTy| 𝔹 → 𝔹] := by sorry
-    example: Context.empty ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹 → 𝔹. y (y x)] : [StlcTy| 𝔹 → (𝔹 → 𝔹) → 𝔹] := by sorry
-    example: ∃ ty: Ty, Context.empty ⊢ [Stlc| λ x: 𝔹 → 𝔹. λ y: 𝔹 → 𝔹. λ z: 𝔹. y (x z)] : ty := by sorry
-    example: ¬ ∃ ty: Ty, Context.empty ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹. x y] : ty := by sorry
-    example: ¬ ∃ ty₁ ty₂: Ty, Context.empty ⊢ [Stlc| λ x: ‹ty₁›. x x] : ty₂ := by sorry
+    example: ● ⊢ [Stlc| λ x: 𝔹. x] : [StlcTy| 𝔹 → 𝔹] := by sorry
+    example: ● ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹 → 𝔹. y (y x)] : [StlcTy| 𝔹 → (𝔹 → 𝔹) → 𝔹] := by sorry
+    example: ∃ ty: Ty, ● ⊢ [Stlc| λ x: 𝔹 → 𝔹. λ y: 𝔹 → 𝔹. λ z: 𝔹. y (x z)] : ty := by sorry
+    example: ¬ ∃ ty: Ty, ● ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹. x y] : ty := by sorry
+    example: ¬ ∃ ty₁ ty₂: Ty, ● ⊢ [Stlc| λ x: ‹ty₁›. x x] : ty₂ := by sorry
   end Tactic
 
   namespace Blended
-    example: Context.empty ⊢ [Stlc| λ x: 𝔹. x] : [StlcTy| 𝔹 → 𝔹] := sorry
-    example: Context.empty ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹 → 𝔹. y (y x)] : [StlcTy| 𝔹 → (𝔹 → 𝔹) → 𝔹] := sorry
-    example: ∃ ty: Ty, Context.empty ⊢ [Stlc| λ x: 𝔹 → 𝔹. λ y: 𝔹 → 𝔹. λ z: 𝔹. y (x z)] : ty := sorry
-    example: ¬ ∃ ty: Ty, Context.empty ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹. x y] : ty := sorry
-    example: ¬ ∃ ty₁ ty₂: Ty, Context.empty ⊢ [Stlc| λ x: ‹ty₁›. x x] : ty₂ := sorry
+    example: ● ⊢ [Stlc| λ x: 𝔹. x] : [StlcTy| 𝔹 → 𝔹] := sorry
+    example: ● ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹 → 𝔹. y (y x)] : [StlcTy| 𝔹 → (𝔹 → 𝔹) → 𝔹] := sorry
+    example: ∃ ty: Ty, ● ⊢ [Stlc| λ x: 𝔹 → 𝔹. λ y: 𝔹 → 𝔹. λ z: 𝔹. y (x z)] : ty := sorry
+    example: ¬ ∃ ty: Ty, ● ⊢ [Stlc| λ x: 𝔹. λ y: 𝔹. x y] : ty := sorry
+    example: ¬ ∃ ty₁ ty₂: Ty, ● ⊢ [Stlc| λ x: ‹ty₁›. x x] : ty₂ := sorry
   end Blended
 end SoftwareFoundations.ProgrammingLanguageFoundations.Stlc

@@ -81,7 +81,7 @@ namespace SoftwareFoundations.LogicalFoundations.Maps
   @[reducible]
   def PartialMap.update (m: PartialMap α) (k: String) (v: α): PartialMap α := TotalMap.update m k v
 
-  def PartialMap.includes (m₁ m₂: PartialMap α): Prop := ∀ k: String, ∀ v: α, m₁ k = .some v → m₂ k = .some v
+  def PartialMap.includedIn (m₁ m₂: PartialMap α): Prop := ∀ k: String, ∀ v: α, m₁ k = .some v → m₂ k = .some v
 
   theorem PartialMap.applyEmpty (k: String): @PartialMap.empty α k = .none := by rfl
 
@@ -112,8 +112,8 @@ namespace SoftwareFoundations.LogicalFoundations.Maps
     rw [TotalMap.updatePermute]
     assumption
 
-  theorem PartialMap.includesUpdate (m₁ m₂: PartialMap α) (k: String) (v: α) (h: m₁.includes m₂): (m₁.update k v).includes (m₂.update k v) := by
-    unfold PartialMap.includes
+  theorem PartialMap.includedInUpdate (m₁ m₂: PartialMap α) (k: String) (v: α) (h: m₁.includedIn m₂): (m₁.update k v).includedIn (m₂.update k v) := by
+    unfold PartialMap.includedIn
     intro k₁ v₁ h₂
     cases k == k₁ with
       | true => sorry
