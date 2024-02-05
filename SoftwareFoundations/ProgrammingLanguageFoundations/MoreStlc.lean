@@ -629,6 +629,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     | succConst {n: Nat}: Eval₁ [Term| succ ‹nat:n›] [Term| ‹nat:n + 1›]
     | succ {t₁ t₂: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| succ ‹t₁›] [Term| succ ‹t₂›]
     | predZero: Eval₁ [Term| pred 0] [Term| 0]
+    | predConst {n: Nat} (h₁: n > 0): Eval₁ [Term| ‹nat:n›] [Term| ‹nat:n-1›]
     | predSucc {v: Term} (h₁: Value v): Eval₁ [Term| pred succ ‹v›] [Term| ‹v›]
     | pred {t₁ t₂: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| pred ‹t₁›] [Term| pred ‹t₂›]
     | addL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› + ‹t₃›] [Term| ‹t₂› + ‹t₃›]
@@ -650,27 +651,27 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     | expR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| ‹v₁› ^ ‹t₁›] [Term| ‹v₁› ^ ‹t₂›]
     | exp {n₁ n₂: Nat}: Eval₁ [Term| ‹nat:n₁› ^ ‹nat:n₂›] [Term| ‹nat:n₁ ^ n₂›]
 
-    | eqL {t₁ t₃ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› = ‹t₃›] [Term| ‹t₂› = ‹t₃›]
+    | eqL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› = ‹t₃›] [Term| ‹t₂› = ‹t₃›]
     | eqR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| ‹v₁› = ‹t₁›] [Term| ‹v₁› = ‹t₂›]
     | eqTrue {v₁ v₂: Term} (h₁: Value v₁) (h₂: Value v₂) (h₃: Eq v₁ v₂): Eval₁ [Term| ‹v₁› = ‹v₂›] [Term| tru]
     | eqFalse {v₁ v₂: Term} (h₁: Value v₁) (h₂: Value v₂) (h₃: ¬ Eq v₁ v₂): Eval₁ [Term| ‹v₁› = ‹v₂›] [Term| fls]
-    | neqL {t₁ t₃ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› ≠ ‹t₃›] [Term| ‹t₂› ≠ ‹t₃›]
+    | neqL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› ≠ ‹t₃›] [Term| ‹t₂› ≠ ‹t₃›]
     | neqR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| ‹v₁› ≠ ‹t₁›] [Term| ‹v₁› ≠ ‹t₂›]
     | neqTrue {v₁ v₂: Term} (h₁: Value v₁) (h₂: Value v₂) (h₃: ¬ Eq v₁ v₂): Eval₁ [Term| ‹v₁› ≠ ‹v₂›] [Term| tru]
     | neqFalse {v₁ v₂: Term} (h₁: Value v₁) (h₂: Value v₂) (h₃: Eq v₁ v₂): Eval₁ [Term| ‹v₁› ≠ ‹v₂›] [Term| fls]
-    | ltL {t₁ t₃ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› < ‹t₃›] [Term| ‹t₂› < ‹t₃›]
+    | ltL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› < ‹t₃›] [Term| ‹t₂› < ‹t₃›]
     | ltR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| ‹v₁› < ‹t₁›] [Term| ‹v₁› < ‹t₂›]
     | ltTrue {n₁ n₂: Nat} (h₁: n₁ < n₂): Eval₁ [Term| ‹nat:n₁› < ‹nat:n₂›] [Term| tru]
     | ltFalse {n₁ n₂: Nat} (h₁: n₁ ≥ n₂): Eval₁ [Term| ‹nat:n₁› < ‹nat:n₂›] [Term| fls]
-    | leL {t₁ t₃ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› ≤ ‹t₃›] [Term| ‹t₂› ≤ ‹t₃›]
+    | leL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› ≤ ‹t₃›] [Term| ‹t₂› ≤ ‹t₃›]
     | leR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| ‹v₁› ≤ ‹t₁›] [Term| ‹v₁› ≤ ‹t₂›]
     | leTrue {n₁ n₂: Nat} (h₁: n₁ ≤ n₂): Eval₁ [Term| ‹nat:n₁› ≤ ‹nat:n₂›] [Term| tru]
     | leFalse {n₁ n₂: Nat} (h₁: n₁ > n₂): Eval₁ [Term| ‹nat:n₁› ≤ ‹nat:n₂›] [Term| fls]
-    | gtL {t₁ t₃ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› > ‹t₃›] [Term| ‹t₂› > ‹t₃›]
+    | gtL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› > ‹t₃›] [Term| ‹t₂› > ‹t₃›]
     | gtR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| ‹v₁› > ‹t₁›] [Term| ‹v₁› > ‹t₂›]
     | gtTrue {n₁ n₂: Nat} (h₁: n₁ > n₂): Eval₁ [Term| ‹nat:n₁› > ‹nat:n₂›] [Term| tru]
     | gtFalse {n₁ n₂: Nat} (h₁: n₁ ≤ n₂): Eval₁ [Term| ‹nat:n₁› > ‹nat:n₂›] [Term| fls]
-    | geL {t₁ t₃ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› ≥ ‹t₃›] [Term| ‹t₂› ≥ ‹t₃›]
+    | geL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| ‹t₁› ≥ ‹t₃›] [Term| ‹t₂› ≥ ‹t₃›]
     | geR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| ‹v₁› ≥ ‹t₁›] [Term| ‹v₁› ≥ ‹t₂›]
     | geTrue {n₁ n₂: Nat} (h₁: n₁ ≥ n₂): Eval₁ [Term| ‹nat:n₁› ≥ ‹nat:n₂›] [Term| tru]
     | geFalse {n₁ n₂: Nat} (h₁: n₁ < n₂): Eval₁ [Term| ‹nat:n₁› ≥ ‹nat:n₂›] [Term| fls]
@@ -693,8 +694,10 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
 
     | pairL {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| (‹t₁›, ‹t₃›)] [Term| (‹t₂›, ‹t₃›)]
     | pairR {v₁ t₁ t₂: Term} (h₁: Value v₁) (h₂: Eval₁ t₁ t₂): Eval₁ [Term| (‹v₁›, ‹t₁›)] [Term| (‹v₁›, ‹t₂›)]
-    | fst {t₁ t₂: Term} (h₁: Value t₁) (h₂: Value t₂): Eval₁ [Term| fst (‹t₁›, ‹t₂›)] [Term| ‹t₁›]
-    | snd {t₁ t₂: Term} (h₁: Value t₁) (h₂: Value t₂): Eval₁ [Term| snd (‹t₁›, ‹t₂›)] [Term| ‹t₂›]
+    | fstValue {t₁ t₂: Term} (h₁: Value t₁) (h₂: Value t₂): Eval₁ [Term| fst (‹t₁›, ‹t₂›)] [Term| ‹t₁›]
+    | fst {t₁ t₂: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| fst ‹t₁›] [Term| fst ‹t₂›]
+    | sndValue {t₁ t₂: Term} (h₁: Value t₁) (h₂: Value t₂): Eval₁ [Term| snd (‹t₁›, ‹t₂›)] [Term| ‹t₂›]
+    | snd {t₁ t₂: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| snd ‹t₁›] [Term| snd ‹t₂›]
     | pcaseVal {id₁ id₂: String} {t₁ t₂ t₃: Term} (h₁: Value t₁) (h₂: Value t₂): Eval₁ [Term| case (‹t₁›, ‹t₂›) of | (‹id₁›, ‹id₂›) ⇒ ‹t₃›] ([id₁ ↦ t₁] [id₂ ↦ t₂] [Term| ‹t₃›])
     | pcase {id₁ id₂: String} {t₁ t₂ t₃: Term} (h₁: Eval₁ t₁ t₂): Eval₁ [Term| case ‹t₁› of | (‹id₁›, ‹id₂›) ⇒ ‹t₃›] [Term| case ‹t₂› of | (‹id₁›, ‹id₂›) ⇒ ‹t₃›]
 
@@ -741,19 +744,22 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     | mod {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› % ‹t₂›] [Ty| ℕ]
     | exp {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› ^ ‹t₂›] [Ty| ℕ]
 
-    | eq {Γ: Context} {t₁ t₂: Term} {ty: Ty} (h₁: HasType Γ t₁ ty) (h₂: HasType Γ t₂ ty): HasType Γ [Term| ‹t₁› = ‹t₂›] [Ty| ‹ty›]
-    | neq {Γ: Context} {t₁ t₂: Term} {ty: Ty} (h₁: HasType Γ t₁ ty) (h₂: HasType Γ t₂ ty): HasType Γ [Term| ‹t₁› ≠ ‹t₂›] [Ty| ‹ty›]
-    | lt {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› < ‹t₂›] [Ty| ℕ]
-    | le {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› ≤ ‹t₂›] [Ty| ℕ]
-    | gt {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› > ‹t₂›] [Ty| ℕ]
-    | ge {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› ≥ ‹t₂›] [Ty| ℕ]
+    | eq {Γ: Context} {t₁ t₂: Term} {ty: Ty} (h₁: HasType Γ t₁ ty) (h₂: HasType Γ t₂ ty): HasType Γ [Term| ‹t₁› = ‹t₂›] [Ty| 𝔹]
+    | neq {Γ: Context} {t₁ t₂: Term} {ty: Ty} (h₁: HasType Γ t₁ ty) (h₂: HasType Γ t₂ ty): HasType Γ [Term| ‹t₁› ≠ ‹t₂›] [Ty| 𝔹]
+    | lt {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› < ‹t₂›] [Ty| 𝔹]
+    | le {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› ≤ ‹t₂›] [Ty| 𝔹]
+    | gt {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› > ‹t₂›] [Ty| 𝔹]
+    | ge {Γ: Context} {t₁ t₂: Term} (h₁: HasType Γ t₁ [Ty| ℕ]) (h₂: HasType Γ t₂ [Ty| ℕ]): HasType Γ [Term| ‹t₁› ≥ ‹t₂›] [Ty| 𝔹]
+
+    | ite {Γ: Context} {c t f: Term} {ty: Ty} (h₁: HasType Γ c [Ty| 𝔹]) (h₂: HasType Γ t ty) (h₃: HasType Γ f ty): HasType Γ [Term| ite ‹c› then ‹t› else ‹f›] [Ty| ‹ty›]
 
     | inl {Γ: Context} {t: Term} {ty₁ ty₂: Ty} (h₁: HasType Γ t ty₁): HasType Γ [Term| inl (‹t› | ‹ty₂›)] [Ty| ‹ty₁› + ‹ty₂›]
     | inr {Γ: Context} {t: Term} {ty₁ ty₂: Ty} (h₁: HasType Γ t ty₂): HasType Γ [Term| inr (‹ty₁› | ‹t›)] [Ty| ‹ty₁› + ‹ty₂›]
-    | scase {Γ: Context} {c l r: Term} {id₁ id₂: String} {ty₁ ty₂ ty₃: Ty} (h₁: HasType Γ c [Ty| ‹ty₁› + ‹ty₂›]) (h₁: HasType (Γ; id₁: ty₁) l ty₃) (h₂: HasType (Γ; id₂: ty₂) r ty₃): HasType Γ [Term| case ‹c› of | inl ‹id₁› ⇒ ‹t₂› | inr ‹id₂› ⇒ ‹t₃›] [Ty| ‹ty₃›]
+    | scase {Γ: Context} {c l r: Term} {id₁ id₂: String} {ty₁ ty₂ ty₃: Ty} (h₁: HasType Γ c [Ty| ‹ty₁› + ‹ty₂›]) (h₂: HasType (Γ; id₁: ty₁) l ty₃) (h₃: HasType (Γ; id₂: ty₂) r ty₃): HasType Γ [Term| case ‹c› of | inl ‹id₁› ⇒ ‹t₂› | inr ‹id₂› ⇒ ‹t₃›] [Ty| ‹ty₃›]
 
     | nil {Γ: Context} {ty: Ty} (h₁: HasType Γ [Term| []] ty): HasType Γ [Term| []] [Ty| [‹ty›]]
     | cons {Γ: Context} {hd tl: Term} {ty: Ty} (h₁: HasType Γ hd ty) (h₂: HasType Γ tl [Ty| [‹ty›]]): HasType Γ [Term| ‹hd› :: ‹tl›] [Ty| [‹ty›]]
+    | lcase {Γ: Context} {c n ht: Term} {id₁ id₂: String} {ty₁ ty₂: Ty} (h₁: HasType Γ c [Ty| [‹ty₁›]]) (h₂: HasType Γ n ty₂) (h₃: HasType ((Γ; id₁: ty₁); id₂: ty₂) ht ty₂): HasType Γ [Term| case ‹c› of | nil ⇒ ‹n› | ‹id₁› :: ‹id₂› ⇒ ‹ht›] [Ty| ‹ty₂›]
 
     | unit {Γ: Context}: HasType Γ [Term| ()] [Ty| ()]
 
@@ -788,14 +794,80 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     ]
 
     namespace Term
-      example: ● ⊢ testTerm: [Ty| ℕ] := sorry
-      example: testTerm ⇓ [Term| 5] := sorry
+      example: ● ⊢ testTerm: [Ty| ℕ] :=
+        have hc :=
+          have hl := (.pred (.succ (.pred (.mul .const .const))))
+          have hr := .const
+          .eq hl hr
+        .ite hc .const .const
+
+      example: testTerm ⇓ [Term| 5] :=
+        calc [Term| ite (pred succ pred (2 * 0) = 0) then 5 else 6]
+          _ ⟶ [Term| ite (pred succ pred 0 = 0) then 5 else 6] := .ite (.eqL (.pred (.succ (.pred .mul))))
+          _ ⟶ [Term| ite (pred succ 0 = 0) then 5 else 6]      := .ite (.eqL (.pred (.succ .predZero)))
+          _ ⟶ [Term| ite (0 = 0) then 5 else 6]                := .ite (.eqL (.predSucc .const))
+          _ ⟶ [Term| ite tru then 5 else 6]                    := .ite (.eqTrue .const .const (.const rfl))
+          _ ⟶ [Term| 5]                                        := .iteTrue
     end Term
 
     namespace Tactic
+      example: ● ⊢ testTerm: [Ty| ℕ] := by
+        apply HasType.ite
+        · apply HasType.eq
+          · apply HasType.pred
+            · apply HasType.succ
+              · apply HasType.pred
+                · apply HasType.mul
+                  repeat constructor
+          · constructor
+        repeat constructor
+
+      example: testTerm ⇓ [Term| 5] := by
+        apply SmallStep.MultiStep.step
+        · apply Eval₁.ite
+          · apply Eval₁.eqL
+            · apply Eval₁.pred
+              · apply Eval₁.succ
+                · apply Eval₁.pred
+                  · apply Eval₁.mul
+        · apply SmallStep.MultiStep.step
+          · apply Eval₁.ite
+            · apply Eval₁.eqL
+              · apply Eval₁.pred
+                · apply Eval₁.succ
+                  · apply Eval₁.predZero
+          · apply SmallStep.MultiStep.step
+            · apply Eval₁.ite
+              · apply Eval₁.eqL
+                · apply Eval₁.predSucc
+                  · constructor
+            · apply SmallStep.MultiStep.step
+              · apply Eval₁.ite
+                · apply Eval₁.eqTrue
+                  · constructor
+                  · constructor
+                  · apply Eq.const
+                    · rfl
+              · apply SmallStep.MultiStep.step
+                · apply Eval₁.iteTrue
+                · constructor
     end Tactic
 
     namespace Blended
+      example: ● ⊢ testTerm: [Ty| ℕ] :=
+        have hc :=
+          have hl := (.pred (.succ (.pred (.mul .const .const))))
+          have hr := by constructor
+          .eq hl hr
+        .ite hc .const .const
+
+      example: testTerm ⇓ [Term| 5] :=
+        calc [Term| ite (pred succ pred (2 * 0) = 0) then 5 else 6]
+          _ ⟶ [Term| ite (pred succ pred 0 = 0) then 5 else 6] := .ite (.eqL (.pred (.succ (.pred .mul))))
+          _ ⟶ [Term| ite (pred succ 0 = 0) then 5 else 6]      := .ite (.eqL (.pred (.succ .predZero)))
+          _ ⟶ [Term| ite (0 = 0) then 5 else 6]                := .ite (.eqL (.predSucc .const))
+          _ ⟶ [Term| ite tru then 5 else 6]                    := .ite (.eqTrue .const .const (.const rfl))
+          _ ⟶ [Term| 5]                                        := by constructor
     end Blended
   end NumTest
 
@@ -809,14 +881,53 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     ]
 
     namespace Term
-      example: ● ⊢ testTerm: [Ty| ℕ] := sorry
-      example: testTerm ⇓ [Term| 6] := sorry
+      example: ● ⊢ testTerm: [Ty| ℕ] :=
+        have hp :=
+          have hl := .pair .const .const
+          have hr := .const
+          .pair hl hr
+        .snd (.fst hp)
+
+      example: testTerm ⇓ [Term| 6] :=
+        calc [Term| snd fst ((5, 6), 7)]
+          _ ⟶ [Term| snd (5, 6)] := .snd (.fstValue (.pair .const .const) .const)
+          _ ⟶ [Term| 6]          := .sndValue .const .const
     end Term
 
     namespace Tactic
+      example: ● ⊢ testTerm: [Ty| ℕ] := by
+        apply HasType.snd
+        · apply HasType.fst
+          · apply HasType.pair
+            · apply HasType.pair
+              repeat constructor
+            · constructor
+
+      example: testTerm ⇓ [Term| 6] := by
+        apply SmallStep.MultiStep.step
+        · apply Eval₁.snd
+          · apply Eval₁.fstValue
+            · apply Value.pair
+              repeat constructor
+            · constructor
+        · apply SmallStep.MultiStep.step
+          · apply Eval₁.sndValue
+            repeat constructor
+          · apply SmallStep.MultiStep.refl
     end Tactic
 
     namespace Blended
+      example: ● ⊢ testTerm: [Ty| ℕ] :=
+        have hp :=
+          have hl := .pair .const .const
+          have hr := by constructor
+          .pair hl hr
+        .snd (.fst hp)
+
+      example: testTerm ⇓ [Term| 6] :=
+        calc [Term| snd fst ((5, 6), 7)]
+          _ ⟶ [Term| snd (5, 6)] := .snd (.fstValue (.pair .const .const) .const)
+          _ ⟶ [Term| 6]          := .sndValue .const .const
     end Blended
   end ProdTest
 
@@ -836,11 +947,28 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     ]
 
     namespace Term
-      example: ● ⊢ testTerm₁: [Ty| ℕ] := sorry
-      example: testTerm₁ ⇓ [Term| 6] := sorry
+      example: ● ⊢ testTerm₁: [Ty| ℕ] :=
+        have h₁ := .pred .const
+        have h₂ {Γ: Context}: (Γ; "x": [Ty| ℕ]) ⊢ [Term| succ x] : [Ty| ℕ] :=
+          sorry
+        .let h₁ h₂
 
-      example: ● ⊢ testTerm₂: [Ty| ℕ] := sorry
-      example: testTerm₂ ⇓ [Term| 6] := sorry
+      example: testTerm₁ ⇓ [Term| 6] :=
+        calc [Term| let x = pred 6 in succ x]
+          _ ⟶ [Term| let x = 5 in succ x]      := sorry --.letL (.predConst sorry)
+          _ ⟶ [Term| succ 5]                   := sorry --.letR .const
+          _ ⟶ [Term| 6]                        := .succConst
+
+      example: ● ⊢ testTerm₂: [Ty| ℕ] :=
+        have h₁: ● ⊢ [Term| pred 6] : [Ty| ℕ] := .pred .const
+        have h₂ {Γ: Context}: (Γ; "z": [Ty| ℕ]) ⊢ [Term| succ z] : [Ty| ℕ] := sorry
+        .let h₁ h₂
+
+      example: testTerm₂ ⇓ [Term| 6] :=
+        calc [Term| let z = pred 6 in succ z]
+          _ ⟶ [Term| let z = 5 in succ z]      := sorry --.letL (.predConst sorry)
+          _ ⟶ [Term| succ 5]                   := sorry --.letR .const
+          _ ⟶ [Term| 6]                        := .succConst
     end Term
 
     namespace Tactic
@@ -858,7 +986,7 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     def testTerm₁ := [Term|
       case inl (5 | ℕ) of
         | inl x ⇒ x
-        | inr y ⇒ r
+        | inr y ⇒ y
     ]
 
     def testTerm₂ := [Term|
@@ -871,11 +999,22 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     ]
 
     namespace Term
-      example: ● ⊢ testTerm₁: [Ty| ℕ] := sorry
-      example: testTerm₁ ⇓ [Term| 5] := sorry
+      example: ● ⊢ testTerm₁: [Ty| ℕ] :=
+        have hc {Γ: Context}: Γ ⊢ [Term| inl (5 | ℕ)] : [Ty| ℕ + ℕ] := .inl .const
+        have hl {Γ: Context} {ty: Ty}: (Γ.update "x" [Ty| ℕ]) ⊢ [Term| x] : [Ty| ‹ty›] := sorry
+        have hr {Γ: Context} {ty: Ty}: (Γ.update "y" [Ty| ℕ]) ⊢ [Term| y] : [Ty| ‹ty›] := sorry
+        .scase hc hl hr
 
-      example: ● ⊢ testTerm₂: [Ty| ℕ × ℕ] := sorry
-      example: testTerm₂ ⇓ [Term| (5, 0)] := sorry
+      example: testTerm₁ ⇓ [Term| 5] :=
+        calc [Term| case inl (5 | ℕ) of | inl x ⇒ x | inr y ⇒ y]
+          _ ⟶ [Term| x] := sorry
+          _ ⟶ [Term| 5] := sorry
+
+      example: ● ⊢ testTerm₂: [Ty| ℕ × ℕ] :=
+        sorry
+      example: testTerm₂ ⇓ [Term| (5, 0)] :=
+        calc [Term| let processSum = λ x: ℕ + ℕ. case x of | inl n ⇒ n | inr n ⇒ ite n = 0 then 1 else 0 in (processSum (inl (5 | ℕ)), processSum (inr (ℕ | 5)))]
+          _ ⟶ [Term| (5, 0)] := sorry
     end Term
 
     namespace Tactic
@@ -898,8 +1037,22 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
     ]
 
     namespace Term
-      example: ● ⊢ testTerm: [Ty| ℕ] := sorry
-      example: testTerm ⇓ [Term| 25] := sorry
+      example: ● ⊢ testTerm: [Ty| ℕ] :=
+        have hl {Γ: Context}: Γ ⊢ [Term| [5, 6]] : [Ty| [ℕ]] :=
+          sorry
+        have hlc {Γ: Context}: (Γ; "l" : [Ty| [ℕ]]) ⊢ [Term| case l of | nil ⇒ 0 | hd :: tl ⇒ hd * hd] : [Ty| ℕ] :=
+          have hl {Γ: Context}: Γ ⊢ [Term| l] : [Ty| [ℕ]] :=
+            sorry
+          have hn {Γ: Context}: Γ ⊢ [Term| 0] : [Ty| ℕ] :=
+            sorry
+          have hc {Γ: Context}: ((Γ; "hd": [Ty| ℕ]); "tl": [Ty| ℕ]) ⊢ [Term| hd * hd] : [Ty| ℕ] :=
+            sorry
+          .lcase hl hn hc
+        .let hl hlc
+
+      example: testTerm ⇓ [Term| 25] :=
+        calc [Term| let l = [5, 6] in case l of | nil ⇒ 0 | hd :: tl ⇒ hd * hd]
+          _ ⟶ [Term| 25] := sorry
     end Term
 
     namespace Tactic
@@ -953,17 +1106,32 @@ namespace SoftwareFoundations.ProgrammingLanguageFoundations.MoreStlc
 
     namespace Term
       example: ● ⊢ fact: [Ty| ℕ → ℕ] := sorry
-      example: [Term| ‹fact› 4] ⇓ [Term| 24] := sorry
+
+      example: [Term| ‹fact› 4] ⇓ [Term| 24] :=
+        calc [Term| (fix (λ f: ℕ → ℕ. λ a: ℕ. ite (a = 0) then 1 else a * (f (pred a)))) 4]
+          _ ⟶ [Term| 24] := sorry
 
       example: ● ⊢ map: [Ty| (ℕ → ℕ) → ([ℕ] → [ℕ])] := sorry
-      example: [Term| ‹map› (λ x: ℕ. succ x) [1, 2]] ⇓ [Term| 24] := sorry
+
+      example: [Term| ‹map› (λ x: ℕ. succ x) [1, 2]] ⇓ [Term| 24] :=
+        calc [Term| (λ g: ℕ → ℕ. fix (λ f: [ℕ] → [ℕ]. λ l: [ℕ]. case l of | nil ⇒ [] | hd :: tl ⇒ g hd :: f tl))  (λ x: ℕ. succ x) [1, 2]]
+         _ ⟶ [Term| 24] := sorry
 
       example: ● ⊢ equal: [Ty| ℕ → ℕ → 𝔹] := sorry
-      example: [Term| ‹equal› 4 4] ⇓ [Term| tru] := sorry
-      example: [Term| ‹equal› 4 5] ⇓ [Term| fls] := sorry
+
+      example: [Term| ‹equal› 4 4] ⇓ [Term| tru] :=
+        calc [Term| (fix (λ eq: ℕ → ℕ → 𝔹. λ m: ℕ. λ n: ℕ. ite m = 0 then ite n = 0 then tru else fls else ite n = 0 then fls else eq (pred m) (pred n))) 4 4]
+          _ ⟶ [Term| tru] := sorry
+
+      example: [Term| ‹equal› 4 5] ⇓ [Term| fls] :=
+        calc [Term| (fix (λ eq: ℕ → ℕ → 𝔹. λ m: ℕ. λ n: ℕ. ite m = 0 then ite n = 0 then tru else fls else ite n = 0 then fls else eq (pred m) (pred n))) 4 5]
+          _ ⟶ [Term| fls] := sorry
 
       example: ● ⊢ evenOdd: [Ty| 𝔹 × 𝔹] := sorry
-      example: evenOdd ⇓ [Term| (fls, tru)] := sorry
+
+      example: evenOdd ⇓ [Term| (fls, tru)] :=
+        calc [Term| let evenOdd = fix (λ evenOdd: ((ℕ → ℕ) × (ℕ → ℕ)). ((λ n: ℕ. ite n = 0 then tru else (snd evenOdd) (pred n)), (λ n: ℕ. ite n = 0 then fls else (fst evenOdd) (pred n)))) in let even = fst evenOdd in let odd = snd evenOdd in (even 3, even 4)]
+          _ ⟶ [Term| (fls, tru)] := sorry
     end Term
 
     namespace Tactic
