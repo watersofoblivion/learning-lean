@@ -332,17 +332,10 @@ theorem 𝔹.neg_involute (b: 𝔹): b.neg.neg = b := by
   cases b <;> rfl
 
 example (b₁ b₂: 𝔹): 𝔹.and b₁ b₂ = 𝔹.and b₂ b₁ := by
-  cases b₁ with
-    | true => cases b₂ <;> rfl
-    | false => cases b₂ <;> rfl
+  cases b₁ <;> cases b₂ <;> rfl
 
 example (b₁ b₂ b₃: 𝔹): (𝔹.and b₁ b₂).and b₃ = (𝔹.and b₁ b₃).and b₂ := by
-  cases b₁ with
-    | true =>
-      cases b₂ with
-        | true => cases b₃ <;> rfl
-        | false => cases b₃ <;> rfl
-    | false => rfl
+  cases b₁ <;> cases b₂ <;> cases b₃ <;> rfl
 
 /-
 #### Exercises
@@ -411,7 +404,6 @@ namespace LateDays
     | .d, .a | .d, .b | .d, .c => .lt
     | .d, _ => .gt
     | .f, _ => .lt
-
 
   def Letter.lower: Letter → Letter
     | .a => .b

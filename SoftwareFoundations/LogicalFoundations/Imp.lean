@@ -1066,9 +1066,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
           have h₂: s₂ =[z4]=> s₃ := assignment "Z" 4 s₂
           CommandEval.ifFalse s₂ s₃ h₁ h₂
 
-        by
-          repeat unfold instCoeListCommand.conv
-          exact CommandEval.seq s₁ s₂ s₃ h₁ h₂
+        CommandEval.seq s₁ s₂ s₃ h₁ h₂
 
       example: [State|] =[[Imp| ‹x0›; ‹y1›; ‹z2›]]=> [State| X = 0, Y = 1, Z = 2] :=
         let s₁: State := State.empty
@@ -1076,9 +1074,7 @@ namespace SoftwareFoundations.LogicalFoundations.Imp
         let s₃: State := s₂.update "Y" 1
         let s₄: State := s₃.update "Z" 2
 
-        by
-          repeat unfold instCoeListCommand.conv
-          sorry
+        sorry
 
       example: [State| X = 2] =[sum]=> [State| X = 2, Y = 0, Y = 2, X = 1, Y = 3, X = 0] :=
         sorry
