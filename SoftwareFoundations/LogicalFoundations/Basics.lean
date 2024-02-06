@@ -1,655 +1,832 @@
 /-
-# Basics
+# Functional Programming in Lean (Coq)
 -/
 
-/-
-## Data And Functions
--/
-
-/-
-### Days of the week
--/
-
-inductive Day: Type where
-  | monday: Day
-  | tuesday: Day
-  | wednesday: Day
-  | thursday: Day
-  | friday: Day
-  | saturday: Day
-  | sunday: Day
-deriving Repr
-
-def Day.nextWeekday: Day -> Day
-  | .monday => .tuesday
-  | .tuesday => .wednesday
-  | .wednesday => .thursday
-  | .thursday => .friday
-  | _ => .monday
-
-#eval Day.friday.nextWeekday
-#eval Day.saturday.nextWeekday.nextWeekday
-
-example: Day.saturday.nextWeekday.nextWeekday = Day.tuesday := by rfl
-
-/-
-### Booleans
--/
-
-inductive 𝔹: Type where
-  | true
-  | false
-
-def 𝔹.and: 𝔹 → 𝔹 → 𝔹
-  | .true, .true => .true
-  | _, _ => .false
-
-def 𝔹.or: 𝔹 → 𝔹 → 𝔹
-  | .false, .false => .false
-  | _, _ => .true
-
-def 𝔹.neg: 𝔹 → 𝔹
-  | .true => .false
-  | .false => .true
-
-example: 𝔹.and .true .true = .true := by rfl
-example: 𝔹.and .true .false = .false := by rfl
-example: 𝔹.and .false .false = .false := by rfl
-example: 𝔹.and .false .true = .false := by rfl
-
-example: 𝔹.or .true .false = .true := by rfl
-example: 𝔹.or .false .false = .false := by rfl
-example: 𝔹.or .false .true = .true := by rfl
-example: 𝔹.or .true .true = .true := by rfl
-
-example: 𝔹.neg .true = .false := by rfl
-example: 𝔹.neg .false = .true := by rfl
-
-/-
-#### Exercises
--/
-
-/-- Exercise: nand -/
-def 𝔹.nand (b₁ b₂: 𝔹): 𝔹 := (𝔹.and b₁ b₂).neg
-
-example: 𝔹.nand .true .true = .false := by rfl
-example: 𝔹.nand .true .false = .true := by rfl
-example: 𝔹.nand .false .false = .true := by rfl
-example: 𝔹.nand .false .true = .true := by rfl
-
-/-- Exercise: and3 -/
-def and3 (b₁ b₂ b₃: 𝔹): 𝔹 := (b₁.and b₂).and b₃
-
-example: and3 .true .true .true = .true := by rfl
-example: and3 .true .true .false = .false := by rfl
-example: and3 .true .false .true = .false := by rfl
-example: and3 .true .false .false = .false := by rfl
-example: and3 .false .true .true = .false := by rfl
-example: and3 .false .true .false = .false := by rfl
-example: and3 .false .false .true = .false := by rfl
-example: and3 .false .false .false = .false := by rfl
-
-/-
-### Types
--/
-
-#check 𝔹.true
-#check (𝔹.true: 𝔹)
-#check 𝔹.neg .true
-
-/-
-### New Types from Old
--/
-
-inductive RGB: Type where
-  | red: RGB
-  | green: RGB
-  | blue: RGB
-
-inductive Color: Type where
-  | black: Color
-  | white: Color
-  | primary: RGB → Color
-
-def monochrome: Color → 𝔹
-  | .black | .white => .true
-  | _ => .false
-
-def isRed: Color → 𝔹
-  | .primary .red => .true
-  | _ => .false
-
-/-
-### Namespaces (Modules in LF)
--/
-
-namespace Playground
-  def foo: RGB := .blue
-end Playground
-
-def foo: 𝔹 := .true
-
-#check Playground.foo
-#check foo
-
-/-
-### Structures (Tuples in LF)
--/
-
-namespace TuplePlayground
-  inductive Bit: Type where
-    | b₀
-    | b₁
-
-  structure Nybble: Type where
-    b₀: Bit
-    b₁: Bit
-    b₂: Bit
-    b₃: Bit
-
-  #check (⟨.b₀, .b₁, .b₀, .b₁⟩: Nybble)
-
-  def Nybble.allZeros: Nybble → Bool
-    | ⟨.b₀, .b₀, .b₀, .b₀⟩ => true
-    | _ => false
-
-  example: (⟨.b₀, .b₀, .b₀, .b₀⟩: Nybble).allZeros = .true := by rfl
-  example: (⟨.b₀, .b₁, .b₀, .b₁⟩: Nybble).allZeros = .false := by rfl
-end TuplePlayground
-
-/-
-### Numbers
--/
-
-namespace NatPlayground
-  inductive ℕ: Type where
-    | zero: ℕ
-    | succ: ℕ → ℕ
-
-  def ℕ.pred: ℕ → ℕ
-    | .zero => .zero
-    | .succ n => n
-
-  def zero: ℕ := ℕ.zero
-  def one: ℕ := ℕ.succ zero
-  def two: ℕ := ℕ.succ one
-
-  example: zero.pred = zero := by rfl
-  example: one.pred = zero := by rfl
-  example: two.pred = one := by rfl
-end NatPlayground
-
-def Nat.minusTwo: Nat → Nat
-  | .zero => .zero
-  | .succ .zero => .zero
-  | .succ (.succ n) => n
-
-example: (0: Nat).minusTwo = 0 := by rfl
-example: (1: Nat).minusTwo = 0 := by rfl
-example: (2: Nat).minusTwo = 0 := by rfl
-example: (3: Nat).minusTwo = 1 := by rfl
-example: (4: Nat).minusTwo = 2 := by rfl
-
-#check Nat.succ
-#check NatPlayground.ℕ.pred
-#check Nat.minusTwo
-
-def Nat.isEven: Nat → Bool
-  | .zero => .true
-  | .succ .zero => .false
-  | .succ (.succ n) => n.isEven
-
-example: (0: Nat).isEven = .true := by rfl
-example: (1: Nat).isEven = .false := by rfl
-example: (2: Nat).isEven = .true := by rfl
-example: (3: Nat).isEven = .false := by rfl
-
-def Nat.isOdd (n: Nat): Bool := ¬n.isEven
-
-example: (0: Nat).isOdd = .false := by rfl
-example: (1: Nat).isOdd = .true := by rfl
-example: (2: Nat).isOdd = .false := by rfl
-example: (3: Nat).isOdd = .true := by rfl
-
-namespace NatPlayground2
-  def Nat.plus: Nat → Nat → Nat
-    | .zero, n => n
-    | .succ n₁, n₂ => .succ (plus n₁ n₂)
-
-  example: Nat.plus 0 0 = 0 := by rfl
-  example: Nat.plus 0 1 = 1 := by rfl
-  example: Nat.plus 1 0 = 1 := by rfl
-  example: Nat.plus 1 1 = 2 := by rfl
-
-  def Nat.times: Nat → Nat → Nat
-    | .zero, _ | _, .zero => 0
-    | .succ n₁, n₂ => plus (times n₁ n₂) n₂
-
-  example: Nat.times 0 42 = 0 := by rfl
-  example: Nat.times 42 0 = 0 := by rfl
-  example: Nat.times 1 42 = 42 := by rfl
-  example: Nat.times 42 1 = 42 := by rfl
-  example: Nat.times 10 5 = 50 := by rfl
-
-  def Nat.minus: Nat → Nat → Nat
-    | .zero, _ => 0
-    | n, .zero => n
-    | .succ n₁, .succ n₂ => minus n₁ n₂
-
-  example: Nat.minus 0 0 = 0 := by rfl
-  example: Nat.minus 3 2 = 1 := by rfl
-  example: Nat.minus 2 3 = 0 := by rfl
-end NatPlayground2
-
-def exp (base pow: Nat): Nat :=
-  match pow with
-    | .zero => 1
-    | .succ p => base * (exp base p)
-
-def Nat.eq: Nat → Nat → Bool
-  | .zero, .zero => true
-  | .succ n₁, .succ n₂ => eq n₁ n₂
-  | _, _ => false
-
-example: Nat.eq 0 0 = true := by rfl
-example: Nat.eq 1 0 = false := by rfl
-example: Nat.eq 0 1 = false := by rfl
-example: Nat.eq 42 42 = true := by rfl
-
-def Nat.less_eq: Nat → Nat → Bool
-  | .zero, _ => true
-  | .succ _, .zero => false
-  | .succ n₁, .succ n₂ => less_eq n₁ n₂
-
-example: Nat.less_eq 0 0 = true := by rfl
-example: Nat.less_eq 0 1 = true := by rfl
-example: Nat.less_eq 42 42 = true := by rfl
-example: Nat.less_eq 21 42 = true := by rfl
-example: Nat.less_eq 1 0 = false := by rfl
-example: Nat.less_eq 42 21 = false := by rfl
-
-/-
-#### Exercises
--/
-
-/- Exercise: Factorial -/
-def Nat.factorial (n: Nat): Nat :=
-  match n with
-    | .zero => 1
-    | .succ n' => n * factorial n'
-
-example: Nat.factorial 0 = 1 := by rfl
-example: Nat.factorial 1 = 1 := by rfl
-example: Nat.factorial 2 = 2 := by rfl
-example: Nat.factorial 3 = 6 := by rfl
-example: Nat.factorial 4 = 24 := by rfl
-example: Nat.factorial 5 = 120 := by rfl
-
-/- Exercise: Less Than -/
-
-def Nat.less (n₁ n₂: Nat): Bool := Nat.less_eq n₁ n₂ && !(Nat.eq n₁ n₂)
-
-example: Nat.less 0 0 = false := by rfl
-example: Nat.less 0 1 = true := by rfl
-example: Nat.less 42 42 = false := by rfl
-example: Nat.less 21 42 = true := by rfl
-example: Nat.less 1 0 = false := by rfl
-example: Nat.less 42 21 = false := by rfl
-
-/-
-## Proof By Simplification
--/
-
-example (n: Nat): 0 + n = n := by simp
-example (n: Nat): 1 + n = .succ n := by
-  rw [Nat.add_comm]
-example (n: Nat): 0 * n = 0 := by simp
-example (n₁ n₂: Nat): (n₁ * 0) + (n₂ * 0) = 0 := by simp
-
-/-
-## Proof By Rewriting
--/
-
-example (n₁ n₂: Nat) (h: n₁ = n₂): n₁ + n₁ = n₂ + n₂ := by
-  rw [h]
-
-/-
-#### Exercises
--/
-
-example (n₁ n₂ n₃: Nat) (h₁: n₁ = n₂) (h₂: n₂ = n₃): n₁ + n₂ = n₂ + n₃ := by
-  rw [h₁, h₂]
-example (n: Nat): n * 1 = n := by simp
-
-/-
-# Proof By Case Analysis
--/
-
-example (n: Nat): Nat.eq (n + 1) 0 = false := by
-  cases n <;> rfl
-
-theorem 𝔹.neg_involute (b: 𝔹): b.neg.neg = b := by
-  cases b <;> rfl
-
-example (b₁ b₂: 𝔹): 𝔹.and b₁ b₂ = 𝔹.and b₂ b₁ := by
-  cases b₁ <;> cases b₂ <;> rfl
-
-example (b₁ b₂ b₃: 𝔹): (𝔹.and b₁ b₂).and b₃ = (𝔹.and b₁ b₃).and b₂ := by
-  cases b₁ <;> cases b₂ <;> cases b₃ <;> rfl
-
-/-
-#### Exercises
--/
-
-/- Exercise: andTrueElim -/
-example (b₁ b₂: 𝔹) (h: 𝔹.and b₁ b₂ = .true): b₂ = .true := by
-  cases b₁ with
-    | true =>
-      cases b₂ with
-        | true => simp
-        | false => contradiction
-    | false =>
-      cases b₂ with
-        | true => rw [← h]
-        | false => contradiction
-
-/- Exercise: zeroNeqPlusOne -/
-example (n: Nat): !(Nat.eq 0 (n + 1)) := by
-  simp
-  cases n <;> first | simp | rfl
-
-/-
-## More Exercises
--/
-
-example (f: 𝔹 → 𝔹) (h: ∀ x: 𝔹, f x = x) (b: 𝔹): (f ∘ f) b = b := by
-  simp
-  cases b <;> (rw [h]; rw [h])
-
-example (f: 𝔹 → 𝔹) (h: ∀ x: 𝔹, f x = 𝔹.neg x) (b: 𝔹): (f ∘ f) b = b := by
-  simp
-  cases b <;> (rw [h]; rw [h]; rfl)
-
-example (b₁ b₂: 𝔹): b₁.and b₂ = b₁.or b₂ → b₁ = b₂ := by
-  cases b₁ with
-    | true =>
-      cases b₂ with
-        | true => simp
-        | false => simp [𝔹.and, 𝔹.or]
-    | false =>
-      cases b₂ with
-        | true => simp [𝔹.and, 𝔹.or]
-        | false => simp
-
-/-
-### Course Late Policies, Formalized
--/
-
-namespace LateDays
-  inductive Letter: Type where
-    | a: Letter
-    | b: Letter
-    | c: Letter
-    | d: Letter
-    | f: Letter
-  deriving Repr
-
-  def Letter.compare: Letter → Letter → Ordering
-    | .a, .a | .b, .b | .c, .c | .d, .d | .f, .f => .eq
-    | .a, _ => .gt
-    | .b, .a => .lt
-    | .b, _ => .gt
-    | .c, .a | .c, .b => .lt
-    | .c, _ => .gt
-    | .d, .a | .d, .b | .d, .c => .lt
-    | .d, _ => .gt
-    | .f, _ => .lt
-
-  def Letter.lower: Letter → Letter
-    | .a => .b
-    | .b => .c
-    | .c => .d
-    | _ => .f
-
-  def Letter.canLower: Letter → Bool
-    | .f => false
-    | _ => true
-
-  @[simp]
-  theorem Letter.eq (l: Letter): Letter.compare l l = Ordering.eq := by
-    cases l <;> rfl
-
-  @[simp]
-  theorem Letter.lowerF: Letter.f.lower = Letter.f := by rfl
-
-  @[simp]
-  theorem Letter.lowerNonF (l: Letter) (h: Letter.compare Letter.f l = Ordering.lt): l.lower.compare l = Ordering.lt := by
-      cases l with
-        | a => rfl
-        | b => rfl
-        | c => rfl
-        | d => rfl
-        | f =>
-          rw [←h]
-          rfl
-
-  example: Letter.compare Letter.a Letter.a = Ordering.eq := by rfl
-  example: Letter.compare Letter.a Letter.b = Ordering.gt := by rfl
-  example: Letter.compare Letter.b Letter.a = Ordering.lt := by rfl
-
-  inductive Modifier: Type where
-    | plus: Modifier
-    | natural: Modifier
-    | minus: Modifier
-  deriving Repr
-
-  def Modifier.compare: Modifier → Modifier → Ordering
-    | .plus, .plus | .natural, .natural | .minus, .minus => .eq
-    | .plus, _ => .gt
-    | .natural, .plus => .lt
-    | .natural, _ => .gt
-    | .minus, _ => .lt
-
-  def Modifier.canLower: Modifier → Bool
-    | .minus => false
-    | _ => true
-
-  def Modifier.lower: Modifier → Modifier
-    | .plus => .natural
-    | _ => .minus
-
-  @[simp]
-  theorem Modifier.eq (m: Modifier): Modifier.compare m m = Ordering.eq := by
-    cases m <;> rfl
-
-  @[simp]
-  theorem Modifier.lowerMinus: Modifier.minus.lower = Modifier.minus := by rfl
-
-  @[simp]
-  theorem Modifier.lowerNonMinus (m: Modifier) (h: Modifier.compare Modifier.minus m = Ordering.lt): m.lower.compare m = Ordering.lt := by
-    cases m with
-      | plus => rfl
-      | natural => rfl
-      | minus =>
-        rw [←h]
-        rfl
-
-  example: Modifier.compare Modifier.natural Modifier.natural = Ordering.eq := by rfl
-  example: Modifier.compare Modifier.plus Modifier.natural = Ordering.gt := by rfl
-  example: Modifier.compare Modifier.minus Modifier.natural = Ordering.lt := by rfl
-
-  structure Grade: Type where
-    letter: Letter
-    modifier: Modifier
-  deriving Repr
-
-  def Grade.compare (g₁ g₂: Grade): Ordering :=
-    match Letter.compare g₁.letter g₂.letter with
-      | .eq => Modifier.compare g₁.modifier g₂.modifier
-      | ord => ord
-
-  def Grade.lower (g: Grade): Grade :=
-    if g.modifier.canLower
-    then ⟨g.letter, g.modifier.lower⟩
-    else
-      if g.letter.canLower
-      then ⟨g.letter.lower, Modifier.plus⟩
-      else g
-
-  def Grade.late (g: Grade) (days: Nat): Grade :=
-    if days < 9 then g
-    else if days < 17 then g.lower
-    else if days < 21 then g.lower.lower
-    else g.lower.lower.lower
-
-  @[simp]
-  theorem Grade.eq (l: Letter) (m: Modifier): Grade.compare (⟨l, m⟩: Grade) ⟨l, m⟩ = Ordering.eq := by
-    cases m <;> cases l <;> rfl
-
-  def aPlus: Grade := ⟨.a, .plus⟩
-  def aNatural: Grade := ⟨.a, .natural⟩
-  def aMinus: Grade := ⟨.a, .minus⟩
-  def bPlus: Grade := ⟨.b, .plus⟩
-  def bNatural: Grade := ⟨.b, .natural⟩
-  def bMinus: Grade := ⟨.b, .minus⟩
-  def cPlus: Grade := ⟨.c, .plus⟩
-  def cNatural: Grade := ⟨.c, .natural⟩
-  def cMinus: Grade := ⟨.c, .minus⟩
-  def fPlus: Grade := ⟨.f, .plus⟩
-  def fNatural: Grade := ⟨.f, .natural⟩
-  def fMinus: Grade := ⟨.f, .minus⟩
-
-  example: Grade.compare aMinus bPlus = Ordering.gt := by rfl
-  example: Grade.compare aMinus aPlus = Ordering.lt := by rfl
-  example: Grade.compare fPlus fPlus = Ordering.eq := by rfl
-  example: Grade.compare bMinus cPlus = Ordering.gt := by rfl
-
-  example: aPlus.lower = aNatural := by rfl
-  example: aNatural.lower = aMinus := by rfl
-  example: aMinus.lower = bPlus := by rfl
-  example: bPlus.lower = bNatural := by rfl
-  example: fNatural.lower = fMinus := by rfl
-  example: fMinus.lower = fMinus := by rfl
-
-  example: bMinus.lower.lower = cNatural := by rfl
-  example: bMinus.lower.lower.lower = cMinus := by rfl
-
-  @[simp]
-  theorem Grade.lowerFMinus: fMinus.lower = fMinus := by rfl
-
-  theorem Grade.lowers (g: Grade) (h: Grade.compare fMinus.lower g = Ordering.lt): Grade.compare g.lower g = Ordering.lt := by
-    rw [Grade.lower, Modifier.lower, Letter.lower]
-    rw [Grade.compare, Modifier.compare]
-    cases g with
-      | mk letter modifier =>
-        cases modifier with
-          | plus => simp
-          | natural => simp
-          | minus =>
-            rw [Letter.compare]
-            cases letter with
-              | a => simp
-              | b => simp
-              | c => simp
-              | d => simp
-              | f =>
-                simp
-                contradiction
-
-  theorem Grade.unfoldLate (days: Nat) (g: Grade): g.late days =
-    (if days < 9 then g
-     else if days < 17 then g.lower
-     else if days < 21 then g.lower.lower
-     else g.lower.lower.lower) := by
-      intros
-      rfl
-
-  theorem Grade.noPenaltyForMostlyOnTime (days: Nat) (g: Grade) (h: days < 9): (g.late days) = g := by
-    simp [Grade.unfoldLate, h]
-
-  theorem Grade.loweredOnce (days: Nat) (g: Grade) (h₁: ¬(days < 9)) (h₂: days < 17) (_: Grade.compare fMinus g = Ordering.lt): (g.late days) = g.lower := by
-    simp [Grade.unfoldLate, h₁, h₂]
-end LateDays
-
-/-
-### Binary Numerals
--/
-
-inductive Bin: Type where
-  | zero: Bin
-  | b₀: Bin -> Bin
-  | b₁: Bin -> Bin
-deriving Repr
-
-def Bin.incr: Bin → Bin
-  | .zero => .b₁ .zero
-  | .b₀ b => .b₁ b
-  | .b₁ b => .b₀ b.incr
-
-def Bin.toNat: Bin → Nat
-  | .zero => Nat.zero
-  | .b₀ b => 2 * b.toNat
-  | .b₁ b => 2 * b.toNat + 1
-
-def one: Bin := .b₁ .zero
-def two: Bin := .b₀ one
-def three: Bin := .b₁ one
-def four: Bin := .b₀ two
-
-example: one.incr = two := by rfl
-example: two.incr = three := by rfl
-example: three.incr = four := by rfl
-
-example: two.toNat = 2 := by rfl
-example: one.incr.toNat = 1 + one.toNat := by rfl
-example: one.incr.incr.toNat = 2 + one.toNat := by rfl
-
-
-/- Other Stuff: FizzBuzz -/
-
-inductive FizzBuzz: Type where
-  | fizz: FizzBuzz
-  | buzz: FizzBuzz
-  | fizzbuzz: FizzBuzz
-
-def FizzBuzz.fizzBuzz (n: Nat): Option FizzBuzz :=
-  if n % 5 == 0 && n % 7 == 0
-  then .some .fizzbuzz
-  else
-    if n % 5 == 0
-    then .some .fizz
-    else
-      if n % 7 == 0
-      then .some .buzz
-      else .none
-
-theorem FizzBuzz.producesFizzBuzz (n: Nat) (h₁: n % 5 == 0) (h₂: n % 7 == 0): FizzBuzz.fizzBuzz n = .some .fizzbuzz := by
-  rw [FizzBuzz.fizzBuzz, h₁, h₂]
-  simp
-
-theorem FizzBuzz.producesFizz (n: Nat) (h₁: n % 5 == 0) (h₂: (n % 7 == 0) = false): FizzBuzz.fizzBuzz n = .some .fizz := by
-  rw [FizzBuzz.fizzBuzz, h₁, h₂]
-  simp
-
-theorem FizzBuzz.producesBuzz (n: Nat) (h₁: (n % 5 == 0) = false) (h₂: n % 7 == 0): FizzBuzz.fizzBuzz n = .some .buzz := by
-  rw [FizzBuzz.fizzBuzz, h₁, h₂]
-  simp
-
-theorem FizzBuzz.producesNone (n: Nat) (h₁: (n % 5 == 0) = false) (h₂: (n % 7 == 0) = false): FizzBuzz.fizzBuzz n = .none := by
-  rw [FizzBuzz.fizzBuzz, h₁, h₂]
-  simp
-
-example: FizzBuzz.fizzBuzz 35 = .some .fizzbuzz := by rfl
-example: FizzBuzz.fizzBuzz 70 = .some .fizzbuzz := by rfl
-
-example: FizzBuzz.fizzBuzz 5 = .some .fizz := by rfl
-example: FizzBuzz.fizzBuzz 10 = .some .fizz := by rfl
-example: FizzBuzz.fizzBuzz 15 = .some .fizz := by rfl
-
-example: FizzBuzz.fizzBuzz 7 = .some .buzz := by rfl
-example: FizzBuzz.fizzBuzz 14 = .some .buzz := by rfl
-example: FizzBuzz.fizzBuzz 21 = .some .buzz := by rfl
-
-example: FizzBuzz.fizzBuzz 1 = .none := by rfl
-example: FizzBuzz.fizzBuzz 2 = .none := by rfl
-example: FizzBuzz.fizzBuzz 3 = .none := by rfl
+namespace SoftwareFoundations.LogicalFoundations.Basics
+  /-
+  ## Introduction
+  -/
+
+  /-
+  ## Data and Functions
+  -/
+
+  /-
+  ### Enumerated Types
+  -/
+
+  /-
+  ### Days of the Week
+  -/
+
+  inductive Day: Type where
+    | monday: Day
+    | tuesday: Day
+    | wednesday: Day
+    | thursday: Day
+    | friday: Day
+    | satuday: Day
+    | sunday: Day
+
+  def Day.next_weekday: Day → Day
+    | .monday => .tuesday
+    | .tuesday => .wednesday
+    | .wednesday => .thursday
+    | .thursday => .friday
+    | _ => .monday
+
+  section
+    example: Day.friday.next_weekday = .monday := rfl
+    example: Day.satuday.next_weekday.next_weekday = .tuesday := rfl
+  end
+
+  /-
+  ### Homework Submission Guidelines
+  -/
+
+  /-
+  ### Booleans
+  -/
+
+  inductive Bool: Type where
+    | true: Bool
+    | false: Bool
+
+  instance: Coe _root_.Bool Bool where
+    coe: _root_.Bool → Bool
+      | .true => .true
+      | .false => .false
+
+  @[reducible]
+  def Bool.neg: Bool → Bool
+    | .true => .false
+    | .false => .true
+
+  @[reducible]
+  def Bool.and: Bool → Bool → Bool
+    | .true, .true => .true
+    | _, _ => .false
+
+  @[reducible]
+  def Bool.or: Bool → Bool → Bool
+    | .false, .false => .false
+    | _, _ => .true
+
+  scoped infixl:35 " && " => Bool.and
+  scoped infixl:30 " || " => Bool.or
+  scoped notation:max "!" b:40 => Bool.neg b
+
+  section
+    example: (Bool.true || .false) = .true := rfl
+    example: (Bool.false || .false) = .false := rfl
+    example: (Bool.false || .true) = .true := rfl
+    example: (Bool.true || .true) = .true := rfl
+    example: (Bool.false || .false || .true) = .true := rfl
+  end
+
+  @[reducible]
+  def Bool.nand (b₁ b₂: Bool): Bool := !(b₁ && b₂)
+
+  section
+    example: Bool.true.nand .false = .true := rfl
+    example: Bool.false.nand .false = .true := rfl
+    example: Bool.false.nand .true = .true := rfl
+    example: Bool.true.nand .true = .false := rfl
+  end
+
+  @[reducible]
+  def Bool.and3 (b₁ b₂ b₃: Bool): Bool := b₁ && b₂ && b₃
+
+  section
+    example: Bool.true.and3 .true .true = .true := rfl
+    example: Bool.false.and3 .true .true = .false := rfl
+    example: Bool.true.and3 .false .true = .false := rfl
+    example: Bool.true.and3 .true .false = .false := rfl
+  end
+
+  /-
+  ### Types
+  -/
+
+  #check Bool.true
+  #check Bool.true.neg
+  #check Bool.neg
+
+  #check (Bool.true: Bool)
+  #check (Bool.true.neg: Bool)
+  #check (Bool.neg: Bool → Bool)
+
+  /-
+  ### New Types from Old
+  -/
+
+  inductive RGB: Type where
+    | red: RGB
+    | green: RGB
+    | blue: RGB
+
+  inductive Color: Type where
+    | black: Color
+    | white: Color
+    | primary (p: RGB): Color
+
+  @[reducible]
+  def Color.monochrome?: Color → Bool
+    | .black | .white => .true
+    | _ => .false
+
+  @[reducible]
+  def Color.red?: Color → Bool
+    | .primary .red => .true
+    | _ => .false
+
+  /-
+  ### Namespace (Modules)
+  -/
+
+  namespace Playground
+    def foo: RGB := .blue
+  end Playground
+
+  def foo: Bool := .true
+
+  #check Playground.foo
+  #check foo
+
+  /-
+  ### Tuples
+  -/
+
+  namespace TuplePlayground
+    inductive Bit: Type where
+      | b₁: Bit
+      | b₀: Bit
+
+    structure Nybble: Type where
+      b₀: Bit
+      b₁: Bit
+      b₂: Bit
+      b₃: Bit
+
+    @[reducible]
+    def Nybble.zero?: Nybble → Bool
+      | ⟨.b₀, .b₀, .b₀, .b₀⟩ => .true
+      | _ => .false
+
+    section
+      #check (⟨.b₁, .b₀, .b₁, .b₀⟩: Nybble)
+
+      example: (⟨.b₁, .b₀, .b₁, .b₀⟩: Nybble).zero? = .false := rfl
+      example: (⟨.b₀, .b₀, .b₀, .b₀⟩: Nybble).zero? = .true := rfl
+    end
+  end TuplePlayground
+
+  /-
+  ### Numbers
+  -/
+
+  namespace NatPlayground
+    inductive Nat: Type where
+      | zero: Nat
+      | succ (n: Nat): Nat
+
+    inductive StrangeNat: Type where
+      | foo: StrangeNat
+      | bar (s: StrangeNat): StrangeNat
+
+    @[reducible]
+    def Nat.pred: Nat → Nat
+      | .zero => .zero
+      | .succ n => n
+  end NatPlayground
+
+  #check Nat.zero.succ.succ.succ.succ
+
+  @[reducible]
+  def _root_.Nat.minusTwo: Nat → Nat
+    | .zero | .succ .zero => .zero
+    | .succ (.succ n) => n
+
+  section
+    example: (4).minusTwo = 2 := rfl
+
+    #check Nat.succ
+    #check Nat.pred
+    #check Nat.minusTwo
+  end
+
+  @[reducible]
+  def _root_.Nat.even?: Nat → Bool
+    | .zero => .true
+    | .succ .zero => .false
+    | .succ (.succ n) => n.even?
+
+  @[reducible]
+  def _root_.Nat.odd? (n: Nat): Bool := n.even?.neg
+
+  section
+    example: (1).odd? = .true := rfl
+    example: (4).odd? = .false := rfl
+  end
+
+  namespace NatPlayground2
+    def Nat.plus: Nat → Nat → Nat
+      | .zero, n₂ => n₂
+      | .succ n₁, n₂ => plus n₁ n₂.succ
+
+    def Nat.mult: Nat → Nat → Nat
+      | .zero, _ => 0
+      | .succ .zero, n₂ => n₂
+      | .succ n₁, n₂ => Nat.plus (Nat.mult n₁ n₂) n₂
+
+    def Nat.minus: Nat → Nat → Nat
+      | .zero, _ => 0
+      | n, .zero => n
+      | .succ n₁, .succ n₂ => Nat.minus n₁ n₂
+
+    scoped instance: Add Nat where
+      add := Nat.plus
+    scoped instance: Sub Nat where
+      sub := Nat.minus
+    scoped instance: Mul Nat where
+      mul := Nat.mult
+
+    section
+      example: 3 + 2 = 5 := rfl
+      example: 2 - 9 = 0 := rfl
+      example: 9 - 2 = 7 := rfl
+      example: 3 * 3 = 9 := rfl
+    end
+  end NatPlayground2
+
+  def _root_.Nat.exp: Nat → Nat → Nat
+    | _, .zero => 1
+    | n₁, .succ n₂ => n₁ * (n₁.exp n₂)
+
+  def _root_.Nat.factorial: Nat → Nat
+    | 0 => 0
+    | 1 => 1
+    | .succ n => (n + 1) * n.factorial
+
+  section
+    example: (3).factorial = 6 := rfl
+    example: (5).factorial = 10 * 12 := rfl
+  end
+
+  #check _root_.Nat.beq
+  #check _root_.Nat.ble
+  #check _root_.Nat.blt
+
+  def _root_.Nat.eqb: Nat → Nat → Bool
+    | .zero, .zero => .true
+    | .succ n₁, .succ n₂ => n₁.eqb n₂
+    | _, _ => false
+
+  def _root_.Nat.leb: Nat → Nat → Bool
+    | .zero, _ => .true
+    | .succ _, .zero => .false
+    | .succ n₁, .succ n₂ => n₁.leb n₂
+
+  def _root_.Nat.ltb (n₁ n₂: Nat): Bool := (n₁.leb n₂) && !(n₁.eqb n₂)
+
+  section
+    example: (2).leb 2 = .true := rfl
+    example: (2).leb 4 = .true := rfl
+    example: (4).leb 2 = .false := rfl
+
+    example: (2).ltb 2 = .false := rfl
+    example: (2).ltb 4 = .true := rfl
+    example: (4).ltb 2 = .false := rfl
+  end
+
+  /-
+  ## Proof By Simplification
+
+  Note: Becase of subtle implementation difference in Lean's `Nat.add` (vs
+  Coq's `plus`), the order of the operands in these theorems is reversed from
+  the book.
+
+  In the next chapter, `Induction`, the operands will be reversed as well for
+  the same reason.
+  -/
+
+  namespace Term
+    theorem Nat.add_zero (n: Nat): n + 0 = n := rfl
+    theorem Nat.add_one_eq_succ (n: Nat): n + 1 = n.succ := rfl
+    theorem Nat.mul_zero (n: Nat): n * 0 = 0 := rfl
+  end Term
+
+  namespace Tactic
+    @[scoped simp]
+    theorem Nat.add_zero (n: Nat): n + 0 = n := by rfl
+
+    @[scoped simp]
+    theorem Nat.add_one_eq_succ (n: Nat): n + 1 = n.succ := by rfl
+
+    @[scoped simp]
+    theorem Nat.mul_zero (n: Nat): n * 0 = 0 := by rfl
+  end Tactic
+
+  namespace Blended
+    @[scoped simp]
+    theorem Nat.add_zero (n: Nat): n + 0 = n := rfl
+
+    @[scoped simp]
+    theorem Nat.add_one_eq_succ (n: Nat): n + 1 = n.succ := rfl
+
+    @[scoped simp]
+    theorem Nat.mul_zero (n: Nat): n * 0 = 0 := rfl
+  end Blended
+
+  /-
+  ## Proof By Rewriting
+
+  Note: Subtle implementation difference in Lean Nat.add (vs Coq) makes the
+  Nat.mul_one impossible at this point using only the theorems proven so far.
+  -/
+
+  namespace Term
+    example {n₁ n₂: Nat} (h: n₁ = n₂): n₁ + n₁ = n₂ + n₂ :=
+      calc n₁ + n₁
+        _ = n₂ + n₂ := congr (congrArg Nat.add h) h
+
+    example {n₁ n₂ n₃: Nat} (h₁: n₁ = n₂) (h₂: n₂ = n₃): n₁ + n₂ = n₂ + n₃ :=
+      calc n₁ + n₂
+        _ = n₂ + n₃ := congr (congrArg Nat.add h₁) h₂
+
+    theorem Nat.mul_zero_add_mul_zero (n₁ n₂: Nat): (n₁ * 0) + (n₂ * 0) = 0 :=
+      calc (n₁ * 0) + (n₂ * 0)
+        _ = 0 + 0 := congr (congrArg Nat.add (Nat.mul_zero n₁)) (Nat.mul_zero n₂)
+
+    theorem Nat.mul_one (n: Nat): n * 1 = n :=
+      calc n * 1
+        _ = n := _root_.Nat.mul_one n
+  end Term
+
+  namespace Tactic
+    example {n₁ n₂: Nat} (h: n₁ = n₂): n₁ + n₁ = n₂ + n₂ := by
+      rw [h]
+
+    example {n₁ n₂ n₃: Nat} (h₁: n₁ = n₂) (h₂: n₂ = n₃): n₁ + n₂ = n₂ + n₃ := by
+      rw [h₁, h₂]
+
+    @[scoped simp]
+    theorem Nat.mul_zero_add_mul_zero (n₁ n₂: Nat): (n₁ * 0) + (n₂ * 0) = 0 := by
+      rw [Nat.mul_zero, Nat.mul_zero]
+
+    theorem Nat.mul_one (n: Nat): n * 1 = n := by
+      simp
+  end Tactic
+
+  namespace Blended
+    example {n₁ n₂: Nat} (h: n₁ = n₂): n₁ + n₁ = n₂ + n₂ :=
+      calc n₁ + n₁
+        _ = n₂ + n₂ := by rw [h]
+
+    example {n₁ n₂ n₃: Nat} (h₁: n₁ = n₂) (h₂: n₂ = n₃): n₁ + n₂ = n₂ + n₃ :=
+      calc n₁ + n₂
+        _ = n₂ + n₃ := by rw [h₁, h₂]
+
+    @[scoped simp]
+    theorem Nat.mul_zero_add_mul_zero (n₁ n₂: Nat): (n₁ * 0) + (n₂ * 0) = 0 :=
+      calc (n₁ * 0) + (n₂ * 0)
+        _ = 0 + 0 := by rw [Nat.mul_zero, Nat.mul_zero]
+
+    @[scoped simp]
+    theorem Nat.mul_one (n: Nat): n * 1 = n := by
+      calc n * 1
+        _ = n := by simp
+  end Blended
+
+  /-
+  ## Proof By Case Analysis
+  -/
+
+  namespace Term
+    theorem Nat.succ_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
+      | .zero => rfl
+      | .succ _ => rfl
+
+    theorem Bool.neg_involute: ∀ b: Bool, b.neg.neg = b
+      | .true => rfl
+      | .false => rfl
+
+    theorem Bool.and_comm: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₂ && b₁)
+      | .true, .true => rfl
+      | .true, .false => rfl
+      | .false, .true => rfl
+      | .false, .false => rfl
+
+    theorem Bool.and_exchange: ∀ b₁ b₂ b₃: Bool, ((b₁ && b₂) && b₃) = ((b₁ && b₃) && b₂)
+      | .true, .true, .true => rfl
+      | .true, .true, .false => rfl
+      | .true, .false, .true => rfl
+      | .true, .false, .false => rfl
+      | .false, .true, .true => rfl
+      | .false, .true, .false => rfl
+      | .false, .false, .true => rfl
+      | .false, .false, .false => rfl
+
+    theorem Bool.and_true: ∀ b₁ b₂: Bool, (b₁ && b₂) = .true → b₂ = .true
+      | _, .true, _ => rfl
+      | .true, .false, h =>
+        have h :=
+          calc Bool.true
+            _ = (Bool.true && .false) := Eq.symm h
+            _ = Bool.false            := rfl
+        Eq.symm h
+
+    theorem Nat.zero_neqb_succ: ∀ n: Nat, (0).eqb (n + 1) = .false
+      | .zero => rfl
+      | .succ _ => rfl
+  end Term
+
+  namespace Tactic
+    theorem Nat.succ_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false := by
+      intro
+      | .zero => rfl
+      | .succ _ => rfl
+
+    @[scoped simp]
+    theorem Bool.neg_involute: ∀ b: Bool, b.neg.neg = b := by
+      intro
+      | .true => rfl
+      | .false => rfl
+
+    theorem Bool.and_comm: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₂ && b₁) := by
+      intro
+      | .true, .true => rfl
+      | .true, .false => rfl
+      | .false, .true => rfl
+      | .false, .false => rfl
+
+    theorem Bool.and_exchange: ∀ b₁ b₂ b₃: Bool, ((b₁ && b₂) && b₃) = ((b₁ && b₃) && b₂) := by
+      intro
+      | .true, .true, .true => rfl
+      | .true, .true, .false => rfl
+      | .true, .false, .true => rfl
+      | .true, .false, .false => rfl
+      | .false, .true, .true => rfl
+      | .false, .true, .false => rfl
+      | .false, .false, .true => rfl
+      | .false, .false, .false => rfl
+
+    theorem Bool.and_true: ∀ b₁ b₂: Bool, (b₁ && b₂) = .true → b₂ = .true := by
+      intro
+      | _, .true, _ => rfl
+      | .true, .false, _ => contradiction
+
+    theorem Nat.zero_neqb_succ: ∀ n: Nat, (0).eqb (n + 1) = .false := by
+      intro
+      | .zero => rfl
+      | .succ _ => rfl
+  end Tactic
+
+  namespace Blended
+    theorem Nat.succ_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
+      | .zero => by rfl
+      | .succ _ => by rfl
+
+    @[scoped simp]
+    theorem Bool.neg_involute: ∀ b: Bool, b.neg.neg = b
+      | .true => by rfl
+      | .false => by rfl
+
+    theorem Bool.and_comm: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₂ && b₁)
+      | .true, .true => by rfl
+      | .true, .false => by rfl
+      | .false, .true => by rfl
+      | .false, .false => by rfl
+
+    theorem Bool.and_exchange: ∀ b₁ b₂ b₃: Bool, ((b₁ && b₂) && b₃) = ((b₁ && b₃) && b₂)
+      | .true, .true, .true => by rfl
+      | .true, .true, .false => by rfl
+      | .true, .false, .true => by rfl
+      | .true, .false, .false => by rfl
+      | .false, .true, .true => by rfl
+      | .false, .true, .false => by rfl
+      | .false, .false, .true => by rfl
+      | .false, .false, .false => by rfl
+
+    theorem Bool.and_true: ∀ b₁ b₂: Bool, (b₁ && b₂) = .true → b₂ = .true
+      | _, .true, _ => by rfl
+      | .true, .false, h => by rw [← h]
+
+    theorem Nat.zero_neqb_succ: ∀ n: Nat, (0).eqb (n + 1) = .false
+      | .zero => by rfl
+      | .succ _ => by rfl
+  end Blended
+
+  /-
+  ### More on Notation (Optional)
+  -/
+
+  /-
+  ### Fixpoints and Structural Recursion
+  -/
+
+  /-
+  ## More Exercises
+  -/
+
+  /-
+  ### Warmups
+  -/
+
+  namespace Term
+    example {b: Bool} (f: Bool → Bool) (h: (b: Bool) → f b = b): f (f b) = b :=
+      calc f (f b)
+        _ = f b := congrArg f (h b)
+        _ = b   := h b
+
+    example {b: Bool} (f: Bool → Bool) (h: (b: Bool) → f b = b.neg): f (f b) = b :=
+      calc f (f b)
+        _ = f b.neg   := congrArg f (h b)
+        _ = b.neg.neg := h b.neg
+        _ = b         := Bool.neg_involute b
+
+    example: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₁ || b₂) → b₁ = b₂
+      | .true, .true, _ | .false, .false, _ => rfl
+      | .true, .false, h =>
+        calc Bool.true
+          _ = (Bool.true || .false) := rfl
+          _ = (Bool.true && .false) := Eq.symm h
+      | .false, .true, h =>
+        calc Bool.false
+          _ = (Bool.false && .true) := rfl
+          _ = (Bool.false || .true) := h
+  end Term
+
+  namespace Tactic
+    example {b: Bool} (f: Bool → Bool) (h: (b: Bool) → f b = b): f (f b) = b := by
+      rw [h, h]
+
+    example {b: Bool} (f: Bool → Bool) (h: (b: Bool) → f b = b.neg): f (f b) = b := by
+      rw [h, h, Bool.neg_involute]
+
+    example: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₁ || b₂) → b₁ = b₂ := by
+      intro
+      | .true, .true, _ => rfl
+      | .false, .false, _ => rfl
+      | .true, .false, h =>
+        calc Bool.true
+          _ = (Bool.true || .false) := by rfl
+          _ = (Bool.true && .false) := by rw [h]
+      | .false, .true, h =>
+        calc Bool.false
+          _ = (Bool.false && .true) := by rfl
+          _ = (Bool.false || .true) := by rw [h]
+  end Tactic
+
+  namespace Blended
+    example {b: Bool} (f: Bool → Bool) (h: (b: Bool) → f b = b): f (f b) = b :=
+      calc f (f b)
+        _ = f b := by rw [h]
+        _ = b   := by rw [h]
+
+    example {b: Bool} (f: Bool → Bool) (h: (b: Bool) → f b = b.neg): f (f b) = b :=
+      calc f (f b)
+        _ = f b.neg   := by rw [h]; simp_all
+        _ = b.neg.neg := by rw [h]
+        _ = b         := by rw [Bool.neg_involute]
+
+    example: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₁ || b₂) → b₁ = b₂
+      | .true, .true, _ | .false, .false, _ => by rfl
+      | .true, .false, h =>
+        calc Bool.true
+          _ = (Bool.true || .false) := by rfl
+          _ = (Bool.true && .false) := by rw [h]
+      | .false, .true, h =>
+        calc Bool.false
+          _ = (Bool.false && .true) := by rfl
+          _ = (Bool.false || .true) := by rw [h]
+  end Blended
+
+  /-
+  ### Course Late Policies, Formalized
+  -/
+
+  namespace LateDays
+    #print Ordering
+
+    inductive Letter: Type where
+      | a: Letter
+      | b: Letter
+      | c: Letter
+      | d: Letter
+      | f: Letter
+    deriving Repr
+
+    @[reducible]
+    def Letter.compare: Letter → Letter → Ordering
+      | .a, .a => .eq
+      | .a, _ => .gt
+      | .b, .a => .lt
+      | .b, .b => .eq
+      | .b, _ => .gt
+      | .c, .a | .c, .b => .lt
+      | .c, .c => .eq
+      | .c, _ => .gt
+      | .d, .a | .d, .b | .d, .c => .lt
+      | .d, .d => .eq
+      | .d, _ => .gt
+      | .f, .f => .eq
+      | .f, _ => .lt
+
+    @[reducible]
+    def Letter.lower: Letter → Letter
+      | .a => .b
+      | .b => .c
+      | .c => .d
+      | _ => .f
+
+    section
+      example: Letter.b.compare .a = .lt := rfl
+      example: Letter.d.compare .d = .eq := rfl
+      example: Letter.b.compare .f = .gt := rfl
+    end
+
+    namespace Term
+      theorem Letter.compare.eq: ∀ l: Letter, l.compare l = .eq
+        | .a | .b | .c | .d | .f => rfl
+
+      theorem Letter.lower.lowers: ∀ l: Letter, Letter.f.compare l = .lt → l.lower.compare l = .lt
+        | .a, _ | .b, _ | .c, _ | .d, _ => rfl
+    end Term
+
+    namespace Tactic
+      theorem Letter.compare.eq: ∀ l: Letter, l.compare l = .eq := by
+        intro
+        | .a | .b | .c | .d | .f => rfl
+
+      theorem Letter.lower.lowers: ∀ l: Letter, Letter.f.compare l = .lt → l.lower.compare l = .lt := by
+        intro
+        | .a, _ | .b, _ | .c, _ | .d, _ => rfl
+    end Tactic
+
+    namespace Blended
+      theorem Letter.compare.eq: ∀ l: Letter, l.compare l = .eq
+        | .a | .b | .c | .d | .f => by rfl
+
+      theorem Letter.lower.lowers: ∀ l: Letter, Letter.f.compare l = .lt → l.lower.compare l = .lt
+        | .a, _ | .b, _ | .c, _ | .d, _ => by rfl
+    end Blended
+
+    inductive Modifier: Type where
+      | plus: Modifier
+      | natural: Modifier
+      | minus: Modifier
+    deriving Repr
+
+    @[reducible]
+    def Modifier.compare: Modifier → Modifier → Ordering
+      | .plus, .plus => .eq
+      | .plus, _ => .gt
+      | .natural, .plus => .lt
+      | .natural, .natural => .eq
+      | .natural, _ => .gt
+      | .minus, .minus => .eq
+      | .minus, _ => .lt
+
+    @[reducible]
+    def Modifier.lower: Modifier → Modifier
+      | .plus => .natural
+      | _ => .minus
+
+    structure Grade where
+      letter: Letter
+      modifier: Modifier
+    deriving Repr
+
+    @[reducible]
+    def Grade.compare (g₁ g₂: Grade): Ordering :=
+      match g₁.letter.compare g₂.letter with
+        | .eq => g₁.modifier.compare g₂.modifier
+        | ord => ord
+
+    @[reducible]
+    def Grade.lower: Grade → Grade
+      | ⟨.f, .minus⟩ => ⟨.f, .minus⟩
+      | ⟨l, .minus⟩ => ⟨l.lower, .plus⟩
+      | ⟨l, m⟩ => ⟨l, m.lower⟩
+
+    section
+      def aPlus: Grade := ⟨.a, .plus⟩
+      def a: Grade := ⟨.a, .natural⟩
+      def aMinus: Grade := ⟨.a, .minus⟩
+
+      def bPlus: Grade := ⟨.b, .plus⟩
+      def b: Grade := ⟨.b, .natural⟩
+      def bMinus: Grade := ⟨.b, .minus⟩
+
+      def cPlus: Grade := ⟨.c, .plus⟩
+      def c: Grade := ⟨.c, .natural⟩
+      def cMinus: Grade := ⟨.c, .minus⟩
+
+      def dPlus: Grade := ⟨.d, .plus⟩
+      def d: Grade := ⟨.d, .natural⟩
+      def dMinus: Grade := ⟨.d, .minus⟩
+
+      def fPlus: Grade := ⟨.f, .plus⟩
+      def f: Grade := ⟨.f, .natural⟩
+      def fMinus: Grade := ⟨.f, .minus⟩
+    end
+
+    section
+      example: aMinus.compare bPlus = .gt := rfl
+      example: aMinus.compare aPlus = .lt := rfl
+      example: fPlus.compare fPlus = .eq := rfl
+      example: bMinus.compare cPlus = .gt := rfl
+
+      example: aPlus.lower = a := rfl
+      example: a.lower = aMinus := rfl
+      example: aMinus.lower = bPlus := rfl
+      example: bPlus.lower = b := rfl
+      example: f.lower = fMinus := rfl
+      example: bMinus.lower.lower = c := rfl
+      example: bMinus.lower.lower.lower = cMinus := rfl
+
+      example: fMinus.lower = fMinus := rfl
+    end
+
+    namespace Term
+      theorem Grade.lower.lowers: ∀ g: Grade, fMinus.compare fMinus = .lt → g.lower.compare g = .lt
+        | ⟨l, m⟩, _ => sorry
+    end Term
+
+    namespace Tactic
+    end Tactic
+
+    namespace Blended
+    end Blended
+
+    @[reducible]
+    def Grade.late (g: Grade) (days: Nat): Grade :=
+      if days < 9
+      then g
+      else if days < 17
+           then g.lower
+           else if days < 21
+                then g.lower.lower
+                else g.lower.lower.lower
+
+    namespace Term
+      example {g: Grade} {days: Nat} (h: days < 9): g.late days = g := sorry
+      example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower := sorry
+    end Term
+
+    namespace Tactic
+      example {g: Grade} {days: Nat} (h: days < 9): g.late days = g := by
+        unfold Grade.late
+        simp [h]
+
+      example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower := by
+        unfold Grade.late
+        simp [h₁, h₂]
+
+    end Tactic
+
+    namespace Blended
+      example {g: Grade} {days: Nat} (h: days < 9): g.late days = g := sorry
+      example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower := sorry
+    end Blended
+  end LateDays
+
+  /-
+  ### Binary Numerals
+  -/
+
+  inductive Bin: Type where
+    | nil: Bin
+    | zero (b: Bin): Bin
+    | one (b: Bin): Bin
+
+  def Bin.incr: Bin → Bin
+    | .nil => .nil
+    | .zero b => .one b
+    | .one .nil => .zero (.one .nil)
+    | .one b => .zero b.incr
+
+  def Bin.toNat: Bin → Nat
+    | .nil => 0
+    | .zero b => 2 * b.toNat
+    | .one b  => 1 + 2 * b.toNat
+
+  instance: Coe Bin Nat where
+    coe := Bin.toNat
+
+  section
+    example: (Bin.one .nil).incr = Bin.zero (.one .nil) := rfl
+    example: (Bin.zero (.one .nil)).incr = Bin.one (.one .nil) := rfl
+    example: (Bin.one (.one .nil)).incr = Bin.zero (.zero (.one .nil)) := rfl
+
+    example: (Bin.zero (.one .nil)).toNat = 2 := rfl
+
+    example: (Bin.one .nil).incr.toNat = 1 + (Bin.one .nil) := rfl
+    example: (Bin.one .nil).incr.incr.toNat = 2 + (Bin.one .nil) := rfl
+  end
+
+  /-
+  ## Testing Your Solutions
+  -/
+end SoftwareFoundations.LogicalFoundations.Basics
