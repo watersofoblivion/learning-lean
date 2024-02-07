@@ -259,10 +259,12 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
     end
   end NatPlayground2
 
+  @[reducible]
   def _root_.Nat.exp: Nat → Nat → Nat
     | _, .zero => 1
     | n₁, .succ n₂ => n₁ * (n₁.exp n₂)
 
+  @[reducible]
   def _root_.Nat.factorial: Nat → Nat
     | 0 => 0
     | 1 => 1
@@ -277,16 +279,19 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
   #check _root_.Nat.ble
   #check _root_.Nat.blt
 
+  @[reducible]
   def _root_.Nat.eqb: Nat → Nat → Bool
     | .zero, .zero => .true
     | .succ n₁, .succ n₂ => n₁.eqb n₂
     | _, _ => false
 
+  @[reducible]
   def _root_.Nat.leb: Nat → Nat → Bool
     | .zero, _ => .true
     | .succ _, .zero => .false
     | .succ n₁, .succ n₂ => n₁.leb n₂
 
+  @[reducible]
   def _root_.Nat.ltb (n₁ n₂: Nat): Bool := (n₁.leb n₂) && !(n₁.eqb n₂)
 
   section
@@ -308,12 +313,17 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
   In the next chapter, `Induction`, the operands will be reversed as well for
   the same reason.
+
+  Also, the `Nat.add_succ` theorem has been added here because it is trivally
+  proved with reflexivity and is useful during the induction chapter, where we
+  prove its dual, `Nat.succ_add`.
   -/
 
   namespace Term
     theorem Nat.add_zero (n: Nat): n + 0 = n := rfl
     theorem Nat.add_one_eq_succ (n: Nat): n + 1 = n.succ := rfl
     theorem Nat.mul_zero (n: Nat): n * 0 = 0 := rfl
+    theorem Nat.add_succ (n₁ n₂: Nat): n₁ + n₂.succ = (n₁ + n₂).succ := rfl
   end Term
 
   namespace Tactic
@@ -325,6 +335,8 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
     @[scoped simp]
     theorem Nat.mul_zero (n: Nat): n * 0 = 0 := by rfl
+
+    theorem Nat.add_succ (n₁ n₂: Nat): n₁ + n₂.succ = (n₁ + n₂).succ := by rfl
   end Tactic
 
   namespace Blended
@@ -336,6 +348,8 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
     @[scoped simp]
     theorem Nat.mul_zero (n: Nat): n * 0 = 0 := rfl
+
+    theorem Nat.add_succ (n₁ n₂: Nat): n₁ + n₂.succ = (n₁ + n₂).succ := rfl
   end Blended
 
   /-
@@ -403,7 +417,7 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
   -/
 
   namespace Term
-    theorem Nat.succ_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
+    theorem Nat.add_one_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
       | .zero => rfl
       | .succ _ => rfl
 
@@ -436,54 +450,54 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
             _ = Bool.false            := rfl
         Eq.symm h
 
-    theorem Nat.zero_neqb_succ: ∀ n: Nat, (0).eqb (n + 1) = .false
+    theorem Nat.zero_neqb_add_one: ∀ n: Nat, (0).eqb (n + 1) = .false
       | .zero => rfl
       | .succ _ => rfl
   end Term
 
   namespace Tactic
-    theorem Nat.succ_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false := by
+    theorem Nat.add_one_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false := by
       intro
-      | .zero => rfl
-      | .succ _ => rfl
+        | .zero => rfl
+        | .succ _ => rfl
 
     @[scoped simp]
     theorem Bool.neg_involute: ∀ b: Bool, b.neg.neg = b := by
       intro
-      | .true => rfl
-      | .false => rfl
+        | .true => rfl
+        | .false => rfl
 
     theorem Bool.and_comm: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₂ && b₁) := by
       intro
-      | .true, .true => rfl
-      | .true, .false => rfl
-      | .false, .true => rfl
-      | .false, .false => rfl
+        | .true, .true => rfl
+        | .true, .false => rfl
+        | .false, .true => rfl
+        | .false, .false => rfl
 
     theorem Bool.and_exchange: ∀ b₁ b₂ b₃: Bool, ((b₁ && b₂) && b₃) = ((b₁ && b₃) && b₂) := by
       intro
-      | .true, .true, .true => rfl
-      | .true, .true, .false => rfl
-      | .true, .false, .true => rfl
-      | .true, .false, .false => rfl
-      | .false, .true, .true => rfl
-      | .false, .true, .false => rfl
-      | .false, .false, .true => rfl
-      | .false, .false, .false => rfl
+        | .true, .true, .true => rfl
+        | .true, .true, .false => rfl
+        | .true, .false, .true => rfl
+        | .true, .false, .false => rfl
+        | .false, .true, .true => rfl
+        | .false, .true, .false => rfl
+        | .false, .false, .true => rfl
+        | .false, .false, .false => rfl
 
     theorem Bool.and_true: ∀ b₁ b₂: Bool, (b₁ && b₂) = .true → b₂ = .true := by
       intro
-      | _, .true, _ => rfl
-      | .true, .false, _ => contradiction
+        | _, .true, _ => rfl
+        | .true, .false, _ => contradiction
 
-    theorem Nat.zero_neqb_succ: ∀ n: Nat, (0).eqb (n + 1) = .false := by
+    theorem Nat.zero_neqb_add_one: ∀ n: Nat, (0).eqb (n + 1) = .false := by
       intro
-      | .zero => rfl
-      | .succ _ => rfl
+        | .zero => rfl
+        | .succ _ => rfl
   end Tactic
 
   namespace Blended
-    theorem Nat.succ_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
+    theorem Nat.add_one_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
       | .zero => by rfl
       | .succ _ => by rfl
 
@@ -512,7 +526,7 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
       | _, .true, _ => by rfl
       | .true, .false, h => by rw [← h]
 
-    theorem Nat.zero_neqb_succ: ∀ n: Nat, (0).eqb (n + 1) = .false
+    theorem Nat.zero_neqb_add_one: ∀ n: Nat, (0).eqb (n + 1) = .false
       | .zero => by rfl
       | .succ _ => by rfl
   end Blended
@@ -783,7 +797,6 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
       example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower := by
         unfold Grade.late
         simp [h₁, h₂]
-
     end Tactic
 
     namespace Blended
@@ -801,12 +814,14 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
     | zero (b: Bin): Bin
     | one (b: Bin): Bin
 
+  @[reducible]
   def Bin.incr: Bin → Bin
-    | .nil => .nil
+    | .nil => .one .nil
     | .zero b => .one b
     | .one .nil => .zero (.one .nil)
     | .one b => .zero b.incr
 
+  @[reducible]
   def Bin.toNat: Bin → Nat
     | .nil => 0
     | .zero b => 2 * b.toNat
