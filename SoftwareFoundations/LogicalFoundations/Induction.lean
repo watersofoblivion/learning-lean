@@ -23,29 +23,29 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
 
   @[reducible]
   def _root_.Nat.double: Nat → Nat
-    | .zero => .zero
-    | .succ n => n.double.succ.succ
+    | 0     => 0
+    | n + 1 => n.double.succ.succ
 
   namespace Term
     theorem Nat.zero_add: ∀ n: Nat, 0 + n = n
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := zero_add n
         calc 0 + n.succ
           _ = (0 + n).succ := Nat.add_succ 0 n
           _ = n.succ       := congrArg Nat.succ ih
 
     theorem Nat.minus_self: ∀ n: Nat, n - n = 0
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := minus_self n
         calc n.succ - n.succ
           _ = n - n := Nat.succ_sub_succ n n
           _ = 0     := ih
 
     theorem Nat.zero_mul: ∀ n: Nat, 0 * n = 0
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := zero_mul n
         calc 0 * n.succ
           _ = 0 * n + 0 := Nat.mul_succ 0 n
@@ -53,19 +53,19 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = 0         := ih
 
     theorem Nat.succ_add: ∀ n₁ n₂: Nat, n₁.succ + n₂ = (n₁ + n₂).succ
-      | _, .zero => rfl
-      | n₁, .succ n₂ =>
+      | _,  0      => rfl
+      | n₁, n₂ + 1 =>
         have ih := succ_add n₁ n₂
         calc n₁.succ + n₂.succ
           _ = (n₁.succ + n₂).succ := rfl
           _ = (n₁ + n₂).succ.succ := congrArg Nat.succ ih
 
     theorem Nat.add_comm: ∀ n₁ n₂: Nat, n₁ + n₂ = n₂ + n₁
-      | n₁, .zero =>
+      | n₁, 0 =>
         calc n₁ + 0
           _ = n₁     := Nat.add_zero n₁
           _ = 0 + n₁ := Eq.symm (Nat.zero_add n₁)
-      | n₁, .succ n₂ =>
+      | n₁, n₂ + 1 =>
         have ih := add_comm n₁ n₂
         calc n₁ + n₂.succ
           _ = (n₁ + n₂).succ := Nat.add_succ n₁ n₂
@@ -73,11 +73,11 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = n₂.succ + n₁   := Eq.symm (Nat.succ_add n₂ n₁)
 
       theorem Nat.add_assoc: ∀ n₁ n₂ n₃: Nat, n₁ + (n₂ + n₃) = (n₁ + n₂) + n₃
-        | n₁, .zero, n₃ =>
+        | n₁, 0, n₃ =>
           calc n₁ + (0 + n₃)
             _ = n₁ + n₃ := congrArg (Nat.add n₁) (Nat.zero_add n₃)
             _ = (n₁ + 0) + n₃ := congr (congrArg Nat.add (Eq.symm (Nat.add_zero n₁))) rfl
-        | n₁, .succ n₂, n₃ =>
+        | n₁, n₂ + 1, n₃ =>
           have ih := add_assoc n₁ n₂ n₃
           calc n₁ + (n₂.succ + n₃)
             _ = n₁ + (n₂ + n₃).succ   := congrArg (Nat.add n₁) (Nat.succ_add n₂ n₃)
@@ -87,8 +87,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
             _ = (n₁ + n₂.succ) + n₃   := congr (congrArg Nat.add (Eq.symm (Nat.add_succ n₁ n₂))) rfl
 
       theorem Nat.double_plus: ∀ n: Nat, n.double = n + n
-        | .zero => rfl
-        | .succ n =>
+        | 0     => rfl
+        | n + 1 =>
           have ih := double_plus n
           calc n.succ.double
             _ = n.double.succ.succ := rfl
@@ -97,19 +97,19 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
             _ = n.succ + n.succ    := Eq.symm (Nat.add_succ n.succ n)
 
       theorem Nat.eqb_refl: ∀ n: Nat, n.eqb n = true
-        | .zero => rfl
-        | .succ n =>
+        | 0     => rfl
+        | n + 1 =>
           have ih := eqb_refl n
           calc n.succ.eqb n.succ
             _ = n.eqb n := rfl
             _ = true    := ih
 
       theorem Nat.even_succ: ∀ n: Nat, n.succ.even? = n.even?.neg
-        | .zero => rfl
-        | .succ n =>
+        | 0     => rfl
+        | n + 1 =>
           have ih := even_succ n
           calc n.succ.succ.even?
-            _ = n.even? := rfl
+            _ = n.even?          := rfl
             _ = n.succ.even?.neg := sorry
   end Term
 
@@ -166,36 +166,36 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
   namespace Blended
     @[scoped simp]
     theorem Nat.zero_add: ∀ n: Nat, 0 + n = n
-      | .zero => by rfl
-      | .succ n => by
+      | 0     => by rfl
+      | n + 1 => by
         have ih := zero_add n
         simp [ih]
 
     @[scoped simp]
     theorem Nat.minus_self: ∀ n: Nat, n - n = 0
-      | .zero => by rfl
-      | .succ n => by
+      | 0     => by rfl
+      | n + 1 => by
         have ih := minus_self n
         simp [ih]
 
     @[scoped simp]
     theorem Nat.zero_mul: ∀ n: Nat, 0 * n = 0
-      | .zero => by rfl
-      | .succ n => by
+      | 0     => by rfl
+      | n + 1 => by
         have ih := zero_mul n
         simp [ih]
 
     theorem Nat.succ_add: ∀ n₁ n₂: Nat, n₁.succ + n₂ = (n₁ + n₂).succ
-      | _, .zero => rfl
-      | n₁, .succ n₂ =>
+      | _,  0      => rfl
+      | n₁, n₂ + 1 =>
         have ih := succ_add n₁ n₂
         calc n₁.succ + n₂.succ
           _ = (n₁.succ + n₂).succ := by rfl
           _ = (n₁ + n₂).succ.succ := by rw [ih]
 
     theorem Nat.add_comm: ∀ n₁ n₂: Nat, n₁ + n₂ = n₂ + n₁
-      | n₁, .zero => by simp
-      | n₁, .succ n₂ =>
+      | n₁, 0      => by simp
+      | n₁, n₂ + 1 =>
         have ih := add_comm n₁ n₂
         calc n₁ + n₂.succ
           _ = (n₁ + n₂).succ := by simp [Nat.add_succ]
@@ -203,8 +203,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = n₂.succ + n₁   := by simp [Nat.succ_add]
 
     theorem Nat.add_assoc: ∀ n₁ n₂ n₃: Nat, n₁ + (n₂ + n₃) = (n₁ + n₂) + n₃
-      | n₁, .zero, n₃ => by simp
-      | n₁, .succ n₂, n₃ =>
+      | n₁, 0,      n₃ => by simp
+      | n₁, n₂ + 1, n₃ =>
         have ih := add_assoc n₁ n₂ n₃
         calc n₁ + (n₂.succ + n₃)
           _ = (n₁ + (n₂ + n₃)).succ := by simp [Nat.add_succ, Nat.succ_add]
@@ -212,8 +212,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = (n₁ + n₂.succ) + n₃   := by simp [Nat.add_succ, Nat.succ_add]
 
     theorem Nat.double_plus: ∀ n: Nat, n.double = n + n
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := double_plus n
         calc n.succ.double
           _ = n.double.succ.succ := by rfl
@@ -221,16 +221,16 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = n.succ + n.succ    := by simp [Nat.add_succ, Nat.succ_add]
 
     theorem Nat.eqb_refl: ∀ n: Nat, n.eqb n = true
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := eqb_refl n
         calc n.succ.eqb n.succ
           _ = n.eqb n := by rfl
           _ = true    := by rw [ih]
 
     theorem Nat.even_succ: ∀ n: Nat, n.succ.even? = n.even?.neg
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := even_succ n
         calc n.succ.succ.even?
           _ = n.even?          := by rfl
@@ -312,23 +312,23 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         _ = n₂ + (n₁ + n₃) := Eq.symm (Nat.add_assoc n₂ n₁ n₃)
 
     theorem Nat.mul_comm: ∀ n₁ n₂: Nat, n₁ * n₂ = n₂ * n₁
-      | n₁, .zero =>
+      | n₁, 0 =>
         calc n₁ * 0
           _ = 0 := Nat.mul_zero n₁
           _ = 0 * n₁ := Eq.symm (Nat.zero_mul n₁)
-      | n₁, .succ n₂ =>
+      | n₁, n₂ + 1 =>
         have ih := mul_comm n₁ n₂
         calc n₁ * n₂.succ
           _ = (n₁ * n₂) + n₁ := rfl
           _ = (n₂ * n₁) + n₁ := congr (congrArg Nat.add ih) rfl
-          _ = n₂.succ * n₁ := sorry
+          _ = n₂.succ * n₁   := sorry
 
     theorem Nat.le_add_left: ∀ n₁ n₂ n₃: Nat, n₁.leb n₂ = .true → (n₃ + n₁).leb (n₃ + n₂) = .true
-      | n₁, n₂, .zero, h =>
-        calc (.zero + n₁).leb (.zero + n₂)
+      | n₁, n₂, 0, h =>
+        calc (0 + n₁).leb (0 + n₂)
           _ = n₁.leb n₂ := congr (congrArg Nat.leb (Nat.zero_add n₁)) (Nat.zero_add n₂)
           _ = .true     := h
-      | n₁, n₂, .succ n₃, h =>
+      | n₁, n₂, n₃ + 1, h =>
         have ih := le_add_left n₁ n₂ n₃ h
         calc (n₃.succ + n₁).leb (n₃.succ + n₂)
           _ = (n₃ + n₁).succ.leb (n₃ + n₂).succ := congr (congrArg Nat.leb (Nat.succ_add n₃ n₁)) (Nat.succ_add n₃ n₂)
@@ -336,8 +336,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = .true                             := ih
 
     theorem Nat.leb_refl: ∀ n: Nat, n.leb n = .true
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := leb_refl n
         calc n.succ.leb n.succ
           _ = n.leb n := rfl
@@ -358,8 +358,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         _ = .false          := Nat.zero_neqb_add_one n
 
     theorem Nat.one_mul: ∀ n: Nat, 1 * n = n
-      | .zero => rfl
-      | .succ n =>
+      | 0     => rfl
+      | n + 1 =>
         have ih := one_mul n
         calc 1 * n.succ
           _ = (1 * n) + 1 := rfl
@@ -372,12 +372,12 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
       | .false, _ => rfl
 
     theorem Nat.add_mul: ∀ n₁ n₂ n₃: Nat, (n₁ + n₂) * n₃ = (n₁ * n₃) + (n₂ * n₃)
-      | n₁, n₂, .zero =>
+      | n₁, n₂, 0 =>
         calc (n₁ + n₂) * 0
           _ = 0                   := Nat.mul_zero (n₁ + n₂)
           _ = 0 + 0               := Eq.symm (Nat.add_zero 0)
           _ = (n₁ * 0) + (n₂ * 0) := congr (congrArg Nat.add (Eq.symm (Nat.mul_zero n₁))) (Eq.symm (Nat.mul_zero n₂))
-      | n₁, n₂, .succ n₃ =>
+      | n₁, n₂, n₃ + 1 =>
         have ih := add_mul n₁ n₂ n₃
         calc (n₁ + n₂) * n₃.succ
           _ = ((n₁ + n₂) * n₃) + (n₁ + n₂)        := rfl
@@ -390,13 +390,13 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = (n₁ * n₃.succ) + (n₂ * n₃.succ)     := rfl
 
     theorem Nat.mul_assoc: ∀ n₁ n₂ n₃: Nat, n₁ * (n₂ * n₃) = (n₁ * n₂) * n₃
-      | n₁, .zero, n₃ =>
+      | n₁, 0, n₃ =>
         calc n₁ * (0 * n₃)
           _ = n₁ * 0        := congrArg (Nat.mul n₁) (Nat.zero_mul n₃)
           _ = 0             := Nat.mul_zero n₁
           _ = 0 * n₃        := Eq.symm (Nat.zero_mul n₃)
           _ = (n₁ * 0) * n₃ := congr (congrArg Nat.mul (Eq.symm (Nat.mul_zero n₁))) rfl
-      | n₁, .succ n₂, n₃ =>
+      | n₁, n₂ + 1, n₃ =>
         have ih := mul_assoc n₁ n₂ n₃
         calc n₁ * (n₂.succ * n₃)
           _ = n₁ * (n₃ * n₂.succ)          := congrArg (Nat.mul n₁) (Nat.mul_comm n₂.succ n₃)
@@ -498,8 +498,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         _ = n₂ + (n₁ + n₃) := by simp [Nat.add_assoc]
 
     theorem Nat.mul_comm: ∀ n₁ n₂: Nat, n₁ * n₂ = n₂ * n₁
-      | _, .zero => by simp
-      | n₁, .succ n₂ =>
+      | _,  0      => by simp
+      | n₁, n₂ + 1 =>
         have ih := mul_comm n₁ n₂
         calc n₁ * n₂.succ
           _ = (n₁ * n₂) + n₁ := by rfl
@@ -507,16 +507,16 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = n₂.succ * n₁ := sorry
 
     theorem Nat.le_add_left: ∀ n₁ n₂ n₃: Nat, n₁.leb n₂ = .true → (n₃ + n₁).leb (n₃ + n₂) = .true
-      | _, _, .zero, h => by simp [h]
-      | n₁, n₂, .succ n₃, h =>
+      | _,  _,  0,      h => by simp [h]
+      | n₁, n₂, n₃ + 1, h =>
         have ih := le_add_left n₁ n₂ n₃ h
         calc (n₃.succ + n₁).leb (n₃.succ + n₂)
           _ = (n₃ + n₁).leb (n₃ + n₂) := by simp [Nat.succ_add]
           _ = .true                   := by rw [ih]
 
     theorem Nat.leb_refl: ∀ n: Nat, n.leb n = .true
-      | .zero => by rfl
-      | .succ n =>
+      | 0     => by rfl
+      | n + 1 =>
         have ih := leb_refl n
         calc n.succ.leb n.succ
           _ = .true := by rw [ih]
@@ -534,8 +534,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         _ = .false := by simp
 
     theorem Nat.one_mul: ∀ n: Nat, 1 * n = n
-      | .zero => by rfl
-      | .succ n =>
+      | 0     => by rfl
+      | n + 1 =>
         have ih := one_mul n
         calc 1 * n.succ
           _ = (1 * n) + 1 := by rfl
@@ -547,8 +547,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
       | .false, _ => by rfl
 
     theorem Nat.add_mul: ∀ n₁ n₂ n₃: Nat, (n₁ + n₂) * n₃ = (n₁ * n₃) + (n₂ * n₃)
-      | _, _, .zero => by simp
-      | n₁, n₂, .succ n₃ =>
+      | _,  _,  0      => by simp
+      | n₁, n₂, n₃ + 1 =>
         have ih := add_mul n₁ n₂ n₃
         calc (n₁ + n₂) * n₃.succ
           _ = ((n₁ + n₂) * n₃) + (n₁ + n₂)        := by rfl
@@ -559,8 +559,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = (n₁ * n₃.succ) + (n₂ * n₃.succ)     := by rfl
 
     theorem Nat.mul_assoc: ∀ n₁ n₂ n₃: Nat, n₁ * (n₂ * n₃) = (n₁ * n₂) * n₃
-      | _, .zero, _ => by simp
-      | n₁, .succ n₂, n₃ =>
+      | _,  0,      _ => by simp
+      | n₁, n₂ + 1, n₃ =>
         have ih := mul_assoc n₁ n₂ n₃
         calc n₁ * (n₂.succ * n₃)
           _ = n₁ * (n₃ * n₂.succ)          := by simp [Nat.mul_comm]
@@ -576,8 +576,8 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
   -/
 
   def _root_.Nat.toBin: Nat → Bin
-    | .zero => .nil
-    | .succ n => n.toBin.incr
+    | 0     => .nil
+    | n + 1 => n.toBin.incr
 
   namespace Term
     open Basics.Term

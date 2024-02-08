@@ -204,8 +204,8 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
   @[reducible]
   def _root_.Nat.minusTwo: Nat → Nat
-    | .zero | .succ .zero => .zero
-    | .succ (.succ n) => n
+    | 0 | 1 => .zero
+    | n + 2 => n
 
   section
     example: (4).minusTwo = 2 := rfl
@@ -217,9 +217,9 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
   @[reducible]
   def _root_.Nat.even?: Nat → Bool
-    | .zero => .true
-    | .succ .zero => .false
-    | .succ (.succ n) => n.even?
+    | 0     => .true
+    | 1     => .false
+    | n + 2 => n.even?
 
   @[reducible]
   def _root_.Nat.odd? (n: Nat): Bool := n.even?.neg
@@ -231,18 +231,18 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
   namespace NatPlayground2
     def Nat.plus: Nat → Nat → Nat
-      | .zero, n₂ => n₂
-      | .succ n₁, n₂ => plus n₁ n₂.succ
+      | 0,      n₂ => n₂
+      | n₁ + 1, n₂ => plus n₁ n₂.succ
 
     def Nat.mult: Nat → Nat → Nat
-      | .zero, _ => 0
-      | .succ .zero, n₂ => n₂
-      | .succ n₁, n₂ => Nat.plus (Nat.mult n₁ n₂) n₂
+      | 0,      _ => 0
+      | 1,      n₂ => n₂
+      | n₁ + 1, n₂ => Nat.plus (Nat.mult n₁ n₂) n₂
 
     def Nat.minus: Nat → Nat → Nat
-      | .zero, _ => 0
-      | n, .zero => n
-      | .succ n₁, .succ n₂ => Nat.minus n₁ n₂
+      | 0,      _      => 0
+      | n,      0      => n
+      | n₁ + 1, n₂ + 1 => Nat.minus n₁ n₂
 
     scoped instance: Add Nat where
       add := Nat.plus
@@ -261,14 +261,14 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
   @[reducible]
   def _root_.Nat.exp: Nat → Nat → Nat
-    | _, .zero => 1
-    | n₁, .succ n₂ => n₁ * (n₁.exp n₂)
+    | _,  0      => 1
+    | n₁, n₂ + 1 => n₁ * (n₁.exp n₂)
 
   @[reducible]
   def _root_.Nat.factorial: Nat → Nat
-    | 0 => 0
-    | 1 => 1
-    | .succ n => (n + 1) * n.factorial
+    | 0     => 0
+    | 1     => 1
+    | n + 1 => (n + 1) * n.factorial
 
   section
     example: (3).factorial = 6 := rfl
@@ -281,15 +281,15 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
   @[reducible]
   def _root_.Nat.eqb: Nat → Nat → Bool
-    | .zero, .zero => .true
-    | .succ n₁, .succ n₂ => n₁.eqb n₂
-    | _, _ => false
+    | 0,      0      => .true
+    | n₁ + 1, n₂ + 1 => n₁.eqb n₂
+    | _,      _      => false
 
   @[reducible]
   def _root_.Nat.leb: Nat → Nat → Bool
-    | .zero, _ => .true
-    | .succ _, .zero => .false
-    | .succ n₁, .succ n₂ => n₁.leb n₂
+    | 0,      _      => .true
+    | _ + 1,  0      => .false
+    | n₁ + 1, n₂ + 1 => n₁.leb n₂
 
   @[reducible]
   def _root_.Nat.ltb (n₁ n₂: Nat): Bool := (n₁.leb n₂) && !(n₁.eqb n₂)
@@ -418,8 +418,8 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
   namespace Term
     theorem Nat.add_one_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
-      | .zero => rfl
-      | .succ _ => rfl
+      | 0     => rfl
+      | _ + 1 => rfl
 
     theorem Bool.neg_involute: ∀ b: Bool, b.neg.neg = b
       | .true => rfl
@@ -451,15 +451,15 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
         Eq.symm h
 
     theorem Nat.zero_neqb_add_one: ∀ n: Nat, (0).eqb (n + 1) = .false
-      | .zero => rfl
-      | .succ _ => rfl
+      | 0     => rfl
+      | _ + 1 => rfl
   end Term
 
   namespace Tactic
     theorem Nat.add_one_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false := by
       intro
-        | .zero => rfl
-        | .succ _ => rfl
+        | 0     => rfl
+        | _ + 1 => rfl
 
     @[scoped simp]
     theorem Bool.neg_involute: ∀ b: Bool, b.neg.neg = b := by
@@ -492,14 +492,14 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
     theorem Nat.zero_neqb_add_one: ∀ n: Nat, (0).eqb (n + 1) = .false := by
       intro
-        | .zero => rfl
-        | .succ _ => rfl
+        | 0     => rfl
+        | _ + 1 => rfl
   end Tactic
 
   namespace Blended
     theorem Nat.add_one_neqb_zero: ∀ n: Nat, (n + 1).eqb 0 = .false
-      | .zero => by rfl
-      | .succ _ => by rfl
+      | 0     => by rfl
+      | _ + 1 => by rfl
 
     @[scoped simp]
     theorem Bool.neg_involute: ∀ b: Bool, b.neg.neg = b
@@ -527,8 +527,8 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
       | .true, .false, h => by rw [← h]
 
     theorem Nat.zero_neqb_add_one: ∀ n: Nat, (0).eqb (n + 1) = .false
-      | .zero => by rfl
-      | .succ _ => by rfl
+      | 0     => by rfl
+      | _ + 1 => by rfl
   end Blended
 
   /-
@@ -831,14 +831,14 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
     coe := Bin.toNat
 
   section
-    example: (Bin.one .nil).incr = Bin.zero (.one .nil) := rfl
-    example: (Bin.zero (.one .nil)).incr = Bin.one (.one .nil) := rfl
-    example: (Bin.one (.one .nil)).incr = Bin.zero (.zero (.one .nil)) := rfl
+    example: Bin.nil.one.incr = Bin.nil.one.zero := rfl
+    example: Bin.nil.one.zero.incr = Bin.nil.one.one := rfl
+    example: Bin.nil.one.one.incr = Bin.nil.one.zero.zero := rfl
 
-    example: (Bin.zero (.one .nil)).toNat = 2 := rfl
+    example: Bin.nil.one.zero.toNat = 2 := rfl
 
-    example: (Bin.one .nil).incr.toNat = 1 + (Bin.one .nil) := rfl
-    example: (Bin.one .nil).incr.incr.toNat = 2 + (Bin.one .nil) := rfl
+    example: Bin.nil.one.incr.toNat = 1 + Bin.nil.one := rfl
+    example: Bin.nil.one.incr.incr.toNat = 2 + Bin.nil.one := rfl
   end
 
   /-
