@@ -1,39 +1,52 @@
 /-
-# Lists
+# Working with Structured Data
 -/
 
-import «SoftwareFoundations».«LogicalFoundations».«Induction»
+import SoftwareFoundations.LogicalFoundations.Basics
+import SoftwareFoundations.LogicalFoundations.Induction
 
-namespace NatList
+namespace SoftwareFoundations.LogicalFoundations.Lists
   /-
   ## Pairs of Numbers
   -/
 
   structure NatProd: Type where
-    n₁: Nat
-    n₂: Nat
+    fst: Nat
+    snd: Nat
   deriving Repr
 
-  def NatProd.fst (p: NatProd): Nat := p.1
-  def NatProd.snd (p: NatProd): Nat := p.2
-  def NatProd.swap (p: NatProd): NatProd := ⟨p.2, p.1⟩
+  scoped notation "(‹" fst ", " snd "›)" => (⟨fst, snd⟩: NatProd)
 
-  def threeFive: NatProd := ⟨3, 5⟩
-  example: threeFive.fst = 3 := by rfl
-  example: threeFive.snd = 5 := by rfl
-  example: threeFive.swap = ⟨5, 3⟩ := by rfl
+  def NatProd.swap: NatProd → NatProd
+    | ⟨fst, snd⟩ => ⟨snd, fst⟩
 
-  theorem NatProd.surjectivePairing (p: NatProd): p = ⟨p.fst, p.snd⟩ := by
-    rfl
+  #check (‹3, 5›)
 
-  /-
-  #### Exercises
-  -/
+  #check NatProd.fst
+  #check NatProd.snd
 
-  theorem NatProd.sndFstIsSwap (p: NatProd): p.swap = ⟨p.snd, p.fst⟩ := by
-    rfl
-  theorem NatProd.fstSwapIsSnd (p: NatProd): p.swap.fst = p.snd := by
-    rfl
+  example: (‹3, 5›).fst = 3 := rfl
+
+  namespace Term
+    theorem NatProd.surjective (p: NatProd): p = ⟨p.fst, p.snd⟩ := rfl
+
+    example (p: NatProd): ⟨p.snd, p.fst⟩ = p.swap := rfl
+    example (p: NatProd): p.swap.fst = p.snd := rfl
+  end Term
+
+  namespace Tactic
+    theorem NatProd.surjective (p: NatProd): p = ⟨p.fst, p.snd⟩ := by rfl
+
+    example (p: NatProd): ⟨p.snd, p.fst⟩ = p.swap := by rfl
+    example (p: NatProd): p.swap.fst = p.snd := by rfl
+  end Tactic
+
+  namespace Blended
+    theorem NatProd.surjective (p: NatProd): p = ⟨p.fst, p.snd⟩ := rfl
+
+    example (p: NatProd): ⟨p.snd, p.fst⟩ = p.swap := rfl
+    example (p: NatProd): p.swap.fst = p.snd := rfl
+  end Blended
 
   /-
   ## Lists of Numbers
@@ -41,372 +54,765 @@ namespace NatList
 
   inductive NatList: Type where
     | nil: NatList
-    | cons: Nat → NatList → NatList
-  deriving Repr
+    | cons (hd: Nat) (tl: NatList): NatList
+  deriving Repr, BEq
 
-  def empty: NatList := .nil
-  def list: NatList := .cons 1 (.cons 2 (.cons 3 .nil))
-  def list2: NatList := .cons 4 (.cons 5 (.cons 6 .nil))
+  scoped syntax "[‹" term,* "›]" : term
+  scoped syntax:70 term:71 ":::" term:70 : term
 
-  def NatList.rpt (n: Nat): Nat → NatList
-    | .zero => .nil
-    | .succ count => .cons n (rpt n count)
+  macro_rules
+    | `([‹ $hd:term , $tl:term,* ›]) => `(NatList.cons $(Lean.quote hd) [‹ $tl,* ›])
+    | `([‹ $hd:term ›])              => `(NatList.cons $(Lean.quote hd) .nil)
+    | `([‹ ›])                       => `(NatList.nil)
+    | `($hd ::: $tl)                 => `(NatList.cons $(Lean.quote hd) $(Lean.quote tl))
 
-  def NatList.length: NatList → Nat
-    | .nil => 0
-    | .cons _ tl => 1 + tl.length
+  section
+    example: [‹›] = NatList.nil := rfl
+    example: [‹1›] = NatList.cons 1 .nil := rfl
+    example: [‹1, 2›] = NatList.cons 1 (.cons 2 .nil) := rfl
+    example: [‹1, 2, 3›] = NatList.cons 1 (.cons 2 (.cons 3 .nil)) := rfl
 
-  def NatList.append: NatList → NatList → NatList
-    | .nil, l => l
-    | .cons hd tl, l => .cons hd (tl.append l)
+    example: 1 ::: [‹›] = NatList.cons 1 .nil := rfl
+    example: 1 ::: 2 ::: [‹›] = NatList.cons 1 (.cons 2 .nil) := rfl
+    example: 1 ::: 2 ::: 3 ::: [‹›] = NatList.cons 1 (.cons 2 (.cons 3 .nil)) := rfl
 
-  example: list.append list2 = .cons 1 (.cons 2 (.cons 3 (.cons 4 (.cons 5 (.cons 6 .nil))))) := by rfl
-  example: list.append .nil = list := by rfl
-  example: empty.append list = list := by rfl
-
-  def NatList.hd (default: Nat): NatList → Nat
-    | .nil => default
-    | .cons hd _ => hd
-
-  def NatList.tl: NatList → NatList
-    | .nil => .nil
-    | .cons _ tl => tl
-
-  example: list.hd 42 = 1 := by rfl
-  example: empty.hd 42 = 42 := by rfl
-  example: list.tl = .cons 2 (.cons 3 .nil) := by rfl
-  example: empty.tl = empty := by rfl
-
-  def NatList.filter (p: Nat → Bool): NatList → NatList
-    | .nil => .nil
-    | .cons hd tl =>
-      if p hd
-      then .cons hd (tl.filter p)
-      else tl.filter p
-
-  def NatList.nonZeros: NatList → NatList := NatList.filter (λ elem => elem != 0)
-  def NatList.oddMembers: NatList → NatList := NatList.filter (λ elem => elem % 2 = 1)
-
-  def list3: NatList := .cons 0 (.cons 1 (.cons 0 (.cons 2 (.cons 3 (.cons 0 (.cons 0 .nil))))))
-  example: list3.nonZeros = list := by rfl
-  example: empty.nonZeros = empty := by rfl
-  example: list3.oddMembers = .cons 1 (.cons 3 .nil) := by rfl
-  example: empty.oddMembers = empty := by rfl
-
-  def NatList.countOddMembers (l: NatList): Nat := l.oddMembers.length
-  example: list3.countOddMembers = 2 := by rfl
-  example: (list3.append list3).countOddMembers = 4 := by rfl
-  example: empty.countOddMembers = 0 := by rfl
-
-  def NatList.alternate: NatList → NatList → NatList
-    | .nil, l | l, .nil => l
-    | .cons hd₁ tl₁, .cons hd₂ tl₂ => .cons hd₁ (.cons hd₂ (alternate tl₁ tl₂))
-
-  def list4: NatList := (NatList.cons 1 .nil)
-  example: list.alternate list2 = .cons 1 (.cons 4 (.cons 2 (.cons 5 (.cons 3 (.cons 6 .nil))))) := by rfl
-  example: list4.alternate list2 = .cons 1 list2 := by rfl
-  example: list2.alternate list4 = .cons 4 (.cons 1 (.cons 5 (.cons 6 .nil))) := by rfl
-  example: empty.alternate list2 = list2 := by rfl
+    example: 1 ::: [‹2, 3›] = NatList.cons 1 (.cons 2 (.cons 3 .nil)) := rfl
+  end
 
   /-
-  ### Bags vs. Lists
+  ### Repeat
   -/
 
-  abbrev Bag := NatList
+  @[reducible]
+  def NatList.repeat (elem: Nat): Nat → NatList
+    | .zero => [‹›]
+    | .succ n => elem ::: NatList.repeat elem n
 
-  def Bag.count (v: Nat): Bag → Nat
-    | .nil => 0
-    | .cons hd tl =>
-      if hd == v
-      then 1 + count v tl
-      else count v tl
+  /-
+  ### Length
+  -/
 
-  def emptyBag: Bag := empty
-  def bag: Bag := list
-  def bag2: Bag := list2
-  def bag3: Bag := list3
-  def bag4: Bag := list4
+  @[reducible]
+  def NatList.length: NatList → Nat
+    | [‹›] => 0
+    | _ ::: tl => 1 + tl.length
 
-  example: bag.count 1 = 1 := by rfl
-  example: bag3.count 0 = 4 := by rfl
-  example: bag3.count 42 = 0 := by rfl
+  /-
+  ### Append
+  -/
 
-  def Bag.sum (b₁ b₂: Bag): Bag := b₁.append b₂
-  def Bag.add (v: Nat) (b: Bag): Bag := .cons v b
-  def Bag.member (v: Nat): Bag → Bool
-    | .nil => false
-    | .cons hd tl =>
-      if hd == v
+  @[reducible]
+  def NatList.append: NatList → NatList → NatList
+    | [‹›], l₂ => l₂
+    | hd ::: tl, l₂ => hd ::: (tl.append l₂)
+
+  instance: Append NatList where
+    append := NatList.append
+
+  section
+    example: [‹1, 2, 3›] ++ [‹4, 5›] = [‹1, 2, 3, 4, 5›] := rfl
+    example: [‹›] ++ [‹4, 5›] = [‹4, 5›] := rfl
+    example: [‹1, 2, 3›] ++ [‹›] = [‹1, 2, 3›] := rfl
+  end
+
+  /-
+  ### Head and Tail
+  -/
+
+  @[reducible]
+  def NatList.hd (default: Nat): NatList → Nat
+    | [‹›] => default
+    | hd ::: _ => hd
+
+  @[reducible]
+  def NatList.tl: NatList → NatList
+    | [‹›] => [‹›]
+    | _ ::: tl => tl
+
+  section
+    example: [‹1, 2, 3›].hd 0 = 1 := rfl
+    example: [‹›].hd 0 = 0 := rfl
+    example: [‹1, 2, 3›].tl = [‹2, 3›] := rfl
+  end
+
+  /-
+  ### Examples
+  -/
+
+  @[reducible]
+  def NatList.nonZero: NatList → NatList
+    | [‹›] => [‹›]
+    | hd ::: tl => if hd = 0 then tl.nonZero else hd ::: tl.nonZero
+
+  @[reducible]
+  def NatList.odd: NatList → NatList
+    | [‹›] => [‹›]
+    | hd ::: tl => if hd % 2 = 0 then tl.odd else hd ::: tl.odd
+
+  @[reducible]
+  def NatList.oddLength (l: NatList): Nat := l.odd.length
+
+  @[reducible]
+  def NatList.alternate: NatList → NatList → NatList
+    | [‹›], l₂ => l₂
+    | l₁, [‹›] => l₁
+    | hd₁ ::: tl₁, hd₂ ::: tl₂ => hd₁ ::: hd₂ ::: alternate tl₁ tl₂
+
+  section
+    example: [‹0, 1, 0, 2, 3, 0, 0›].nonZero = [‹1, 2, 3›] := rfl
+
+    example: [‹0, 1, 0, 2, 3, 0, 0›].odd = [‹1, 3›] := rfl
+
+    example: [‹1, 0, 3, 1, 4, 5›].oddLength = 4 := rfl
+    example: [‹0, 2, 4›].oddLength = 0 := rfl
+    example: [‹›].oddLength = 0 := rfl
+
+    example: [‹1, 2, 3›].alternate [‹4, 5, 6›] = [‹1, 4, 2, 5, 3, 6›] := rfl
+    example: [‹1›].alternate [‹4, 5, 6›] = [‹1, 4, 5, 6›] := rfl
+    example: [‹1, 2, 3›].alternate [‹4›] = [‹1, 4, 2, 3›] := rfl
+    example: [‹›].alternate [‹20, 30›] = [‹20, 30›] := rfl
+  end
+
+  /-
+  ### Bags via Lists
+  -/
+
+  abbrev Bag: Type := NatList
+
+  @[reducible]
+  def Bag.count (n: Nat): Bag → Nat
+    | [‹›] => 0
+    | hd ::: tl =>
+      if hd = n
+      then 1 + count n tl
+      else count n tl
+
+  @[reducible]
+  def Bag.sum (b₁ b₂: Bag): Bag := b₁ ++ b₂
+
+  @[reducible]
+  def Bag.add (n: Nat) (b: Bag): Bag := n ::: b
+
+  @[reducible]
+  def Bag.mem (n: Nat): Bag → Bool
+    | [‹›] => false
+    | hd ::: tl =>
+      if hd = n
       then true
-      else member v tl
+      else mem n tl
 
-  example: (bag.sum bag).count 1 = 2 := by rfl
-  example: (bag.sum bag2).count 1 = 1 := by rfl
-  example: (bag.add 1).count 1 = 2 := by rfl
-  example: (bag.add 1).count 5 = 0 := by rfl
-  example: bag.member 1 = true := by rfl
-  example: bag.member 42 = false := by rfl
-
-  def Bag.removeOne (v: Nat): Bag → Bag
-    | .nil => .nil
-    | .cons hd tl =>
-      if hd == v
+  @[reducible]
+  def Bag.removeFirst (n: Nat): Bag → Bag
+    | [‹›] => [‹›]
+    | hd ::: tl =>
+      if hd = n
       then tl
-      else .cons hd (removeOne v tl)
+      else hd ::: removeFirst n tl
 
-  example: (bag3.removeOne 0).count 0 = 3 := by rfl
-  example: (bag3.removeOne 42).count 0 = 4 := by rfl
-  example: (emptyBag.removeOne 42).count 0 = 0 := by rfl
+  @[reducible]
+  def Bag.removeAll (n: Nat): Bag → Bag
+    | [‹›] => [‹›]
+    | hd ::: tl =>
+      if hd = n
+      then removeAll n tl
+      else hd ::: removeAll n tl
 
-  def Bag.removeAll (v: Nat): Bag → Bag
-    | .nil => .nil
-    | .cons hd tl =>
-      if hd == v
-      then removeAll v tl
-      else .cons hd (removeAll v tl)
-
-  example: (bag3.removeAll 0).count 0 = 0 := by rfl
-  example: (bag3.removeAll 1).count 0 = 4 := by rfl
-
+  @[reducible]
   def Bag.included: Bag → Bag → Bool
-    | .nil, _ => true
-    | _, .nil => false
-    | .cons hd tl, b =>
-      if Bag.member hd b
-      then Bag.included tl (Bag.removeOne hd b)
+    | [‹›], _ => true
+    | hd ::: tl, l₂ =>
+      if aux hd l₂
+      then
+        let l₂ := Bag.removeFirst hd l₂
+        included tl l₂
       else false
+    where aux (n: Nat): Bag → Bool
+      | [‹›] => false
+      | hd ::: tl =>
+        if hd = n
+        then true
+        else aux n tl
 
-  def tgt: Bag := .cons 2 (.cons 1 (.cons 4 (.cons 1 .nil)))
+  section
+    example: Bag.count 1 [‹1, 2, 3, 1, 4, 1›] = 3 := rfl
+    example: Bag.count 6 [‹1, 2, 3, 1, 4, 1›] = 0 := rfl
 
-  example: Bag.included (.cons 1 (.cons 2 .nil)) tgt = true := by rfl
-  example: Bag.included (.cons 1 (.cons 2 (.cons 2 .nil))) tgt = false := by rfl
+    example: Bag.count 1 (Bag.sum [‹1, 2, 3›] [‹1, 4, 1›]) = 3 := rfl
 
-  theorem Bag.addIncCount (b: Bag) (n: Nat): (b.add n).length = b.length + 1 := by
-    induction b with
-      | nil => rfl
-      | cons hd tl ih =>
-        simp [Bag.add, NatList.length] at ih
-        simp [NatList.length, Bag.add, ih]
-        rw [Nat.add_comm]
+    example: Bag.count 1 (Bag.add 1 [‹1, 4, 1›]) = 3 := rfl
+    example: Bag.count 5 (Bag.add 1 [‹1, 4, 1›]) = 0 := rfl
+
+    example: Bag.mem 1 [‹1, 4, 1›] = true := rfl
+    example: Bag.mem 2 [‹1, 4, 1›] = false := rfl
+
+    example: Bag.count 5 (Bag.removeFirst 5 [‹2, 1, 5, 4, 1›]) = 0 := rfl
+    example: Bag.count 5 (Bag.removeFirst 5 [‹2, 1, 4, 1›]) = 0 := rfl
+    example: Bag.count 4 (Bag.removeFirst 5 [‹2, 1, 4, 5, 1, 4›]) = 2 := rfl
+    example: Bag.count 5 (Bag.removeFirst 5 [‹2, 1, 5, 4, 5, 1, 4›]) = 1 := rfl
+
+    example: Bag.count 5 (Bag.removeAll 5 [‹2, 1, 5, 4, 1›]) = 0 := rfl
+    example: Bag.count 5 (Bag.removeAll 5 [‹2, 1, 4, 1›]) = 0 := rfl
+    example: Bag.count 4 (Bag.removeAll 5 [‹2, 1, 4, 5, 1, 4›]) = 2 := rfl
+    example: Bag.count 5 (Bag.removeAll 5 [‹2, 1, 5, 4, 5, 1, 4›]) = 0 := rfl
+
+    example: Bag.included [‹1, 2›] [‹2, 1, 4, 1›] = true := rfl
+    example: Bag.included [‹1, 2, 2›] [‹2, 1, 4, 1›] = false := rfl
+  end
+
+  namespace Term
+    theorem Bag.add.inc_count: ∀ b: Bag, ∀ n: Nat, Bag.count n (Bag.add n b) = (Bag.count n b).succ := sorry
+  end Term
+
+  namespace Tactic
+    theorem Bag.add.inc_count: ∀ b: Bag, ∀ n: Nat, Bag.count n (Bag.add n b) = (Bag.count n b).succ := by sorry
+  end Tactic
+
+  namespace Blended
+    theorem Bag.add.inc_count: ∀ b: Bag, ∀ n: Nat, Bag.count n (Bag.add n b) = (Bag.count n b).succ := sorry
+  end Blended
 
   /-
   ## Reasoning About Lists
   -/
 
-  theorem NatList.nilAppend (l: NatList): NatList.nil.append l = l := by
-    rfl
+  namespace Term
+    theorem NatList.nil_append (l: NatList): [‹›] ++ l = l := rfl
 
-  theorem NatList.tlLengthPred (l: NatList): l.length.pred = l.tl.length := by
-    cases l with
-      | nil => rfl
-      | cons hd tl =>
-        rw [NatList.length]
-        rw [← Nat.add_comm, ← Nat.succ_eq_add_one, Nat.pred_succ]
-        rfl
+    theorem NatList.tl.pred_length: ∀ l: NatList, l.length.pred = l.tl.length
+      | [‹›] => rfl
+      | hd ::: tl =>
+        calc (hd ::: tl).length.pred
+          _ = (1 + tl.length).pred        := rfl
+          _ = ((0).succ + tl.length).pred := rfl
+          _ = (0 + tl.length).succ.pred   := congrArg Nat.pred (Nat.succ_add 0 tl.length)
+          _ = tl.length.succ.pred         := congrArg Nat.pred (congrArg Nat.succ (Nat.zero_add tl.length))
+          _ = tl.length                   := Nat.pred_succ tl.length
+  end Term
 
-  theorem NatList.appAssoc (l₁ l₂ l₃: NatList): (l₁.append l₂).append l₃ = l₁.append (l₂.append l₃) := by
-    induction l₁ with
-      | nil => rfl
-      | cons hd tl ihₗ =>
-        simp [NatList.append]
-        rw [ihₗ]
+  namespace Tactic
+    @[scoped simp]
+    theorem NatList.nil_append (l: NatList): [‹›] ++ l = l := by rfl
 
-  def NatList.rev: NatList -> NatList
-    | .nil => .nil
-    | .cons hd tl => tl.rev.append (.cons hd .nil)
+    theorem NatList.tl.pred_length (l: NatList): l.length.pred = l.tl.length := by
+      cases l with
+        | nil => rfl
+        | cons hd tl => simp [Nat.succ_add, Nat.zero_add, Nat.pred_succ]
+  end Tactic
 
-  theorem NatList.appLength (l₁ l₂: NatList): (l₁.append l₂).length = l₁.length + l₂.length := by
-    induction l₁ with
-      | nil =>
-        rw [NatList.length, NatList.append]
-        simp
-      | cons hd tl ihₗ =>
-        rw [NatList.append, NatList.length, NatList.length]
-        rw [ihₗ]
-        rw [Nat.add_assoc]
+  namespace Blended
+    @[scoped simp]
+    theorem NatList.nil_append (l: NatList): [‹›] ++ l = l := rfl
 
-  theorem NatList.revLength (l: NatList): l.rev.length = l.length := by
-    induction l with
-      | nil => rfl
-      | cons hd tl ihₗ =>
-        simp [NatList.rev, NatList.length, NatList.appLength, Nat.add_comm]
-        rw [ihₗ]
+    theorem NatList.tl.pred_length: ∀ l: NatList, l.length.pred = l.tl.length
+      | [‹›] => rfl
+      | hd ::: tl =>
+        calc (hd ::: tl).length.pred
+          _ = (1 + tl.length).pred      := by rfl
+          _ = (0 + tl.length).succ.pred := by rw [Nat.succ_add]
+          _ = tl.length                 := by simp [Nat.zero_add, Nat.pred_succ]
+  end Blended
 
   /-
-  ### Search
+  ### Induction on Lists
   -/
 
-  -- No Lean eqivalent?
+  @[reducible]
+  def NatList.rev: NatList → NatList
+    | [‹›] => [‹›]
+    | hd ::: tl => tl.rev ++ [‹hd›]
+
+  section
+    example: [‹1, 2, 3›].rev = [‹3, 2, 1›] := rfl
+    example: [‹›].rev = [‹›] := rfl
+  end
+
+  namespace Term
+    theorem NatList.append_assoc: ∀ l₁ l₂ l₃: NatList, l₁ ++ (l₂ ++ l₃) = (l₁ ++ l₂) ++ l₃
+      | [‹›], l₂, l₃ =>
+        calc [‹›] ++ (l₂ ++ l₃)
+          _ = l₂ ++ l₃           := NatList.nil_append (l₂ ++ l₃)
+          _ = ([‹›] ++ l₂) ++ l₃ := congr (congrArg NatList.append (Eq.symm (NatList.nil_append l₂))) rfl
+      | hd ::: tl, l₂, l₃ =>
+        have ih := append_assoc tl l₂ l₃
+        calc (hd ::: tl) ++ (l₂ ++ l₃)
+          _ = hd ::: tl ++ (l₂ ++ l₃)   := rfl
+          _ = hd ::: (tl ++ l₂) ++ l₃   := congrArg (NatList.cons hd) ih
+          _ = ((hd ::: tl) ++ l₂) ++ l₃ := rfl
+
+    theorem NatList.append_length: ∀ l₁ l₂: NatList, (l₁ ++ l₂).length = l₁.length + l₂.length
+      | [‹›], l₂ =>
+        calc ([‹›] ++ l₂).length
+          _ = l₂.length     := congrArg NatList.length (NatList.nil_append l₂)
+          _ = 0 + l₂.length := Eq.symm (Nat.zero_add l₂.length)
+      | hd ::: tl, l₂ =>
+        have ih := append_length tl l₂
+        calc ((hd ::: tl) ++ l₂).length
+          _ = (hd ::: (tl ++ l₂)).length     := rfl
+          _ = 1 + (tl ++ l₂).length          := rfl
+          _ = 1 + (tl.length + l₂.length)    := congrArg (Nat.add 1) ih
+          _ = 1 + tl.length + l₂.length      := Eq.symm (Nat.add_assoc 1 tl.length l₂.length)
+          _ = (hd ::: tl).length + l₂.length := rfl
+
+    theorem NatList.rev_length: ∀ l: NatList, l.rev.length = l.length
+      | [‹›] => rfl
+      | hd ::: tl =>
+        have ih := rev_length tl
+        calc (hd ::: tl).rev.length
+          _ = (tl.rev ++ [‹hd›]).length := rfl
+          _ = tl.rev.length + 1         := NatList.append_length tl.rev [‹hd›]
+          _ = tl.length + 1             := congr (congrArg Nat.add ih) rfl
+          _ = 1 + tl.length             := Nat.add_comm tl.length 1
+          _ = (hd ::: tl).length        := rfl
+  end Term
+
+  namespace Tactic
+    theorem NatList.append_assoc (l₁ l₂ l₃: NatList): l₁ ++ (l₂ ++ l₃) = (l₁ ++ l₂) ++ l₃ := by
+      induction l₁ with
+        | nil => simp
+        | cons hd tl ih =>
+          calc (hd ::: tl) ++ (l₂ ++ l₃)
+            _ = hd ::: (tl ++ (l₂ ++ l₃)) := by rfl
+            _ = hd ::: ((tl ++ l₂) ++ l₃) := by rw [ih]
+
+    @[scoped simp]
+    theorem NatList.append_length (l₁ l₂: NatList): (l₁ ++ l₂).length = l₁.length + l₂.length := by
+      induction l₁ with
+        | nil => simp
+        | cons hd tl ih =>
+          calc ((hd ::: tl) ++ l₂).length
+            _ = 1 + (tl ++ l₂).length          := by rfl
+            _ = 1 + (tl.length + l₂.length)    := by rw [ih]
+            _ = (hd ::: tl).length + l₂.length := by simp [Nat.add_assoc]
+
+    @[scoped simp]
+    theorem NatList.rev_length (l: NatList): l.rev.length = l.length := by
+      induction l with
+        | nil => rfl
+        | cons hd tl ih =>
+          simp [NatList.append_length]
+          rw [ih]
+          simp [Nat.add_comm]
+  end Tactic
+
+  namespace Blended
+    theorem NatList.append_assoc: ∀ l₁ l₂ l₃: NatList, l₁ ++ (l₂ ++ l₃) = (l₁ ++ l₂) ++ l₃
+      | [‹›], l₂, l₃ => by simp
+      | hd ::: tl, l₂, l₃ =>
+        have ih := append_assoc tl l₂ l₃
+        calc (hd ::: tl) ++ (l₂ ++ l₃)
+          _ = hd ::: (tl ++ (l₂ ++ l₃)) := by rfl
+          _ = hd ::: ((tl ++ l₂) ++ l₃) := by rw [ih]
+          _ = ((hd ::: tl) ++ l₂) ++ l₃ := by rfl
+
+    @[scoped simp]
+    theorem NatList.append_length: ∀ l₁ l₂: NatList, (l₁ ++ l₂).length = l₁.length + l₂.length
+      | [‹›], l₂ => by simp
+      | hd ::: tl, l₂ =>
+        have ih := append_length tl l₂
+        calc ((hd ::: tl) ++ l₂).length
+          _ = 1 + (tl ++ l₂).length          := by rfl
+          _ = 1 + (tl.length + l₂.length)    := by rw [ih]
+          _ = (hd ::: tl).length + l₂.length := by simp [Nat.add_assoc]
+
+    @[scoped simp]
+    theorem NatList.rev_length: ∀ l: NatList, l.rev.length = l.length
+      | [‹›] => by rfl
+      | hd ::: tl =>
+        have ih := rev_length tl
+        calc (hd ::: tl).rev.length
+          _ = tl.rev.length + 1  := by simp [NatList.append_length]
+          _ = tl.length + 1      := by rw [ih]
+          _ = (hd ::: tl).length := by simp [Nat.add_comm]
+  end Blended
 
   /-
-  #### Exercises
+  #### Search
+
+  Question: Is there a Lean 4 equivalent of `Search`?  I can find Mathlib
+  tactics for it, and `library_search` and `suggest`, but is there a top-level
+  `#search` or `#find`, similar to `#eval` and `#print`?
   -/
 
-  theorem NatList.appNilRight (l: NatList): l.append .nil = l := by
-    induction l with
-      | nil => rfl
-      | cons hd tl ihₗ =>
-        rw [NatList.append]
-        rw [ihₗ]
+  /-
+  ### List Exercises, Part 1
+  -/
 
-  theorem NatList.revAppDistr (l₁ l₂: NatList): (l₁.append l₂).rev = l₂.rev.append l₁.rev := by
-    induction l₁ with
-      | nil =>
-        rw [NatList.append, NatList.rev, NatList.appNilRight]
-      | cons hd tl ihₗ =>
-        simp [NatList.append, NatList.rev, NatList.appAssoc]
-        rw [ihₗ]
-        simp [NatList.appAssoc]
+  namespace Term
+    @[scoped simp]
+    theorem NatList.append_nil: ∀ l: NatList, l ++ [‹›] = l
+      | [‹›] => rfl
+      | hd ::: tl =>
+        have ih := append_nil tl
+        calc (hd ::: tl) ++ [‹›]
+          _ = hd ::: (tl ++ [‹›]) := rfl
+          _ = hd ::: tl           := congrArg (NatList.cons hd) ih
 
-  theorem NatList.revInvolute (l: NatList): l.rev.rev = l := by
-    induction l with
-      | nil => rfl
-      | cons hd tl ihₗ =>
-        simp [NatList.rev, NatList.revAppDistr, NatList.appAssoc, NatList.append]
-        rw [ihₗ]
+    theorem NatList.rev_append: ∀ l₁ l₂: NatList, (l₁ ++ l₂).rev = l₂.rev ++ l₁.rev
+      | [‹›], l₂ =>
+        calc ([‹›] ++ l₂).rev
+          _ = l₂.rev             := congrArg NatList.rev (NatList.nil_append l₂)
+          _ = l₂.rev ++ [‹›]     := Eq.symm (NatList.append_nil l₂.rev)
+          _ = l₂.rev ++ [‹›].rev := rfl
+      | hd ::: tl, l₂ =>
+        have ih := rev_append tl l₂
+        calc ((hd ::: tl) ++ l₂).rev
+          _ = (tl ++ l₂).rev ++ [‹hd›].rev := rfl
+          _ = (l₂.rev ++ tl.rev) ++ [‹hd›] := congr (congrArg NatList.append ih) rfl
+          _ = l₂.rev ++ (tl.rev ++ [‹hd›]) := Eq.symm (NatList.append_assoc l₂.rev tl.rev [‹hd›])
+          _ = l₂.rev ++ (hd ::: tl).rev    := rfl
 
-  theorem NatList.appAssoc4 (l₁ l₂ l₃ l₄: NatList): l₁.append (l₂.append (l₃.append l₄)) = ((l₁.append l₂).append l₃).append l₄ := by
-    simp [NatList.appAssoc]
+    theorem NatList.rev_involute: ∀ l: NatList, l.rev.rev = l
+      | [‹›] => rfl
+      | hd ::: tl =>
+        have ih := rev_involute tl
+        calc (hd ::: tl).rev.rev
+          _ = (tl.rev ++ [‹hd›]).rev := rfl
+          _ = [‹hd›] ++ tl.rev.rev   := NatList.rev_append tl.rev [‹hd›]
+          _ = [‹hd›] ++ tl           := congrArg (NatList.append [‹hd›]) ih
+          _ = hd ::: tl              := rfl
 
-  theorem NatList.filterTheorem (l₁ l₂: NatList) (p: Nat → Bool): (l₁.append l₂).filter p = (l₁.filter p).append (l₂.filter p) := by
-    induction l₁ with
-      | nil =>
-        simp [NatList.nilAppend, NatList.filter]
-      | cons hd tl ihₗ =>
-        rw [NatList.append, NatList.filter, NatList.filter]
-        rw [ihₗ]
-        rw [← NatList.append]
-        cases p hd <;> simp
+    example (l₁ l₂ l₃ l₄: NatList): l₁ ++ (l₂ ++ (l₃ ++ l₄)) = ((l₁ ++ l₂) ++ l₃) ++ l₄ :=
+      calc l₁ ++ (l₂ ++ (l₃ ++ l₄))
+        _ = (l₁ ++ l₂) ++ (l₃ ++ l₄) := NatList.append_assoc l₁ l₂ (l₃ ++ l₄)
+        _ = ((l₁ ++ l₂) ++ l₃) ++ l₄ := NatList.append_assoc (l₁ ++ l₂) l₃ l₄
 
-  theorem NatList.nonZerosApp (l₁ l₂: NatList): (l₁.append l₂).nonZeros = l₁.nonZeros.append l₂.nonZeros := by
-    cases l₁ with
-      | nil =>
-        rw [NatList.nilAppend, NatList.nonZeros, NatList.filter, NatList.append]
-      | cons hd tl =>
-        rw [NatList.append, NatList.nonZeros, NatList.filter, filterTheorem]
-        cases hd <;> rfl
+    example: ∀ l₁ l₂: NatList, (l₁ ++ l₂).nonZero = l₁.nonZero ++ l₂.nonZero
+      | [‹›], _ => rfl
+      | 0 ::: tl, l₂ =>
+        have ih := _example tl l₂
+        calc ((0 ::: tl) ++ l₂).nonZero
+          _ = (tl ++ l₂).nonZero       := rfl
+          _ = tl.nonZero ++ l₂.nonZero := ih
+      | (_ + 1) ::: tl, l₂ =>
+        have ih := _example tl l₂
+        calc (((_ + 1) ::: tl) ++ l₂).nonZero
+          _ = (_ + 1) ::: (tl ++ l₂).nonZero         := rfl
+          _ = (_ + 1) ::: tl.nonZero ++ l₂.nonZero   := congrArg (NatList.cons (_ + 1)) ih
+          _ = ((_ + 1) ::: tl).nonZero ++ l₂.nonZero := rfl
 
-  def NatList.beq: NatList → NatList → Bool
-    | .nil, .nil => true
-    | .cons hd₁ tl₁, .cons hd₂ tl₂ =>
-      hd₁ == hd₂ && tl₁.beq tl₂
-    | _, _ => false
+      theorem NatList.beq_refl: ∀ l: NatList, l == l
+        | [‹›] => rfl
+        | hd ::: tl =>
+          have ih := beq_refl tl
+          calc (hd ::: tl) == (hd ::: tl)
+            _ = and (hd == hd) (tl == tl) := rfl
+            _ = and true (tl == tl) := congr (congrArg and (Nat.beq_refl hd)) rfl
+            _ = (tl == tl) := Bool.true_and (tl == tl)
+            _ = true := ih
+  end Term
 
-  example: empty.beq empty := by rfl
-  example: list.beq list := by rfl
+  namespace Tactic
+    @[scoped simp]
+    theorem NatList.append_nil (l: NatList): l ++ [‹›] = l := by
+      induction l with
+        | nil => rfl
+        | cons hd tl ih =>
+          calc (hd ::: tl) ++ [‹›]
+            _ = hd ::: (tl ++ [‹›]) := by rfl
+            _ = hd ::: tl           := by rw [ih]
 
-  theorem NatList.beqRefl (l: NatList): l.beq l := by
-    induction l with
-      | nil => rfl
-      | cons hd tl ihₗ =>
-        rw [NatList.beq]
-        simp
-        rw [ihₗ]
+    theorem NatList.rev_append (l₁ l₂: NatList): (l₁ ++ l₂).rev = l₂.rev ++ l₁.rev := by
+      induction l₁ with
+        | nil => simp
+        | cons hd tl ih =>
+          calc ((hd ::: tl) ++ l₂).rev
+            _ = (tl ++ l₂).rev ++ [‹hd›].rev     := by rfl
+            _ = (l₂.rev ++ tl.rev) ++ [‹hd›].rev := by rw [ih]
+            _ = l₂.rev ++ (hd ::: tl).rev        := by simp [NatList.append_assoc]
 
-  theorem Bag.countMembersNonZero (b: NatList): Nat.less_eq 1 (Bag.count 1 (NatList.cons 1 b)) := by
-    induction b with
-      | nil => rfl
-      | cons hd tl ihb => sorry
+    theorem NatList.rev_involute (l: NatList): l.rev.rev = l := by
+      induction l with
+        | nil => rfl
+        | cons hd tl ih =>
+          simp [NatList.rev_append]
+          rw [ih]
+          rfl
 
-  theorem Nat.ltSucc (n: Nat): Nat.less_eq n n.succ := by
-    induction n with
-      | zero => rfl
-      | succ n ihₙ =>
-        rw [Nat.less_eq, ← Nat.succ_eq_add_one]
-        rw [ihₙ]
+    example (l₁ l₂ l₃ l₄: NatList): l₁ ++ (l₂ ++ (l₃ ++ l₄)) = ((l₁ ++ l₂) ++ l₃) ++ l₄ := by
+      simp [NatList.append_assoc]
 
-  theorem Bag.removeDoesNotIncreaseCount (b: Bag): Nat.less_eq ((Bag.removeOne 0 b).count 0) (b.count 0) := by
-    induction b with
-      | nil => rfl
-      | cons hd tl ihb =>
-        sorry
+    example (l₁ l₂: NatList): (l₁ ++ l₂).nonZero = l₁.nonZero ++ l₂.nonZero := by
+      induction l₁ with
+        | nil => rfl
+        | cons hd tl ih =>
+          cases hd with
+            | zero =>
+              calc ((0 ::: tl) ++ l₂).nonZero
+                _ = (tl ++ l₂).nonZero       := by rfl
+                _ = tl.nonZero ++ l₂.nonZero := by rw [ih]
+            | succ =>
+              calc (((_ + 1) ::: tl) ++ l₂).nonZero
+                _ = (_ + 1) ::: (tl ++ l₂).nonZero         := by rfl
+                _ = (_ + 1) ::: (tl.nonZero ++ l₂.nonZero) := by rw [ih]
+                _ = ((_ + 1) ::: tl).nonZero ++ l₂.nonZero := rfl
 
-  theorem involutionInjective (f: Nat → Nat) (h₁: ∀ (n: Nat), n = f (f n)) (n₁ n₂: Nat) (h₂: f n₁ = f n₂): n₁ = n₂ := by
-    sorry
+    theorem NatList.beq_refl (l: NatList): l == l := by
+      induction l with
+        | nil => rfl
+        | cons hd tl ih =>
+          calc (hd ::: tl) == (hd ::: tl)
+            _ = and (hd == hd) (tl == tl) := by rfl
+            _ = (tl == tl)                := by simp [Nat.beq_refl, Bool.true_and]
+            _ = true                      := by rw [ih]
+  end Tactic
 
-  theorem NatList.revInjective (l₁ l₂: NatList) (h: l₁.rev = l₂.rev): l₁ = l₂ := by
-    sorry
+  namespace Blended
+    @[scoped simp]
+    theorem NatList.append_nil: ∀ l: NatList, l ++ [‹›] = l
+      | [‹›] => by rfl
+      | hd ::: tl =>
+        have ih := append_nil tl
+        calc (hd ::: tl) ++ [‹›]
+          _ = hd ::: (tl ++ [‹›]) := by rfl
+          _ = hd ::: tl           := by rw [ih]
+
+    theorem NatList.rev_append: ∀ l₁ l₂: NatList, (l₁ ++ l₂).rev = l₂.rev ++ l₁.rev
+      | [‹›], l₂ => by simp
+      | hd ::: tl, l₂ =>
+        have ih := rev_append tl l₂
+          calc ((hd ::: tl) ++ l₂).rev
+            _ = (tl ++ l₂).rev ++ [‹hd›].rev     := by rfl
+            _ = (l₂.rev ++ tl.rev) ++ [‹hd›].rev := by rw [ih]
+            _ = l₂.rev ++ (hd ::: tl).rev        := by simp [NatList.append_assoc]
+
+    theorem NatList.rev_involute: ∀ l: NatList, l.rev.rev = l
+      | [‹›] => by rfl
+      | hd ::: tl =>
+        have ih := rev_involute tl
+        calc (hd ::: tl).rev.rev
+          _ = [‹hd›].rev ++ tl.rev.rev   := by simp [NatList.rev_append]
+          _ = [‹hd›].rev ++ tl           := by rw [ih]
+
+    example (l₁ l₂ l₃ l₄: NatList): l₁ ++ (l₂ ++ (l₃ ++ l₄)) = ((l₁ ++ l₂) ++ l₃) ++ l₄ :=
+      calc l₁ ++ (l₂ ++ (l₃ ++ l₄))
+        _ = (l₁ ++ l₂) ++ (l₃ ++ l₄) := by rw [NatList.append_assoc]
+        _ = ((l₁ ++ l₂) ++ l₃) ++ l₄ := by rw [NatList.append_assoc]
+
+    example: ∀ l₁ l₂: NatList, (l₁ ++ l₂).nonZero = l₁.nonZero ++ l₂.nonZero
+      | [‹›], _ => by rfl
+      | 0 ::: tl, l₂ =>
+        have ih := _example tl l₂
+        calc ((0 ::: tl) ++ l₂).nonZero
+          _ = (tl ++ l₂).nonZero       := by rfl
+          _ = tl.nonZero ++ l₂.nonZero := by rw [ih]
+      | (_ + 1) ::: tl, l₂ =>
+        have ih := _example tl l₂
+        calc (((_ + 1) ::: tl) ++ l₂).nonZero
+          _ = (_ + 1) ::: (tl ++ l₂).nonZero         := by rfl
+          _ = (_ + 1) ::: (tl.nonZero ++ l₂.nonZero) := by rw [ih]
+          _ = ((_ + 1) ::: tl).nonZero ++ l₂.nonZero := by rfl
+
+    theorem NatList.beq_refl: ∀ l: NatList, l == l
+      | [‹›] => by rfl
+      | hd ::: tl =>
+        have ih := beq_refl tl
+        calc (hd ::: tl) == (hd ::: tl)
+          _ = and (hd == hd) (tl == tl) := by rfl
+          _ = (tl == tl)                := by simp [Nat.beq_refl, Bool.true_and]
+          _ = true                      := by rw [ih]
+  end Blended
+
+  /-
+  ### List Exercises, Part 2
+  -/
+
+  namespace Term
+    /-
+    TODO: Remove tactic block
+    -/
+    theorem Nat.lt_succ: ∀ n: Nat, n < n.succ
+      | 0 => by constructor
+      | _ + 1 => by constructor
+
+    theorem Bag.count_mem_nonzero: ∀ b: Bag, 0 < Bag.count 1 (Bag.add 1 b)
+      | [‹›] =>
+        calc 0
+          _ < 1 := Nat.lt_succ 0
+          _ = Bag.count 1 (Bag.add 1 [‹›]) := rfl
+      | b =>
+        calc 0
+          _ < 1 := Nat.lt_succ 0
+          _ ≤ Bag.count 1 b + 1         := Nat.le_add_left 1 (Bag.count 1 b)
+          _ = 1 + Bag.count 1 b         := Nat.add_comm (Bag.count 1 b) 1
+          _ = Bag.count 1 (1 ::: b)     := rfl
+          _ = Bag.count 1 (Bag.add 1 b) := rfl
+
+    theorem Bag.remove_le_count: ∀ b: Bag, Bag.count 0 (Bag.removeFirst 0 b) ≤ Bag.count 0 b := sorry
+    theorem Bag.count_sum: True := sorry
+    theorem involution_injective: ∀ f: α → α, ∀ x: α, f (f x) = x → ∀ x₁ x₂: α, f x₁ = f x₂ → x₁ = x₂ := sorry
+    theorem NatList.rev_injective: ∀ l₁ l₂: NatList, l₁.rev = l₂.rev → l₁ = l₂ := sorry
+  end Term
+
+  namespace Tactic
+    theorem Nat.lt_succ: ∀ n: Nat, n < n.succ := by
+      intro
+        | 0 => constructor
+        | _ + 1 => constructor
+
+    theorem Bag.count_mem_nonzero (b: Bag): 0 < Bag.count 1 (Bag.add 1 b) := by
+      cases b with
+        | nil => simp [Nat.lt_succ]
+        | cons hd tl =>
+          calc 0
+            _ < 1                           := by simp [Nat.lt_succ]
+            _ ≤ Bag.count 1 (hd ::: tl) + 1 := by simp [Nat.le_add_left]
+            _ = 1 + Bag.count 1 (hd ::: tl) := by simp [Nat.add_comm]
+
+    theorem Bag.remove_le_count: ∀ b: Bag, Bag.count 0 (Bag.removeFirst 0 b) ≤ Bag.count 0 b := sorry
+    theorem Bag.count_sum: True := by sorry
+    theorem involution_injective: ∀ f: α → α, ∀ x: α, f (f x) = x → ∀ x₁ x₂: α, f x₁ = f x₂ → x₁ = x₂ := by sorry
+    theorem NatList.rev_injective: ∀ l₁ l₂: NatList, l₁.rev = l₂.rev → l₁ = l₂ := by sorry
+  end Tactic
+
+  namespace Blended
+    theorem Nat.lt_succ: ∀ n: Nat, n < n.succ
+      | 0 => by constructor
+      | _ + 1 => by constructor
+
+    theorem Bag.count_mem_nonzero: ∀ b: Bag, 0 < Bag.count 1 (Bag.add 1 b)
+      | [‹›] => by simp [Nat.lt_succ]
+      | b =>
+        calc 0
+          _ < 1                 := by simp [Nat.lt_succ]
+          _ ≤ Bag.count 1 b + 1 := by simp [Nat.le_add_left]
+          _ = 1 + Bag.count 1 b := by simp [Nat.add_comm]
+
+    theorem Bag.remove_le_count: ∀ b: Bag, Bag.count 0 (Bag.removeFirst 0 b) ≤ Bag.count 0 b := sorry
+    theorem Bag.count_sum: True := sorry
+    theorem involution_injective: ∀ f: α → α, ∀ x: α, f (f x) = x → ∀ x₁ x₂: α, f x₁ = f x₂ → x₁ = x₂ := sorry
+    theorem NatList.rev_injective: ∀ l₁ l₂: NatList, l₁.rev = l₂.rev → l₁ = l₂ := sorry
+  end Blended
 
   /-
   ## Options
   -/
 
+  def NatList.nthOr (default: Nat): Nat → NatList → Nat
+    | _, [‹›] => default
+    | 0, hd ::: _ => hd
+    | n + 1, _ ::: tl => tl.nthOr default n
+
   inductive NatOption: Type where
     | none: NatOption
-    | some: Nat → NatOption
-  deriving Repr
+    | some (n: Nat): NatOption
 
+  @[reducible]
   def NatOption.elim (default: Nat): NatOption → Nat
     | .none => default
     | .some n => n
 
+  @[reducible]
   def NatList.nthOpt: Nat → NatList → NatOption
-    | _, .nil => .none
-    | .zero, .cons hd _ => .some hd
-    | .succ n, .cons _ tl => tl.nthOpt n
+    | _, [‹›] => .none
+    | 0, hd ::: _ => .some hd
+    | n + 1, _ ::: tl => tl.nthOpt n
 
-  example: list2.nthOpt 0 = .some 4 := by rfl
-  example: list2.nthOpt 1 = .some 5 := by rfl
-  example: list2.nthOpt 2 = .some 6 := by rfl
-  example: list2.nthOpt 3 = .none := by rfl
-
+  @[reducible]
   def NatList.hdOpt: NatList → NatOption
-    | .nil => .none
-    | .cons hd _ => .some hd
+    | [‹›] => .none
+    | hd ::: _ => .some hd
 
-  example: list.hdOpt = .some 1 := by rfl
-  example: list2.hdOpt = .some 4 := by rfl
-  example: empty.hdOpt = .none := by rfl
+  section
+    example: [‹4, 5, 6, 7›].nthOpt 0 = .some 4 := rfl
+    example: [‹4, 5, 6, 7›].nthOpt 3 = .some 7 := rfl
+    example: [‹4, 5, 6, 7›].nthOpt 9 = .none := rfl
 
-  theorem NatList.hdOptElim (l: NatList) (default: Nat): l.hd default = l.hdOpt.elim default := by
-    cases l with
-      | nil => rfl
-      | cons hd tl => rw [NatList.hd, NatList.hdOpt, NatOption.elim]
-end NatList
+    example: [‹›].hdOpt = .none := rfl
+    example: [‹1›].hdOpt = .some 1 := rfl
+    example: [‹5, 6›].hdOpt = .some 5 := rfl
+  end
 
-namespace PartialMap
-  open NatList
+  namespace Term
+    theorem Option.elim_hd (_: Nat): ∀ l: NatList, l.hd default = l.hdOpt.elim default
+      | [‹›] => rfl
+      | _ ::: _ => rfl
+  end Term
 
-  structure Key: Type where
-    n: Nat
-  deriving Repr
+  namespace Tactic
+    theorem Option.elim_hd (_: Nat): ∀ l: NatList, l.hd default = l.hdOpt.elim default := by
+      intro
+        | .nil => rfl
+        | .cons _ _ => rfl
+  end Tactic
 
-  def Key.beq (k₁ k₂: Key): Bool := k₁.n.beq k₂.n
+  namespace Blended
+    theorem Option.elim_hd (_: Nat): ∀ l: NatList, l.hd default = l.hdOpt.elim default
+      | [‹›] => by rfl
+      | _ ::: _ => by rfl
+  end Blended
 
-  theorem Key.beqRefl (k: Key): k.beq k := by
-    simp [Key.beq]
+  /-
+  ## Partial Maps
+  -/
 
-  inductive PartialMap: Type where
+  def Key: Type := Nat
+  deriving Repr, BEq
+
+  instance: OfNat Key n where
+    ofNat := n
+
+  inductive PartialMap where
     | empty: PartialMap
-    | record: Key → Nat → PartialMap → PartialMap
+    | record (k: Key) (v: Nat) (m: PartialMap): PartialMap
 
+  @[reducible]
   def PartialMap.update (m: PartialMap) (k: Key) (v: Nat): PartialMap :=
     .record k v m
 
+  @[reducible]
   def PartialMap.find (k: Key): PartialMap → NatOption
-    | .empty => .none
-    | .record kₘ v m => if kₘ.beq k then .some v else m.find k
+    | empty => .none
+    | record k₂ v m =>
+      if k₂ == k
+      then .some v
+      else m.find k
 
-  theorem PartialMap.updateEq (m: PartialMap) (k: Key) (v: Nat): (m.update k v).find k = .some v := by
-    cases m <;> simp [PartialMap.update, PartialMap.find, Key.beq]
+  namespace Term
+    theorem Key.refl (k: Key): k == k := Nat.beq_refl k
 
-  theorem PartialMap.updateNeq (m: PartialMap) (k₁ k₂: Key) (v: Nat) (h: k₁.beq k₂ == false): (m.update k₁ v).find k₂ = m.find k₂ := by
-    sorry
-    -- cases m with
-    --   | empty =>
-    --     rw [PartialMap.update, PartialMap.find, PartialMap.find]
-    --   | record kₘ vₘ mₘ =>
-    --     rw [PartialMap.update, PartialMap.find, PartialMap.find]
-end PartialMap
+    /-
+    -- TODO: Remove Tactic Block
+    -/
+    theorem PartialMap.update_eq {k: Key} {v: Nat} (m: PartialMap): (m.update k v).find k = .some v :=
+      calc (m.update k v).find k
+        _ = (PartialMap.record k v m).find k     := rfl
+        _ = if k == k then .some v else m.find k := rfl
+        _ = if true then .some v else m.find k   := by rw [Key.refl]
+        _ = .some v                              := rfl
 
--- □ ◇ ○
--- ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ
--- αβγδεζηθικλμνξοπρστυφχψω
+    theorem PartialMap.update_neq {k₁ k₂: Key} {v: Nat} (h: (k₁ == k₂) = false) (m: PartialMap): (m.update k₁ v).find k₂ = m.find k₂ :=
+      calc (m.update k₁ v).find k₂
+        _ = (PartialMap.record k₁ v m).find k₂      := rfl
+        _ = if k₁ == k₂ then .some v else m.find k₂ := rfl
+        _ = if false then .some v else m.find k₂    := by rw [h]
+        _ = m.find k₂                               := rfl
+  end Term
 
--- type List (α: *) (l: Nat) =
---   | nil: List α 0
---   | cons (n: Nat): α → List α n → List α (n + 1)
+  namespace Tactic
+    theorem Key.refl (k: Key): k == k := by apply Nat.beq_refl
 
--- 𝕐 𝕃
+    theorem PartialMap.update_eq {k: Key} {v: Nat} (m: PartialMap): (m.update k v).find k = .some v := by
+      calc (m.update k v).find k
+        _ = if k == k then .some v else m.find k := by rfl
+        _ = if true then .some v else m.find k   := by rw [Key.refl]
 
---
+    theorem PartialMap.update_neq {k₁ k₂: Key} {v: Nat} (h: (k₁ == k₂) = false) (m: PartialMap): (m.update k₁ v).find k₂ = m.find k₂ := by
+      calc (m.update k₁ v).find k₂
+        _ = if k₁ == k₂ then .some v else m.find k₂ := by rfl
+        _ = if false then .some v else m.find k₂    := by rw [h]
+  end Tactic
+
+  namespace Blended
+    theorem Key.refl (k: Key): k == k := Nat.beq_refl k
+
+    theorem PartialMap.update_eq {k: Key} {v: Nat} (m: PartialMap): (m.update k v).find k = .some v :=
+      calc (m.update k v).find k
+        _ = if k == k then .some v else m.find k := by rfl
+        _ = if true then .some v else m.find k   := by rw [Key.refl]
+
+    theorem PartialMap.update_neq {k₁ k₂: Key} {v: Nat} (h: (k₁ == k₂) = false) (m: PartialMap): (m.update k₁ v).find k₂ = m.find k₂ :=
+      calc (m.update k₁ v).find k₂
+        _ = if k₁ == k₂ then .some v else m.find k₂ := by rfl
+        _ = if false then .some v else m.find k₂    := by rw [h]
+  end Blended
+end SoftwareFoundations.LogicalFoundations.Lists
