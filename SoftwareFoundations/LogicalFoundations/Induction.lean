@@ -104,13 +104,16 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
             _ = n.eqb n := rfl
             _ = true    := ih
 
+      open Basics.Term
+
       theorem Nat.even_succ: ∀ n: Nat, n.succ.even? = n.even?.neg
         | 0     => rfl
         | n + 1 =>
           have ih := even_succ n
           calc n.succ.succ.even?
             _ = n.even?          := rfl
-            _ = n.succ.even?.neg := sorry
+            _ = n.even?.neg.neg  := Eq.symm (Bool.neg_involute n.even?)
+            _ = n.succ.even?.neg := congrArg Bool.neg (Eq.symm ih)
   end Term
 
   namespace Tactic
@@ -157,10 +160,12 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         | zero => rfl
         | succ n ih => simp [ih]
 
+    open Basics.Tactic
+
     theorem Nat.even_succ (n: Nat): n.succ.even? = n.even?.neg := by
       induction n with
         | zero => rfl
-        | succ n ih => sorry
+        | succ n ih => simp [Bool.neg_involute, ih]
   end Tactic
 
   namespace Blended
@@ -228,13 +233,16 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = n.eqb n := by rfl
           _ = true    := by rw [ih]
 
+    open Basics.Blended
+
     theorem Nat.even_succ: ∀ n: Nat, n.succ.even? = n.even?.neg
       | 0     => rfl
       | n + 1 =>
         have ih := even_succ n
         calc n.succ.succ.even?
           _ = n.even?          := by rfl
-          _ = n.succ.even?.neg := sorry
+          _ = n.even?.neg.neg  := by rw [Bool.neg_involute]
+          _ = n.succ.even?.neg := by rw [ih]
   end Blended
 
   /-
@@ -321,7 +329,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         calc n₁ * n₂.succ
           _ = (n₁ * n₂) + n₁ := rfl
           _ = (n₂ * n₁) + n₁ := congr (congrArg Nat.add ih) rfl
-          _ = n₂.succ * n₁   := sorry
+          _ = n₂.succ * n₁   := Eq.symm (Nat.succ_mul n₂ n₁)
 
     theorem Nat.le_add_left: ∀ n₁ n₂ n₃: Nat, n₁.leb n₂ = .true → (n₃ + n₁).leb (n₃ + n₂) = .true
       | n₁, n₂, 0, h =>
@@ -425,7 +433,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           calc n₁ * n₂.succ
             _ = (n₁ * n₂) + n₁ := by rfl
             _ = (n₂ * n₁) + n₁ := by rw [ih]
-            _ = n₂.succ * n₁ := sorry
+            _ = n₂.succ * n₁   := by simp [Nat.succ_mul]
 
     theorem Nat.le_add_left (n₁ n₂ n₃: Nat) (h: n₁.leb n₂ = .true): (n₃ + n₁).leb (n₃ + n₂) = .true := by
       induction n₃ with
@@ -446,15 +454,12 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         | .false => rfl
 
     theorem Nat.zero_neqb_succ (n: Nat): (0).eqb n.succ = .false := by
-      simp
+      rfl
 
     theorem Nat.one_mul (n: Nat): 1 * n = n := by
       induction n with
         | zero => rfl
-        | succ n ih =>
-          calc 1 * n.succ
-            _ = (1 * n) + 1 := by rfl
-            _ = n + 1       := by rw [ih]
+        | succ n ih => simp [ih]
 
     example: ∀ b₁ b₂: Basics.Bool, ((b₁ && b₂) || (!b₁ || !b₂)) = .true := by
       intro
@@ -504,7 +509,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         calc n₁ * n₂.succ
           _ = (n₁ * n₂) + n₁ := by rfl
           _ = (n₂ * n₁) + n₁ := by rw [ih]
-          _ = n₂.succ * n₁ := sorry
+          _ = n₂.succ * n₁   := by rw [Nat.succ_mul]
 
     theorem Nat.le_add_left: ∀ n₁ n₂ n₃: Nat, n₁.leb n₂ = .true → (n₃ + n₁).leb (n₃ + n₂) = .true
       | _,  _,  0,      h => by simp [h]
@@ -531,7 +536,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
 
     theorem Nat.zero_neqb_succ (n: Nat): (0).eqb n.succ = .false :=
       calc (0).eqb n.succ
-        _ = .false := by simp
+        _ = .false := by rfl
 
     theorem Nat.one_mul: ∀ n: Nat, 1 * n = n
       | 0     => by rfl
@@ -584,32 +589,19 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
 
     theorem Bin.toNat.preserve_incr: ∀ b: Bin, b.incr.toNat = 1 + b.toNat
       | .nil | .zero _ | .one .nil => rfl
-      | .one (.zero b) =>
-        have ih := preserve_incr b.zero
-        calc b.zero.one.incr.toNat
-          _ = b.zero.incr.zero.toNat := rfl
-          _ = 2 * b.zero.incr.toNat  := rfl
-          _ = 2 * (1 + b.zero.toNat) := congrArg (Nat.mul 2) ih
-          _ = (1 + b.zero.toNat) * 2 := Nat.mul_comm 2 (1 + b.zero.toNat)
-          _ = 2 + (b.zero.toNat * 2) := Nat.add_mul 1 b.zero.toNat 2
-          _ = 2 + (2 * b.zero.toNat) := congrArg (Nat.add 2) (Nat.mul_comm b.zero.toNat 2)
-          _ = 2 + b.zero.zero        := rfl
-          _ = (1 + 1) + b.zero.zero  := rfl
-          _ = 1 + (1 + b.zero.zero)  := Eq.symm (Nat.add_assoc 1 1 b.zero.zero)
-          _ = 1 + b.zero.one.toNat   := rfl
-      | .one (.one b) =>
-        have ih := preserve_incr b.one
-        calc b.one.one.incr.toNat
-          _ = b.one.incr.zero.toNat := rfl
-          _ = 2 * b.one.incr.toNat  := rfl
-          _ = 2 * (1 + b.one.toNat) := congrArg (Nat.mul 2) ih
-          _ = (1 + b.one.toNat) * 2 := Nat.mul_comm 2 (1 + b.one.toNat)
-          _ = 2 + (b.one.toNat * 2) := Nat.add_mul 1 b.one.toNat 2
-          _ = 2 + (2 * b.one.toNat) := congrArg (Nat.add 2) (Nat.mul_comm b.one.toNat 2)
-          _ = 2 + b.one.zero        := rfl
-          _ = (1 + 1) + b.one.zero  := rfl
-          _ = 1 + (1 + b.one.zero)  := Eq.symm (Nat.add_assoc 1 1 b.one.zero)
-          _ = 1 + b.one.one.toNat   := rfl
+      | .one b =>
+        have ih := preserve_incr b
+        calc b.one.incr.toNat
+          _ = b.incr.zero.toNat := rfl
+          _ = 2 * b.incr.toNat  := rfl
+          _ = 2 * (1 + b.toNat) := congrArg (Nat.mul 2) ih
+          _ = (1 + b.toNat) * 2 := Nat.mul_comm 2 (1 + b.toNat)
+          _ = 2 + (b.toNat * 2) := Nat.add_mul 1 b.toNat 2
+          _ = 2 + (2 * b.toNat) := congrArg (Nat.add 2) (Nat.mul_comm b.toNat 2)
+          _ = 2 + b.zero        := rfl
+          _ = (1 + 1) + b.zero  := rfl
+          _ = 1 + (1 + b.zero)  := Eq.symm (Nat.add_assoc 1 1 b.zero)
+          _ = 1 + b.one.toNat   := rfl
 
     theorem Nat.toBin.to_nat: ∀ n: Nat, n.toBin.toNat = n
       | .zero => rfl
@@ -629,20 +621,11 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
       induction b with
         | nil | zero _ _ => rfl
         | one b ih =>
-          cases b with
-            | nil => rfl
-            | zero b =>
-              calc b.zero.one.incr.toNat
-                _ = 2 * b.zero.incr.toNat  := by rfl
-                _ = 2 * (1 + b.zero.toNat) := by rw [ih]
-                _ = 2 + (b.zero.toNat * 2) := by rw [Nat.mul_comm, Nat.add_mul]
-                _ = 1 + (1 + b.zero.zero)  := by rw [Nat.mul_comm, Nat.add_assoc]
-            | one b =>
-              calc b.one.one.incr.toNat
-                _ = 2 * b.one.incr.toNat  := by rfl
-                _ = 2 * (1 + b.one.toNat) := by rw [ih]
-                _ = 2 + (b.one.toNat * 2) := by rw [Nat.mul_comm, Nat.add_mul]
-                _ = 1 + (1 + b.one.zero)  := by rw [Nat.mul_comm, Nat.add_assoc]
+          calc b.one.incr.toNat
+            _ = 2 * b.incr.toNat  := by rfl
+            _ = 2 * (1 + b.toNat) := by rw [ih]
+            _ = 2 + (b.toNat * 2) := by rw [Nat.mul_comm, Nat.add_mul]
+            _ = 1 + (1 + b.zero)  := by rw [Nat.mul_comm, Nat.add_assoc]
 
     theorem Nat.toBin.to_nat (n: Nat): n.toBin.toNat = n := by
       induction n with
@@ -660,20 +643,13 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
 
     theorem Bin.toNat.preserve_incr: ∀ b: Bin, b.incr.toNat = 1 + b.toNat
       | .nil | .zero _ | .one .nil => by rfl
-      | .one (.zero b) =>
-        have ih := preserve_incr b.zero
-        calc b.zero.one.incr.toNat
-          _ = 2 * b.zero.incr.toNat  := by rfl
-          _ = 2 * (1 + b.zero.toNat) := by rw [ih]
-          _ = 2 + (b.zero.toNat * 2) := by rw [Nat.mul_comm, Nat.add_mul]
-          _ = 1 + (1 + b.zero.zero)  := by rw [Nat.mul_comm, Nat.add_assoc]
-      | .one (.one b) =>
-        have ih := preserve_incr b.one
-        calc b.one.one.incr.toNat
-          _ = 2 * b.one.incr.toNat  := by rfl
-          _ = 2 * (1 + b.one.toNat) := by rw [ih]
-          _ = 2 + (b.one.toNat * 2) := by rw [Nat.mul_comm, Nat.add_mul]
-          _ = 1 + (1 + b.one.zero)  := by rw [Nat.mul_comm, Nat.add_assoc]
+      | .one b =>
+        have ih := preserve_incr b
+        calc b.one.incr.toNat
+          _ = 2 * b.incr.toNat  := by rfl
+          _ = 2 * (1 + b.toNat) := by rw [ih]
+          _ = 2 + (b.toNat * 2) := by rw [Nat.mul_comm, Nat.add_mul]
+          _ = 1 + (1 + b.zero)  := by rw [Nat.mul_comm, Nat.add_assoc]
 
     theorem Nat.toBin.to_nat: ∀ n: Nat, n.toBin.toNat = n
       | .zero => rfl
@@ -693,11 +669,32 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
   @[reducible]
   def _root_.SoftwareFoundations.LogicalFoundations.Basics.Bin.double: Bin → Bin
     | .nil => .nil
-    | .zero .nil => .zero .nil
     | b => b.zero
+
+  @[reducible]
+  def _root_.SoftwareFoundations.LogicalFoundations.Basics.Bin.normalize: Bin → Bin
+    | .nil => .nil
+    | .zero b => b.normalize.double
+    | .one b => .one b.normalize
 
   section
     example: Bin.nil.double = Bin.nil := rfl
+
+    example: Bin.nil.normalize = Bin.nil := rfl
+
+    example: Bin.nil.zero.normalize = Bin.nil := rfl
+    example: Bin.nil.zero.zero.normalize = Bin.nil := rfl
+
+    example: Bin.nil.one.normalize = Bin.nil.one := rfl
+    example: Bin.nil.one.one.normalize = Bin.nil.one.one := rfl
+
+    example: Bin.nil.one.zero.normalize = Bin.nil.one.zero := rfl
+    example: Bin.nil.zero.one.normalize = Bin.nil.one := rfl
+
+    example:
+      let f (b: Bin): Bin :=
+        b.one.zero.one.zero.zero.one.one.zero.zero.zero
+      (f (Bin.nil.zero.zero.zero)).normalize = f Bin.nil := rfl
   end
 
   namespace Term
@@ -706,16 +703,75 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
       | .succ _ => rfl
 
     theorem Bin.double_incr: ∀ b: Bin, b.incr.double = b.double.incr.incr
-      | .nil
-      | .zero .nil | .zero (.zero b) | .zero (.one b)
-      | .one .nil | .one (.zero b) => rfl
+      | .nil | .zero _ | .one .nil | .one (.zero _) => by rfl
       | .one (.one b) =>
         have ih := double_incr b.one
         calc b.one.one.incr.double
           _ = b.one.incr.zero.double := rfl
-          _ = b.one.one.double.incr.incr := sorry
+          _ = b.one.incr.double.zero := rfl
+          _ = b.one.double.incr.incr.zero := congrArg Bin.zero ih
+          _ = b.one.one.double.incr.incr := rfl
 
-    theorem Bin.toNat.to_bin: ∀ b: Bin, b.toNat.toBin = b := sorry
+    theorem Bin.toNat.to_bin: ∀ b: Bin, b.toNat.toBin = b.normalize
+      | .nil | .zero .nil | .one .nil => rfl
+      | .zero b =>
+        have ih := to_bin b
+        calc b.zero.toNat.toBin
+          _ = (2 * b.toNat).toBin  := rfl
+          _ = b.toNat.toBin.double := even b
+          _ = b.normalize.double   := congrArg Bin.double ih
+          _ = b.zero.normalize     := rfl
+      | .one (.one b) =>
+        have ih := to_bin b.one
+        calc b.one.one.toNat.toBin
+          _ = (1 + 2 * b.one.toNat).toBin   := rfl
+          _ = b.one.toNat.toBin.double.incr := odd b.one
+          _ = b.one.normalize.double.incr   := congrArg Bin.incr (congrArg Bin.double ih)
+          _ = b.one.zero.normalize.incr     := rfl
+          _ = b.one.normalize.zero.incr     := rfl
+          _ = b.one.normalize.one           := rfl
+          _ = b.one.one.normalize           := rfl
+      | .one (.zero b) =>
+        have ih := to_bin b.zero
+        calc b.zero.one.toNat.toBin
+          _ = (1 + 2 * b.zero.toNat).toBin   := rfl
+          _ = b.zero.toNat.toBin.double.incr := odd b.zero
+          _ = b.zero.normalize.double.incr   := congrArg Bin.incr (congrArg Bin.double ih)
+
+
+
+          _ = b.zero.zero.normalize.incr     := rfl
+          _ = b.zero.normalize.double.incr   := rfl
+          _ = b.normalize.double.double.incr := rfl
+          _ = b.normalize.double.double.incr := rfl
+
+          _ = b.zero.one.normalize := sorry
+      where
+        even: ∀ b: Bin, (2 * b.toNat).toBin = b.toNat.toBin.double
+          | .nil => rfl | .zero .nil | .one .nil => rfl
+          | .zero (.zero b) =>
+            have ih := even b.zero
+            calc (2 * b.zero.zero.toNat).toBin
+              _ = b.zero.zero.zero.toNat.toBin := rfl
+
+              _ = b.zero.zero.double.toNat.toBin := rfl
+              _ = b.zero.double.double.toNat.toBin := rfl
+
+
+              _ = b.zero.toNat.toBin.double.double := sorry
+              _ = (2 * b.zero.toNat).toBin.double := congrArg Bin.double (Eq.symm ih)
+          | .zero (.one b) => sorry
+          | .one b => sorry
+        odd: ∀ b: Bin, (1 + 2 * b.toNat).toBin = b.toNat.toBin.double.incr
+          | .nil => rfl
+          | .zero b =>
+            have ih := odd b
+            calc (1 + 2 * b.zero.toNat).toBin
+              _ = b.zero.toNat.toBin.double.incr := sorry
+          | .one b =>
+            have ih := odd b
+            calc (1 + 2 * b.one.toNat).toBin
+              _ = b.one.toNat.toBin.double.incr := sorry
   end Term
 
   namespace Tactic
@@ -733,11 +789,49 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
             | nil | zero _ => rfl
             | one b =>
               calc b.one.one.incr.double
-                _ = b.one.incr.zero.double := rfl
-                _ = b.one.one.double.incr.incr := sorry
+                _ = b.one.incr.double.zero      := by rfl
+                _ = b.one.double.incr.incr.zero := by rw [ih]
 
-    theorem Bin.toNat.to_bin: ∀ b: Bin, b.toNat.toBin = b := by
-      sorry
+    theorem Bin.toNat.to_bin (b: Bin): b.toNat.toBin = b.normalize := by
+      induction b with
+        | nil => rfl
+        | zero b ih =>
+          simp [even]
+          rw [ih]
+        | one b ih =>
+          cases b with
+            | nil => rfl
+            | zero b =>
+              rw [odd]
+              simp [ih]
+              sorry
+            | one b =>
+              rw [odd]
+              simp [ih]
+      where
+        even (b: Bin): (2 * b.toNat).toBin = b.toNat.toBin.double := by
+          induction b with
+            | nil => rfl
+            | zero b ih =>
+              simp_all
+              calc (2 * b.zero.toNat).toBin
+                _ = ((2 * b.toNat) * 2).toBin                   := by rw [Nat.mul_comm]
+                _ = (((2 * b.toNat) * 1) + (2 * b.toNat)).toBin := by rfl
+                _ = ((2 * b.toNat) + (2 * b.toNat)).toBin       := by rw [Nat.mul_one]
+                _ = b.toNat.toBin.double.double := sorry
+                _ = b.zero.toNat.toBin.double := by rw [ih]
+            | one b ih =>
+              calc (2 * b.one.toNat).toBin
+                _ = b.one.toNat.toBin.double := sorry
+        odd (b: Bin): (1 + 2 * b.toNat).toBin = b.toNat.toBin.double.incr := by
+          induction b with
+            | nil => rfl
+            | zero b ih =>
+              calc (1 + 2 * b.zero.toNat).toBin
+                _ = b.zero.toNat.toBin.double.incr := sorry
+            | one b ih =>
+              calc (1 + 2 * b.one.toNat).toBin
+                _ = b.one.toNat.toBin.double.incr := sorry
   end Tactic
 
   namespace Blended
@@ -746,15 +840,54 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
       | .succ _ => by rfl
 
     theorem Bin.double_incr: ∀ b: Bin, b.incr.double = b.double.incr.incr
-      | .nil
-      | .zero .nil | .zero (.zero b) | .zero (.one b)
-      | .one .nil | .one (.zero b) => by rfl
+      | .nil | .zero _ | .one .nil | .one (.zero _) => by rfl
       | .one (.one b) =>
         have ih := double_incr b.one
         calc b.one.one.incr.double
-          _ = b.one.incr.zero.double := rfl
-          _ = b.one.one.double.incr.incr := sorry
+          _ = b.one.incr.double.zero      := by rfl
+          _ = b.one.double.incr.incr.zero := by rw [ih]
 
-    theorem Bin.toNat.to_bin: ∀ b: Bin, b.toNat.toBin = b := sorry
+    theorem Bin.toNat.to_bin: ∀ b: Bin, b.toNat.toBin = b.normalize
+      | .nil | .zero .nil | .one .nil => rfl
+      | .zero b =>
+        have ih := to_bin b
+        calc b.zero.toNat.toBin
+          _ = b.toNat.toBin.double := by rw [even]
+          _ = b.normalize.double   := by rw [ih]
+      | .one (.one b) =>
+        have ih := to_bin b.one
+        calc b.one.one.toNat.toBin
+          _ = b.one.toNat.toBin.double.incr := by rw [odd]
+          _ = b.one.normalize.double.incr   := by rw [ih]
+      | .one (.zero b) =>
+        have ih := to_bin b.zero
+        calc b.zero.one.toNat.toBin
+          _ = b.zero.toNat.toBin.double.incr := by rw [odd]
+          _ = b.zero.normalize.double.incr   := by rw [ih]
+          _ = b.zero.one.normalize := sorry --by simp
+      where
+        even: ∀ b: Bin, b.zero.toNat.toBin = b.toNat.toBin.double
+          | .nil => rfl
+          | .zero b =>
+            have ih := even b
+            calc (2 * b.zero.toNat).toBin
+              _ = ((2 * b.toNat) * 2).toBin                   := by rw [Nat.mul_comm]
+              _ = (((2 * b.toNat) * 1) + (2 * b.toNat)).toBin := by rfl
+              _ = ((2 * b.toNat) + (2 * b.toNat)).toBin       := by rw [Nat.mul_one]
+              _ = b.zero.toNat.toBin.double := sorry
+          | .one b =>
+            have ih := even b
+            calc (2 * b.one.toNat).toBin
+              _ = b.one.toNat.toBin.double := sorry
+        odd: ∀ b: Bin, b.one.toNat.toBin = b.toNat.toBin.double.incr
+          | .nil => rfl
+          | .zero b =>
+            have ih := odd b
+            calc (1 + 2 * b.zero.toNat).toBin
+              _ = b.zero.toNat.toBin.double.incr := sorry
+          | .one b =>
+            have ih := odd b
+            calc (1 + 2 * b.one.toNat).toBin
+              _ = b.one.toNat.toBin.double.incr := sorry
   end Blended
 end SoftwareFoundations.LogicalFoundations.Induction

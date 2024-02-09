@@ -580,16 +580,16 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
     example: ∀ b₁ b₂: Bool, (b₁ && b₂) = (b₁ || b₂) → b₁ = b₂ := by
       intro
-      | .true, .true, _ => rfl
-      | .false, .false, _ => rfl
-      | .true, .false, h =>
-        calc Bool.true
-          _ = (Bool.true || .false) := by rfl
-          _ = (Bool.true && .false) := by rw [h]
-      | .false, .true, h =>
-        calc Bool.false
-          _ = (Bool.false && .true) := by rfl
-          _ = (Bool.false || .true) := by rw [h]
+        | .true, .true, _ => rfl
+        | .false, .false, _ => rfl
+        | .true, .false, h =>
+          calc Bool.true
+            _ = (Bool.true || .false) := by rfl
+            _ = (Bool.true && .false) := by rw [h]
+        | .false, .true, h =>
+          calc Bool.false
+            _ = (Bool.false && .true) := by rfl
+            _ = (Bool.false || .true) := by rw [h]
   end Tactic
 
   namespace Blended
@@ -671,11 +671,11 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
     namespace Tactic
       theorem Letter.compare.eq: ∀ l: Letter, l.compare l = .eq := by
         intro
-        | .a | .b | .c | .d | .f => rfl
+          | .a | .b | .c | .d | .f => rfl
 
       theorem Letter.lower.lowers: ∀ l: Letter, Letter.f.compare l = .lt → l.lower.compare l = .lt := by
         intro
-        | .a, _ | .b, _ | .c, _ | .d, _ => rfl
+          | .a, _ | .b, _ | .c, _ | .d, _ => rfl
     end Tactic
 
     namespace Blended
@@ -765,13 +765,62 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
 
     namespace Term
       theorem Grade.lower.lowers: ∀ g: Grade, fMinus.compare fMinus = .lt → g.lower.compare g = .lt
-        | ⟨l, m⟩, _ => sorry
+        | ⟨.f, .minus⟩, h => h
+        | ⟨l, .minus⟩, _ => -- sorry
+          have h: ¬ l = .f := by trivial
+          -- have hf: Letter.f.compare l = .lt := rfl
+          calc (⟨l, .minus⟩: Grade).lower.compare ⟨l, .minus⟩
+            _ = (⟨l.lower, Modifier.minus⟩: Grade).compare ⟨l, .minus⟩                                   := sorry -- h
+            _ = match l.lower.compare l with | Ordering.eq => Modifier.minus.compare .minus | ord => ord := rfl
+            _ = match Ordering.lt       with | Ordering.eq => Modifier.minus.compare .minus | ord => ord := sorry --by rw [Letter.lower.lowers]
+            _ = Ordering.lt                                                                              := rfl
+        | ⟨l, m⟩, _ =>
+          have h₁: ¬ l = .f     := by trivial
+          have h₂: ¬ m = .minus := by trivial
+          calc (⟨l, m⟩: Grade).lower.compare ⟨l, m⟩
+            _ = (⟨l, m.lower⟩: Grade).compare ⟨l, m⟩                                   := sorry -- h₁, h₂
+            _ = match l.compare l with | Ordering.eq => m.lower.compare m | ord => ord := rfl
+            _ = match Ordering.eq with | Ordering.eq => m.lower.compare m | ord => ord := by rw [Letter.compare.eq]
+            _ = m.lower.compare m                                                      := rfl -- h₂
+            _ = Ordering.lt                                                            := sorry -- Modifier.lower.lowers m
+
+        /-
+        The below *definitely* works.  Want to try doing something more generic
+        above since it works with tactics below and because it mirrors the
+        definition of `Grade.lower`.
+        -/
+        -- | ⟨.a, .plus⟩, _ | ⟨.a, .natural⟩, _ | ⟨.a, .minus⟩, _
+        -- | ⟨.b, .plus⟩, _ | ⟨.b, .natural⟩, _ | ⟨.b, .minus⟩, _
+        -- | ⟨.c, .plus⟩, _ | ⟨.c, .natural⟩, _ | ⟨.c, .minus⟩, _
+        -- | ⟨.d, .plus⟩, _ | ⟨.d, .natural⟩, _ | ⟨.d, .minus⟩, _
+        -- | ⟨.f, .plus⟩, _ | ⟨.f, .natural⟩, _ => rfl
     end Term
 
     namespace Tactic
+      theorem Grade.lower.lowers (g: Grade) (h: fMinus.compare fMinus = .lt): g.lower.compare g = .lt := by
+        cases g with
+          | mk letter modifier =>
+            cases modifier with
+              | minus =>
+                cases letter with
+                  | f => exact h
+                  | _ => rfl
+              | natural =>
+                cases letter with
+                  | _ => rfl
+              | plus =>
+                cases letter with
+                  | _ => rfl
     end Tactic
 
     namespace Blended
+      theorem Grade.lower.lowers: ∀ g: Grade, fMinus.compare fMinus = .lt → g.lower.compare g = .lt
+        | ⟨.f, .minus⟩, h => h
+        | ⟨.a, .plus⟩, _ | ⟨.a, .natural⟩, _ | ⟨.a, .minus⟩, _
+        | ⟨.b, .plus⟩, _ | ⟨.b, .natural⟩, _ | ⟨.b, .minus⟩, _
+        | ⟨.c, .plus⟩, _ | ⟨.c, .natural⟩, _ | ⟨.c, .minus⟩, _
+        | ⟨.d, .plus⟩, _ | ⟨.d, .natural⟩, _ | ⟨.d, .minus⟩, _
+        | ⟨.f, .plus⟩, _ | ⟨.f, .natural⟩, _ => rfl
     end Blended
 
     @[reducible]
@@ -785,8 +834,27 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
                 else g.lower.lower.lower
 
     namespace Term
-      example {g: Grade} {days: Nat} (h: days < 9): g.late days = g := sorry
-      example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower := sorry
+      example {g: Grade} {days: Nat} (h: (days < 9) = true): g.late days = g :=
+        calc g.late days
+          _ = if days < 9
+              then g
+              else if days < 17
+                  then g.lower
+                  else if days < 21
+                        then g.lower.lower
+                        else g.lower.lower.lower := rfl
+          _ = g := by simp [h] -- TODO: Remove Tactic Block
+
+      example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower :=
+        calc g.late days
+          _ = if days < 9
+              then g
+              else if days < 17
+                  then g.lower
+                  else if days < 21
+                        then g.lower.lower
+                        else g.lower.lower.lower := rfl
+          _ = g.lower := by simp [h₁, h₂] -- TODO: Remove Tactic Block
     end Term
 
     namespace Tactic
@@ -800,8 +868,27 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
     end Tactic
 
     namespace Blended
-      example {g: Grade} {days: Nat} (h: days < 9): g.late days = g := sorry
-      example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower := sorry
+      example {g: Grade} {days: Nat} (h: days < 9): g.late days = g :=
+        calc g.late days
+          _ = if days < 9
+              then g
+              else if days < 17
+                  then g.lower
+                  else if days < 21
+                        then g.lower.lower
+                        else g.lower.lower.lower := by rfl
+          _ = g := by simp [h]
+
+      example {g: Grade} {days: Nat} (h₁: ¬ (days < 9)) (h₂: days < 17): g.late days = g.lower :=
+        calc g.late days
+          _ = if days < 9
+              then g
+              else if days < 17
+                  then g.lower
+                  else if days < 21
+                        then g.lower.lower
+                        else g.lower.lower.lower := by rfl
+          _ = g.lower := by simp [h₁, h₂]
     end Blended
   end LateDays
 
@@ -813,12 +900,12 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
     | nil: Bin
     | zero (b: Bin): Bin
     | one (b: Bin): Bin
+  deriving Repr
 
   @[reducible]
   def Bin.incr: Bin → Bin
     | .nil => .one .nil
     | .zero b => .one b
-    | .one .nil => .zero (.one .nil)
     | .one b => .zero b.incr
 
   @[reducible]
