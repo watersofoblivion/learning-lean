@@ -260,15 +260,32 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
   end
 
   namespace Term
-    theorem Bag.add.inc_count: ∀ b: Bag, ∀ n: Nat, Bag.count n (Bag.add n b) = (Bag.count n b).succ := sorry
+    /-
+    TODO: Remove Tactic Block
+    -/
+    theorem Bag.add.inc_count {n: Nat} (b: Bag): Bag.count n (Bag.add n b) = (Bag.count n b).succ :=
+      calc Bag.count n (Bag.add n b)
+        _ = Bag.count n (n ::: b)                                := rfl
+        _ = if n = n then 1 + (Bag.count n b) else Bag.count n b := rfl
+        _ = if true then 1 + (Bag.count n b) else Bag.count n b  := by simp
+        _ = 1 + (Bag.count n b)                                  := rfl
+        _ = (Bag.count n b) + 1                                  := Nat.add_comm 1 (Bag.count n b)
   end Term
 
   namespace Tactic
-    theorem Bag.add.inc_count: ∀ b: Bag, ∀ n: Nat, Bag.count n (Bag.add n b) = (Bag.count n b).succ := by sorry
+    open Basics.Tactic
+
+    theorem Bag.add.inc_count {n: Nat} (b: Bag): Bag.count n (Bag.add n b) = (Bag.count n b).succ := by
+      simp [Bag.count]
+      rw [Nat.add_comm]
   end Tactic
 
   namespace Blended
-    theorem Bag.add.inc_count: ∀ b: Bag, ∀ n: Nat, Bag.count n (Bag.add n b) = (Bag.count n b).succ := sorry
+    theorem Bag.add.inc_count {n: Nat} (b: Bag): Bag.count n (Bag.add n b) = (Bag.count n b).succ :=
+      calc Bag.count n (Bag.add n b)
+        _ = Bag.count n (n ::: b) := by rfl
+        _ = 1 + (Bag.count n b)   := by simp [Bag.count]
+        _ = (Bag.count n b).succ  := by rw [Nat.add_comm]
   end Blended
 
   /-
@@ -637,10 +654,50 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
           _ = Bag.count 1 (1 ::: b)     := rfl
           _ = Bag.count 1 (Bag.add 1 b) := rfl
 
-    theorem Bag.remove_le_count: ∀ b: Bag, Bag.count 0 (Bag.removeFirst 0 b) ≤ Bag.count 0 b := sorry
-    theorem Bag.count_sum: True := sorry
-    theorem involution_injective: ∀ f: α → α, ∀ x: α, f (f x) = x → ∀ x₁ x₂: α, f x₁ = f x₂ → x₁ = x₂ := sorry
-    theorem NatList.rev_injective: ∀ l₁ l₂: NatList, l₁.rev = l₂.rev → l₁ = l₂ := sorry
+    theorem Bag.remove_le_count: ∀ b: Bag, Bag.count 0 (Bag.removeFirst 0 b) ≤ Bag.count 0 b
+      | [‹›] =>
+        calc Bag.count 0 (Bag.removeFirst 0 [‹›])
+          _ = Bag.count 0 [‹›] := rfl
+          _ = 0 := rfl
+          _ ≤ 0 := by simp_arith
+      | 0 ::: tl =>
+        calc Bag.count 0 (Bag.removeFirst 0 (0 ::: tl))
+          _ = Bag.count 0 tl := rfl
+          _ ≤ Bag.count 0 (0 ::: tl) := sorry -- NatList.tl.pred_length
+      | (_ + 1) ::: tl => sorry
+
+    theorem Bag.count_sum: ∀ b₁ b₂: Bag, Bag.count 0 (Bag.sum b₁ b₂) = Bag.count 0 b₁ + Bag.count 0 b₂
+      | [‹›], b₂ =>
+        calc Bag.count 0 (Bag.sum [‹›] b₂)
+          _ = Bag.count 0 ([‹›] ++ b₂)          := rfl
+          _ = Bag.count 0 b₂                    := congrArg (Bag.count 0) (NatList.nil_append b₂)
+          _ = 0 + Bag.count 0 b₂                := Eq.symm (Nat.zero_add (Bag.count 0 b₂))
+          _ = Bag.count 0 [‹›] + Bag.count 0 b₂ := rfl
+      | (0 ::: tl), b₂ =>
+        have ih := count_sum tl b₂
+        calc Bag.count 0 (Bag.sum (0 ::: tl) b₂)
+          _ = 1 + Bag.count 0 (tl ++ b₂)              := rfl
+          _ = 1 + (Bag.count 0 tl + Bag.count 0 b₂)   := congrArg (Nat.add 1) ih
+          _ = (1 + Bag.count 0 tl) + Bag.count 0 b₂   := Eq.symm (Nat.add_assoc 1 (Bag.count 0 tl) (Bag.count 0 b₂))
+          _ = Bag.count 0 (0 ::: tl) + Bag.count 0 b₂ := rfl
+      | ((_ + 1) ::: tl), b₂ =>
+        have ih := count_sum tl b₂
+        calc Bag.count 0 (Bag.sum ((_ + 1) ::: tl) b₂)
+          _ = Bag.count 0 (tl ++ b₂)                        := rfl
+          _ = Bag.count 0 tl + Bag.count 0 b₂               := ih
+          _ = Bag.count 0 ((_ + 1) ::: tl) + Bag.count 0 b₂ := rfl
+
+    theorem involution_injective {f: α → α} {x₁ x₂: α} (h₁: (x: α) → f (f x) = x) (h₂: f x₁ = f x₂): x₁ = x₂ :=
+      calc x₁
+        _ = f (f x₁) := Eq.symm (h₁ x₁)
+        _ = f (f x₂) := congrArg f (h₂)
+        _ = x₂       := h₁ x₂
+
+    theorem NatList.rev_injective (l₁ l₂: NatList) (h: l₁.rev = l₂.rev): l₁ = l₂ :=
+      calc l₁
+        _ = l₁.rev.rev := Eq.symm (NatList.rev_involute l₁)
+        _ = l₂.rev.rev := congrArg NatList.rev h
+        _ = l₂         := NatList.rev_involute l₂
   end Term
 
   namespace Tactic
@@ -659,9 +716,29 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
             _ = 1 + Bag.count 1 (hd ::: tl) := by simp [Nat.add_comm]
 
     theorem Bag.remove_le_count: ∀ b: Bag, Bag.count 0 (Bag.removeFirst 0 b) ≤ Bag.count 0 b := sorry
-    theorem Bag.count_sum: True := by sorry
-    theorem involution_injective: ∀ f: α → α, ∀ x: α, f (f x) = x → ∀ x₁ x₂: α, f x₁ = f x₂ → x₁ = x₂ := by sorry
-    theorem NatList.rev_injective: ∀ l₁ l₂: NatList, l₁.rev = l₂.rev → l₁ = l₂ := by sorry
+
+    theorem Bag.count_sum (b₁ b₂: Bag): Bag.count 0 (Bag.sum b₁ b₂) = Bag.count 0 b₁ + Bag.count 0 b₂ := by
+      induction b₁ with
+        | nil => simp [NatList.nil_append, Nat.zero_add]
+        | cons hd tl ih =>
+          cases hd with
+            | zero =>
+              calc Bag.count 0 (Bag.sum (0 ::: tl) b₂)
+                _ = 1 + Bag.count 0 (tl ++ b₂)              := by rfl
+                _ = 1 + (Bag.count 0 tl + Bag.count 0 b₂)   := by rw [ih]
+                _ = (1 + Bag.count 0 tl) + Bag.count 0 b₂   := by simp [Nat.add_assoc]
+                _ = Bag.count 0 (0 ::: tl) + Bag.count 0 b₂ := by rfl
+            | succ _ =>
+              calc Bag.count 0 (Bag.sum ((_ + 1) ::: tl) b₂)
+                _ = Bag.count 0 (tl ++ b₂)                        := by rfl
+                _ = Bag.count 0 tl + Bag.count 0 b₂               := by rw [ih]
+                _ = Bag.count 0 ((_ + 1) ::: tl) + Bag.count 0 b₂ := by rfl
+
+    theorem involution_injective {f: α → α} {x₁ x₂: α} (h₁: (x: α) → f (f x) = x) (h₂: f x₁ = f x₂): x₁ = x₂ := by
+      rw [← (h₁ x₁), h₂, h₁]
+
+    theorem NatList.rev_injective (l₁ l₂: NatList) (h: l₁.rev = l₂.rev): l₁ = l₂ := by
+      rw [← NatList.rev_involute l₁, h, NatList.rev_involute]
   end Tactic
 
   namespace Blended
@@ -678,9 +755,38 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
           _ = 1 + Bag.count 1 b := by simp [Nat.add_comm]
 
     theorem Bag.remove_le_count: ∀ b: Bag, Bag.count 0 (Bag.removeFirst 0 b) ≤ Bag.count 0 b := sorry
-    theorem Bag.count_sum: True := sorry
-    theorem involution_injective: ∀ f: α → α, ∀ x: α, f (f x) = x → ∀ x₁ x₂: α, f x₁ = f x₂ → x₁ = x₂ := sorry
-    theorem NatList.rev_injective: ∀ l₁ l₂: NatList, l₁.rev = l₂.rev → l₁ = l₂ := sorry
+
+    theorem Bag.count_sum: ∀ b₁ b₂: Bag, Bag.count 0 (Bag.sum b₁ b₂) = Bag.count 0 b₁ + Bag.count 0 b₂
+      | [‹›], b₂ =>
+        calc Bag.count 0 (Bag.sum [‹›] b₂)
+          _ = Bag.count 0 b₂                    := by simp [NatList.nil_append]
+          _ = 0 + Bag.count 0 b₂                := by simp [Nat.zero_add]
+          _ = Bag.count 0 [‹›] + Bag.count 0 b₂ := by rfl
+      | (0 ::: tl), b₂ =>
+        have ih := count_sum tl b₂
+        calc Bag.count 0 (Bag.sum (0 ::: tl) b₂)
+          _ = 1 + Bag.count 0 (tl ++ b₂)              := by rfl
+          _ = 1 + (Bag.count 0 tl + Bag.count 0 b₂)   := by rw [ih]
+          _ = (1 + Bag.count 0 tl) + Bag.count 0 b₂   := by simp [Nat.add_assoc]
+          _ = Bag.count 0 (0 ::: tl) + Bag.count 0 b₂ := by rfl
+      | ((_ + 1) ::: tl), b₂ =>
+        have ih := count_sum tl b₂
+        calc Bag.count 0 (Bag.sum ((_ + 1) ::: tl) b₂)
+          _ = Bag.count 0 (tl ++ b₂)                        := by rfl
+          _ = Bag.count 0 tl + Bag.count 0 b₂               := by rw [ih]
+          _ = Bag.count 0 ((_ + 1) ::: tl) + Bag.count 0 b₂ := by rfl
+
+    theorem involution_injective {f: α → α} {x₁ x₂: α} (h₁: (x: α) → f (f x) = x) (h₂: f x₁ = f x₂): x₁ = x₂ :=
+      calc x₁
+        _ = f (f x₁) := by rw [h₁]
+        _ = f (f x₂) := by rw [h₂]
+        _ = x₂       := by rw [h₁]
+
+    theorem NatList.rev_injective (l₁ l₂: NatList) (h: l₁.rev = l₂.rev): l₁ = l₂ :=
+      calc l₁
+        _ = l₁.rev.rev := by rw [NatList.rev_involute]
+        _ = l₂.rev.rev := by rw [h]
+        _ = l₂         := by rw [NatList.rev_involute]
   end Blended
 
   /-
