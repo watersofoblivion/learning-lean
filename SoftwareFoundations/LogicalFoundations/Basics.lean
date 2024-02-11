@@ -362,15 +362,15 @@ namespace SoftwareFoundations.LogicalFoundations.Basics
   namespace Term
     example {n₁ n₂: Nat} (h: n₁ = n₂): n₁ + n₁ = n₂ + n₂ :=
       calc n₁ + n₁
-        _ = n₂ + n₂ := congr (congrArg Nat.add h) h
+        _ = n₂ + n₂ := congr (congrArg (. + .) h) h
 
     example {n₁ n₂ n₃: Nat} (h₁: n₁ = n₂) (h₂: n₂ = n₃): n₁ + n₂ = n₂ + n₃ :=
       calc n₁ + n₂
-        _ = n₂ + n₃ := congr (congrArg Nat.add h₁) h₂
+        _ = n₂ + n₃ := congr (congrArg (. + .) h₁) h₂
 
     theorem Nat.mul_zero_add_mul_zero (n₁ n₂: Nat): (n₁ * 0) + (n₂ * 0) = 0 :=
       calc (n₁ * 0) + (n₂ * 0)
-        _ = 0 + 0 := congr (congrArg Nat.add (Nat.mul_zero n₁)) (Nat.mul_zero n₂)
+        _ = 0 + 0 := congr (congrArg (· + ·) (Nat.mul_zero n₁)) (Nat.mul_zero n₂)
 
     theorem Nat.mul_one (n: Nat): n * 1 = n :=
       calc n * 1

@@ -15,7 +15,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
     snd: Nat
   deriving Repr
 
-  scoped notation "(‹" fst ", " snd "›)" => (⟨fst, snd⟩: NatProd)
+  scoped notation "(‹" fst ", " snd "›)" => NatProd.mk fst snd
 
   def NatProd.swap: NatProd → NatProd
     | ⟨fst, snd⟩ => ⟨snd, fst⟩
@@ -302,7 +302,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
           _ = (1 + tl.length).pred        := rfl
           _ = ((0).succ + tl.length).pred := rfl
           _ = (0 + tl.length).succ.pred   := congrArg Nat.pred (Nat.succ_add 0 tl.length)
-          _ = tl.length.succ.pred         := congrArg Nat.pred (congrArg Nat.succ (Nat.zero_add tl.length))
+          _ = tl.length.succ.pred         := congrArg (Nat.pred ∘ Nat.succ) (Nat.zero_add tl.length)
           _ = tl.length                   := Nat.pred_succ tl.length
   end Term
 
@@ -348,12 +348,12 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
       | [‹›], l₂, l₃ =>
         calc [‹›] ++ (l₂ ++ l₃)
           _ = l₂ ++ l₃           := NatList.nil_append (l₂ ++ l₃)
-          _ = ([‹›] ++ l₂) ++ l₃ := congr (congrArg NatList.append (Eq.symm (NatList.nil_append l₂))) rfl
+          _ = ([‹›] ++ l₂) ++ l₃ := congrArg (·  ++ l₃) (Eq.symm (NatList.nil_append l₂))
       | hd ::: tl, l₂, l₃ =>
         have ih := append_assoc tl l₂ l₃
         calc (hd ::: tl) ++ (l₂ ++ l₃)
           _ = hd ::: tl ++ (l₂ ++ l₃)   := rfl
-          _ = hd ::: (tl ++ l₂) ++ l₃   := congrArg (NatList.cons hd) ih
+          _ = hd ::: (tl ++ l₂) ++ l₃   := congrArg (hd ::: .) ih
           _ = ((hd ::: tl) ++ l₂) ++ l₃ := rfl
 
     theorem NatList.append_length: ∀ l₁ l₂: NatList, (l₁ ++ l₂).length = l₁.length + l₂.length
@@ -366,7 +366,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
         calc ((hd ::: tl) ++ l₂).length
           _ = (hd ::: (tl ++ l₂)).length     := rfl
           _ = 1 + (tl ++ l₂).length          := rfl
-          _ = 1 + (tl.length + l₂.length)    := congrArg (Nat.add 1) ih
+          _ = 1 + (tl.length + l₂.length)    := congrArg (1 + ·) ih
           _ = 1 + tl.length + l₂.length      := Eq.symm (Nat.add_assoc 1 tl.length l₂.length)
           _ = (hd ::: tl).length + l₂.length := rfl
 
@@ -377,7 +377,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
         calc (hd ::: tl).rev.length
           _ = (tl.rev ++ [‹hd›]).length := rfl
           _ = tl.rev.length + 1         := NatList.append_length tl.rev [‹hd›]
-          _ = tl.length + 1             := congr (congrArg Nat.add ih) rfl
+          _ = tl.length + 1             := congrArg (· + 1) ih
           _ = 1 + tl.length             := Nat.add_comm tl.length 1
           _ = (hd ::: tl).length        := rfl
   end Term
@@ -462,7 +462,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
         have ih := append_nil tl
         calc (hd ::: tl) ++ [‹›]
           _ = hd ::: (tl ++ [‹›]) := rfl
-          _ = hd ::: tl           := congrArg (NatList.cons hd) ih
+          _ = hd ::: tl           := congrArg (hd ::: ·) ih
 
     theorem NatList.rev_append: ∀ l₁ l₂: NatList, (l₁ ++ l₂).rev = l₂.rev ++ l₁.rev
       | [‹›], l₂ =>
@@ -474,7 +474,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
         have ih := rev_append tl l₂
         calc ((hd ::: tl) ++ l₂).rev
           _ = (tl ++ l₂).rev ++ [‹hd›].rev := rfl
-          _ = (l₂.rev ++ tl.rev) ++ [‹hd›] := congr (congrArg NatList.append ih) rfl
+          _ = (l₂.rev ++ tl.rev) ++ [‹hd›] := congrArg (· ++ [‹hd›]) ih
           _ = l₂.rev ++ (tl.rev ++ [‹hd›]) := Eq.symm (NatList.append_assoc l₂.rev tl.rev [‹hd›])
           _ = l₂.rev ++ (hd ::: tl).rev    := rfl
 
@@ -485,7 +485,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
         calc (hd ::: tl).rev.rev
           _ = (tl.rev ++ [‹hd›]).rev := rfl
           _ = [‹hd›] ++ tl.rev.rev   := NatList.rev_append tl.rev [‹hd›]
-          _ = [‹hd›] ++ tl           := congrArg (NatList.append [‹hd›]) ih
+          _ = [‹hd›] ++ tl           := congrArg ([‹hd›] ++ ·) ih
           _ = hd ::: tl              := rfl
 
     example (l₁ l₂ l₃ l₄: NatList): l₁ ++ (l₂ ++ (l₃ ++ l₄)) = ((l₁ ++ l₂) ++ l₃) ++ l₄ :=
@@ -504,7 +504,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
         have ih := _example tl l₂
         calc (((_ + 1) ::: tl) ++ l₂).nonZero
           _ = (_ + 1) ::: (tl ++ l₂).nonZero         := rfl
-          _ = (_ + 1) ::: tl.nonZero ++ l₂.nonZero   := congrArg (NatList.cons (_ + 1)) ih
+          _ = (_ + 1) ::: tl.nonZero ++ l₂.nonZero   := congrArg ((_ + 1) ::: ·) ih
           _ = ((_ + 1) ::: tl).nonZero ++ l₂.nonZero := rfl
 
       theorem NatList.beq_refl: ∀ l: NatList, l == l
@@ -513,7 +513,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
           have ih := beq_refl tl
           calc (hd ::: tl) == (hd ::: tl)
             _ = and (hd == hd) (tl == tl) := rfl
-            _ = and true (tl == tl) := congr (congrArg and (Nat.beq_refl hd)) rfl
+            _ = and true (tl == tl) := congrArg (· && (tl == tl)) (Nat.beq_refl hd)
             _ = (tl == tl) := Bool.true_and (tl == tl)
             _ = true := ih
   end Term
@@ -677,7 +677,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
         have ih := count_sum tl b₂
         calc Bag.count 0 (Bag.sum (0 ::: tl) b₂)
           _ = 1 + Bag.count 0 (tl ++ b₂)              := rfl
-          _ = 1 + (Bag.count 0 tl + Bag.count 0 b₂)   := congrArg (Nat.add 1) ih
+          _ = 1 + (Bag.count 0 tl + Bag.count 0 b₂)   := congrArg (1 + ·) ih
           _ = (1 + Bag.count 0 tl) + Bag.count 0 b₂   := Eq.symm (Nat.add_assoc 1 (Bag.count 0 tl) (Bag.count 0 b₂))
           _ = Bag.count 0 (0 ::: tl) + Bag.count 0 b₂ := rfl
       | ((_ + 1) ::: tl), b₂ =>
@@ -690,7 +690,7 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
     theorem involution_injective {f: α → α} {x₁ x₂: α} (h₁: (x: α) → f (f x) = x) (h₂: f x₁ = f x₂): x₁ = x₂ :=
       calc x₁
         _ = f (f x₁) := Eq.symm (h₁ x₁)
-        _ = f (f x₂) := congrArg f (h₂)
+        _ = f (f x₂) := congrArg f h₂
         _ = x₂       := h₁ x₂
 
     theorem NatList.rev_injective (l₁ l₂: NatList) (h: l₁.rev = l₂.rev): l₁ = l₂ :=
@@ -876,21 +876,18 @@ namespace SoftwareFoundations.LogicalFoundations.Lists
   namespace Term
     theorem Key.refl (k: Key): k == k := Nat.beq_refl k
 
-    /-
-    -- TODO: Remove Tactic Block
-    -/
     theorem PartialMap.update_eq {k: Key} {v: Nat} (m: PartialMap): (m.update k v).find k = .some v :=
       calc (m.update k v).find k
         _ = (PartialMap.record k v m).find k     := rfl
         _ = if k == k then .some v else m.find k := rfl
-        _ = if true then .some v else m.find k   := by rw [Key.refl]
+        _ = if true then .some v else m.find k   := congrArg (if . then .some v else m.find k) (Key.refl k)
         _ = .some v                              := rfl
 
     theorem PartialMap.update_neq {k₁ k₂: Key} {v: Nat} (h: (k₁ == k₂) = false) (m: PartialMap): (m.update k₁ v).find k₂ = m.find k₂ :=
       calc (m.update k₁ v).find k₂
         _ = (PartialMap.record k₁ v m).find k₂      := rfl
         _ = if k₁ == k₂ then .some v else m.find k₂ := rfl
-        _ = if false then .some v else m.find k₂    := by rw [h]
+        _ = if false then .some v else m.find k₂    := congrArg (if · then .some v else m.find k₂) h
         _ = m.find k₂                               := rfl
   end Term
 

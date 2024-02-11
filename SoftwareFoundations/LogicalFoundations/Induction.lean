@@ -75,16 +75,16 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
       theorem Nat.add_assoc: ∀ n₁ n₂ n₃: Nat, n₁ + (n₂ + n₃) = (n₁ + n₂) + n₃
         | n₁, 0, n₃ =>
           calc n₁ + (0 + n₃)
-            _ = n₁ + n₃ := congrArg (Nat.add n₁) (Nat.zero_add n₃)
-            _ = (n₁ + 0) + n₃ := congr (congrArg Nat.add (Eq.symm (Nat.add_zero n₁))) rfl
+            _ = n₁ + n₃ := congrArg (n₁ + ·) (Nat.zero_add n₃)
+            _ = (n₁ + 0) + n₃ := congrArg (· + n₃) (Eq.symm (Nat.add_zero n₁))
         | n₁, n₂ + 1, n₃ =>
           have ih := add_assoc n₁ n₂ n₃
           calc n₁ + (n₂.succ + n₃)
-            _ = n₁ + (n₂ + n₃).succ   := congrArg (Nat.add n₁) (Nat.succ_add n₂ n₃)
+            _ = n₁ + (n₂ + n₃).succ   := congrArg (n₁ + ·) (Nat.succ_add n₂ n₃)
             _ = (n₁ + (n₂ + n₃)).succ := Nat.add_succ n₁ (n₂ + n₃)
             _ = ((n₁ + n₂) + n₃).succ := congrArg Nat.succ ih
             _ = (n₁ + n₂).succ + n₃   := Eq.symm (Nat.succ_add (n₁ + n₂) n₃)
-            _ = (n₁ + n₂.succ) + n₃   := congr (congrArg Nat.add (Eq.symm (Nat.add_succ n₁ n₂))) rfl
+            _ = (n₁ + n₂.succ) + n₃   := congrArg (· + n₃) (Eq.symm (Nat.add_succ n₁ n₂))
 
       theorem Nat.double_plus: ∀ n: Nat, n.double = n + n
         | 0     => rfl
@@ -256,12 +256,12 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           _ = n₁ + 0 := Nat.add_zero (n₁ + 0)
           _ = n₁     := Nat.add_zero n₁
       calc (n₁ + 0 + 0) * n₂
-        _ = n₁ * n₂ := congr (congrArg Nat.mul h) rfl
+        _ = n₁ * n₂ := congrArg (· * n₂) h
 
     example {n₁ n₂ n₃ n₄: Nat}: (n₁ + n₂) + (n₃ + n₄) = (n₂ + n₁) + (n₃ + n₄) :=
       have h: n₁ + n₂ = n₂ + n₁ := Nat.add_comm n₁ n₂
       calc (n₁ + n₂) + (n₃ + n₄)
-        _ = (n₂ + n₁) + (n₃ + n₄) := congr (congrArg Nat.add h) rfl
+        _ = (n₂ + n₁) + (n₃ + n₄) := congrArg (· + (n₃ + n₄)) h
   end Term
 
   namespace Tactic
@@ -316,7 +316,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
       have h: n₁ + n₂ = n₂ + n₁ := Nat.add_comm n₁ n₂
       calc n₁ + (n₂ + n₃)
         _ = (n₁ + n₂) + n₃ := Nat.add_assoc n₁ n₂ n₃
-        _ = (n₂ + n₁) + n₃ := congr (congrArg Nat.add h) rfl
+        _ = (n₂ + n₁) + n₃ := congrArg (· + n₃) h
         _ = n₂ + (n₁ + n₃) := Eq.symm (Nat.add_assoc n₂ n₁ n₃)
 
     theorem Nat.mul_comm: ∀ n₁ n₂: Nat, n₁ * n₂ = n₂ * n₁
@@ -328,7 +328,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         have ih := mul_comm n₁ n₂
         calc n₁ * n₂.succ
           _ = (n₁ * n₂) + n₁ := rfl
-          _ = (n₂ * n₁) + n₁ := congr (congrArg Nat.add ih) rfl
+          _ = (n₂ * n₁) + n₁ := congrArg (· + n₁) ih
           _ = n₂.succ * n₁   := Eq.symm (Nat.succ_mul n₂ n₁)
 
     theorem Nat.le_add_left: ∀ n₁ n₂ n₃: Nat, n₁.leb n₂ = .true → (n₃ + n₁).leb (n₃ + n₂) = .true
@@ -353,7 +353,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
 
     theorem Nat.succ_neqb_zero (n: Nat): n.succ.eqb 0 = .false :=
       calc n.succ.eqb 0
-        _ = (n + 1).eqb 0 := congr (congrArg Nat.eqb (Eq.symm (Nat.add_one_eq_succ n))) rfl
+        _ = (n + 1).eqb 0 := congrArg (Nat.eqb · 0) (Eq.symm (Nat.add_one_eq_succ n))
         _ = .false        := Nat.add_one_neqb_zero n
 
     theorem Bool.and_false: ∀ b: Basics.Bool, (b && .false) = .false
@@ -362,7 +362,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
 
     theorem Nat.zero_neqb_succ (n: Nat): (0).eqb n.succ = .false :=
       calc (0).eqb n.succ
-        _ = (0).eqb (n + 1) := congrArg (Nat.eqb 0) (Eq.symm (Nat.add_one_eq_succ n))
+        _ = (0).eqb (n + 1) := congrArg (Nat.eqb 0 ·) (Eq.symm (Nat.add_one_eq_succ n))
         _ = .false          := Nat.zero_neqb_add_one n
 
     theorem Nat.one_mul: ∀ n: Nat, 1 * n = n
@@ -371,7 +371,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         have ih := one_mul n
         calc 1 * n.succ
           _ = (1 * n) + 1 := rfl
-          _ = n + 1       := congr (congrArg Nat.add ih) rfl
+          _ = n + 1       := congrArg (· + 1) ih
           _ = n.succ      := Nat.add_one_eq_succ n
 
     example: ∀ b₁ b₂: Basics.Bool, ((b₁ && b₂) || (!b₁ || !b₂)) = .true
@@ -384,15 +384,15 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         calc (n₁ + n₂) * 0
           _ = 0                   := Nat.mul_zero (n₁ + n₂)
           _ = 0 + 0               := Eq.symm (Nat.add_zero 0)
-          _ = (n₁ * 0) + (n₂ * 0) := congr (congrArg Nat.add (Eq.symm (Nat.mul_zero n₁))) (Eq.symm (Nat.mul_zero n₂))
+          _ = (n₁ * 0) + (n₂ * 0) := congr (congrArg (· + ·) (Eq.symm (Nat.mul_zero n₁))) (Eq.symm (Nat.mul_zero n₂))
       | n₁, n₂, n₃ + 1 =>
         have ih := add_mul n₁ n₂ n₃
         calc (n₁ + n₂) * n₃.succ
           _ = ((n₁ + n₂) * n₃) + (n₁ + n₂)        := rfl
-          _ = ((n₁ * n₃) + (n₂ * n₃)) + (n₁ + n₂) := congr (congrArg Nat.add ih) rfl
-          _ = ((n₂ * n₃) + (n₁ * n₃)) + (n₁ + n₂) := congr (congrArg Nat.add (Nat.add_comm (n₁ * n₃) (n₂ * n₃))) rfl
+          _ = ((n₁ * n₃) + (n₂ * n₃)) + (n₁ + n₂) := congrArg (· + (n₁ + n₂)) ih
+          _ = ((n₂ * n₃) + (n₁ * n₃)) + (n₁ + n₂) := congrArg (· + (n₁ + n₂)) (Nat.add_comm (n₁ * n₃) (n₂ * n₃))
           _ = (n₂ * n₃) + ((n₁ * n₃) + (n₁ + n₂)) := Eq.symm (Nat.add_assoc (n₂ * n₃) (n₁ * n₃) (n₁ + n₂))
-          _ = (n₂ * n₃) + (((n₁ * n₃) + n₁) + n₂) := congrArg (Nat.add (n₂ * n₃)) (Nat.add_assoc (n₁ * n₃) n₁ n₂)
+          _ = (n₂ * n₃) + (((n₁ * n₃) + n₁) + n₂) := congrArg ((n₂ * n₃) + ·) (Nat.add_assoc (n₁ * n₃) n₁ n₂)
           _ = (n₂ * n₃) + ((n₁ * n₃.succ) + n₂)   := rfl
           _ = (n₁ * n₃.succ) + ((n₂ * n₃) + n₂)   := Nat.add_swap_left (n₂ * n₃) (n₁ * n₃.succ) n₂
           _ = (n₁ * n₃.succ) + (n₂ * n₃.succ)     := rfl
@@ -400,21 +400,21 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
     theorem Nat.mul_assoc: ∀ n₁ n₂ n₃: Nat, n₁ * (n₂ * n₃) = (n₁ * n₂) * n₃
       | n₁, 0, n₃ =>
         calc n₁ * (0 * n₃)
-          _ = n₁ * 0        := congrArg (Nat.mul n₁) (Nat.zero_mul n₃)
+          _ = n₁ * 0        := congrArg (n₁ * ·) (Nat.zero_mul n₃)
           _ = 0             := Nat.mul_zero n₁
           _ = 0 * n₃        := Eq.symm (Nat.zero_mul n₃)
-          _ = (n₁ * 0) * n₃ := congr (congrArg Nat.mul (Eq.symm (Nat.mul_zero n₁))) rfl
+          _ = (n₁ * 0) * n₃ := congrArg (· * n₃) (Eq.symm (Nat.mul_zero n₁))
       | n₁, n₂ + 1, n₃ =>
         have ih := mul_assoc n₁ n₂ n₃
         calc n₁ * (n₂.succ * n₃)
-          _ = n₁ * (n₃ * n₂.succ)          := congrArg (Nat.mul n₁) (Nat.mul_comm n₂.succ n₃)
+          _ = n₁ * (n₃ * n₂.succ)          := congrArg (n₁ * ·) (Nat.mul_comm n₂.succ n₃)
           _ = n₁ * ((n₃ * n₂) + n₃)        := rfl
-          _ = n₁ * ((n₂ * n₃) + n₃)        := congrArg (Nat.mul n₁) (congr (congrArg Nat.add (Nat.mul_comm n₃ n₂)) rfl)
+          _ = n₁ * ((n₂ * n₃) + n₃)        := congrArg (λ x => n₁ * (x + n₃)) (Nat.mul_comm n₃ n₂)
           _ = ((n₂ * n₃) + n₃) * n₁        := Nat.mul_comm n₁ ((n₂ * n₃) + n₃)
           _ = ((n₂ * n₃) * n₁) + (n₃ * n₁) := Nat.add_mul (n₂ * n₃) n₃ n₁
-          _ = (n₁ * (n₂ * n₃)) + (n₃ * n₁) := congr (congrArg Nat.add (Nat.mul_comm (n₂ * n₃) n₁)) rfl
-          _ = ((n₁ * n₂) * n₃) + (n₃ * n₁) := congr (congrArg Nat.add ih) rfl
-          _ = ((n₁ * n₂) * n₃) + (n₁ * n₃) := congrArg (Nat.add ((n₁ * n₂) * n₃)) (Nat.mul_comm n₃ n₁)
+          _ = (n₁ * (n₂ * n₃)) + (n₃ * n₁) := congrArg (· + (n₃ * n₁)) (Nat.mul_comm (n₂ * n₃) n₁)
+          _ = ((n₁ * n₂) * n₃) + (n₃ * n₁) := congrArg (· + (n₃ * n₁)) ih
+          _ = ((n₁ * n₂) * n₃) + (n₁ * n₃) := congrArg (((n₁ * n₂) * n₃) + ·) (Nat.mul_comm n₃ n₁)
           _ = ((n₁ * n₂) + n₁) * n₃        := Eq.symm (Nat.add_mul (n₁ * n₂) n₁ n₃)
           _ = (n₁ * n₂.succ) * n₃          := rfl
   end Term
@@ -594,10 +594,10 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         calc b.one.incr.toNat
           _ = b.incr.zero.toNat := rfl
           _ = 2 * b.incr.toNat  := rfl
-          _ = 2 * (1 + b.toNat) := congrArg (Nat.mul 2) ih
+          _ = 2 * (1 + b.toNat) := congrArg (2 * ·) ih
           _ = (1 + b.toNat) * 2 := Nat.mul_comm 2 (1 + b.toNat)
           _ = 2 + (b.toNat * 2) := Nat.add_mul 1 b.toNat 2
-          _ = 2 + (2 * b.toNat) := congrArg (Nat.add 2) (Nat.mul_comm b.toNat 2)
+          _ = 2 + (2 * b.toNat) := congrArg (2 + ·) (Nat.mul_comm b.toNat 2)
           _ = 2 + b.zero        := rfl
           _ = (1 + 1) + b.zero  := rfl
           _ = 1 + (1 + b.zero)  := Eq.symm (Nat.add_assoc 1 1 b.zero)
@@ -610,7 +610,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         calc n.succ.toBin.toNat
           _ = n.toBin.incr.toNat := rfl
           _ = 1 + n.toBin.toNat  := Bin.toNat.preserve_incr n.toBin
-          _ = 1 + n              := congrArg (Nat.add 1) ih
+          _ = 1 + n              := congrArg (1 + ·) ih
           _ = n + 1              := Nat.add_comm 1 n
   end Term
 
@@ -726,7 +726,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         calc b.one.one.toNat.toBin
           _ = (1 + 2 * b.one.toNat).toBin   := rfl
           _ = b.one.toNat.toBin.double.incr := odd b.one
-          _ = b.one.normalize.double.incr   := congrArg Bin.incr (congrArg Bin.double ih)
+          _ = b.one.normalize.double.incr   := congrArg (Bin.incr ∘ Bin.double) ih
           _ = b.one.zero.normalize.incr     := rfl
           _ = b.one.normalize.zero.incr     := rfl
           _ = b.one.normalize.one           := rfl
@@ -736,7 +736,7 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
         calc b.zero.one.toNat.toBin
           _ = (1 + 2 * b.zero.toNat).toBin   := rfl
           _ = b.zero.toNat.toBin.double.incr := odd b.zero
-          _ = b.zero.normalize.double.incr   := congrArg Bin.incr (congrArg Bin.double ih)
+          _ = b.zero.normalize.double.incr   := congrArg (Bin.incr ∘ Bin.double) ih
 
 
 
@@ -813,7 +813,6 @@ namespace SoftwareFoundations.LogicalFoundations.Induction
           induction b with
             | nil => rfl
             | zero b ih =>
-              simp_all
               calc (2 * b.zero.toNat).toBin
                 _ = ((2 * b.toNat) * 2).toBin                   := by rw [Nat.mul_comm]
                 _ = (((2 * b.toNat) * 1) + (2 * b.toNat)).toBin := by rfl
