@@ -21,8 +21,8 @@ namespace SoftwareFoundations.LogicalFoundations.Poly
     | nil: List α
     | cons (hd: α) (tl: List α): List α
 
-  scoped syntax "[‹" term,* "›]" : term
-  scoped syntax:70 term:71 ":::" term:70 : term
+  syntax "[‹" term,* "›]" : term
+  syntax:70 term:71 ":::" term:70 : term
 
   macro_rules
     | `([‹ $hd:term , $tl:term,* ›]) => `(List.cons $(Lean.quote hd) [‹ $tl,* ›])
@@ -345,8 +345,8 @@ namespace SoftwareFoundations.LogicalFoundations.Poly
     snd: β
   deriving Repr
 
-  scoped notation "(‹" fst ", " snd "›)" => Prod.mk fst snd
-  scoped notation fst " ‹×› " snd => (Prod fst snd)
+  notation "(‹" fst ", " snd "›)" => Prod.mk fst snd
+  notation fst " ‹×› " snd => (Prod fst snd)
 
   #check Prod.fst
   #check @Prod.fst
@@ -383,11 +383,13 @@ namespace SoftwareFoundations.LogicalFoundations.Poly
     deriving Repr
   end OptionPlayground
 
+  @[reducible]
   def List.nth: List α → Nat → Option α
     | [‹›],     _     => .none
     | hd ::: _, 0     => .some hd
     | _ ::: tl, n + 1 => tl.nth n
 
+  @[reducible]
   def List.hd: List α → Option α
     | [‹›] => .none
     | hd ::: _ => .some hd
@@ -715,11 +717,11 @@ namespace SoftwareFoundations.LogicalFoundations.Poly
         have hf: 0 ≠ 0 :=
           calc 0
             _ = (hd ::: tl).length := Eq.symm h
-            _ = 1 + tl.length := rfl
-            _ = tl.length + 1 := Nat.add_comm 1 tl.length
-            _ = tl.length.succ := Nat.succ_eq_add_one tl.length
-            _ ≠ 0 := Nat.succ_ne_zero tl.length
-        absurd rfl hf
+            _ = 1 + tl.length      := rfl
+            _ = tl.length + 1      := Nat.add_comm 1 tl.length
+            _ = tl.length.succ     := Nat.succ_eq_add_one tl.length
+            _ ≠ 0                  := Nat.succ_ne_zero tl.length
+        nomatch hf
       | n + 1, hd ::: tl, h =>
         have ih :=
           have h: tl.length = n :=
@@ -847,14 +849,14 @@ namespace SoftwareFoundations.LogicalFoundations.Poly
         example: zero * (three + three) = zero := rfl
         example: two * three = three + three := rfl
 
-        #eval (two ^ zero) Nat Nat.succ 0
-        #eval (two ^ one) Nat Nat.succ 0
-        #eval (two ^ two) Nat Nat.succ 0
-        #eval (two ^ three) Nat Nat.succ 0
+        -- #eval (two ^ zero) Nat Nat.succ 0
+        -- #eval (two ^ one) Nat Nat.succ 0
+        -- #eval (two ^ two) Nat Nat.succ 0
+        -- #eval (two ^ three) Nat Nat.succ 0
 
-        example: two ^ two = two + two := rfl
-        example: three ^ zero = one := rfl
-        example: three ^ two = (two * (two * two)) + one := rfl
+        -- example: two ^ two = two + two := rfl
+        -- example: three ^ zero = one := rfl
+        -- example: three ^ two = (two * (two * two)) + one := rfl
       end
   end Church
 end SoftwareFoundations.LogicalFoundations.Poly
